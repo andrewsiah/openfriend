@@ -1,0 +1,19 @@
+# Isolated implementation worktrees
+.worktrees/
+
+# Dependencies and generated web output
+node_modules/
+.next/
+dist/
+coverage/
+
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+
+# Apple and macOS local state
+.DS_Store
+DerivedData/
+*.xcuserstate
+xcuserdata/
