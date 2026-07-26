@@ -1,0 +1,12 @@
+.next
+.agents
+.claude
+.cursor
+.projects
+.worktrees
+.cursorignore
+coverage
+dist
+node_modules
+pnpm-lock.yaml
+skills-lock.json
