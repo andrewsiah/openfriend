@@ -44,6 +44,11 @@ prepared for the first Realtime conversation. It does not yet connect a
 microphone, establish a voice session, write personal data, or perform external
 actions.
 
+An unsigned, Watch-only SwiftUI simulator skeleton is also available under
+`apps/watch`. It proves the independent target and truthful idle state build on
+the current watchOS simulator; it has no audio, networking, authentication,
+signing, or physical-device behavior and does not claim Phase 2.
+
 The initial voice profiles are configuration rather than separate code paths:
 
 | Profile | OpenAI model            | Use                                   |

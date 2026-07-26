@@ -40,7 +40,7 @@ evaluation, not a Phase 0 dependency.
 ```text
 apps/
   web/                  Next.js voice lab and dashboard
-apps/watch/             Independent SwiftUI app beginning in Phase 2
+  watch/                Independent SwiftUI readiness shell; voice in Phase 2
 packages/
   contracts/            Framework-independent TypeScript contracts
 docs/                   Versioned knowledge system and plans

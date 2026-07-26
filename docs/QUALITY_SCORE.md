@@ -11,6 +11,7 @@ field means the behavior is not yet proven.
 | Tests                | Unit and component suites pass                       | Passing | `pnpm test`                                                                 |
 | Static quality       | Typecheck, lint, format, docs checks pass            | Passing | `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm docs:check`       |
 | Build                | Next.js production build passes                      | Passing | `pnpm build`                                                                |
+| Watch readiness      | Unsigned simulator state test and build pass         | Passing | `xcodebuild test`, `xcodebuild build`, watchOS 26.2                         |
 | Account isolation    | Stripe, Vercel, Supabase, GitHub are personal        | Passing | Stripe Projects status and Vercel scope inspection                          |
 | Deployment           | Web story verified in a real deployed browser        | Passing | [Vercel preview](https://openfriend-8dst6mpnm-andrewsiah-stripe.vercel.app) |
 | Publication          | Public MIT repository and CI verified                | Pending | —                                                                           |

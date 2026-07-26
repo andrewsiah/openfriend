@@ -76,6 +76,11 @@ Watch across:
 The defining acceptance test is a useful continuous conversation during a walk
 without the phone.
 
+The Phase 0 simulator-readiness shell has its own unsigned test and build
+commands in [../apps/watch/README.md](../apps/watch/README.md). Passing them
+proves only that the independent target and idle-state contract compile; it does
+not satisfy any physical Watch or live-conversation acceptance criterion.
+
 ## TDD evidence
 
 For behavior, capture:

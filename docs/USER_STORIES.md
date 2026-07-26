@@ -17,6 +17,8 @@ Acceptance:
 - TDD, YAGNI, and user-story-driven development are enforceable guidance;
 - the profile registry exposes Economy and Quality without deprecated models;
 - the web shell truthfully states that voice is not connected;
+- the independent Watch target builds and tests a truthful idle state without
+  audio, networking, signing, or a Phase 2 claim;
 - local checks, personal infrastructure ownership, deployment, and public repo
   state are verified.
 
