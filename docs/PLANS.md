@@ -6,6 +6,7 @@ scope, acceptance criteria, decisions, and evidence.
 ## Active
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
+- [Phase 1 live conversation](plans/2026-07-26-phase-1-live-conversation.md)
 
 ## Accepted design
 
