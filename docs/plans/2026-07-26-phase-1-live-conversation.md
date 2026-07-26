@@ -221,14 +221,20 @@ On 2026-07-26:
 - a real browser reached the provider's WebRTC call endpoint through the SDK;
 - the provider rejected that call with an account-quota `429`, so speaking,
   hearing a reply, interruption, transcript, and live latency remain pending;
-- Claude Fable/high found no critical security issue and requested lifecycle
-  hardening plus an explicit boundary for the unauthenticated mint route;
-- the mint route must remain local or behind provider-level preview protection
-  until application authentication and rate limiting exist.
+- `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
+  lint, formatting, documentation, and production-build gates;
+- GitHub CI passes on reviewed commit `ff82f30`;
+- Claude Fable/high approved the final lifecycle hardening with no actionable
+  P0/P1 finding;
+- personal Vercel preview
+  [openfriend-cfhcg7g0h-andrewsiah-stripe.vercel.app](https://openfriend-cfhcg7g0h-andrewsiah-stripe.vercel.app)
+  is `READY` with Standard Protection and Vercel Authentication enabled;
+- an unauthenticated browser is redirected to Vercel Login before any
+  OpenFriend content is served.
 
 Phase 1 is not complete. Rerun the full real-conversation acceptance sequence
-after provider quota is available, then obtain green CI and a protected preview
-for the reviewed commit.
+after provider quota is available, then update status and merge only if that
+sequence passes.
 
 ## Stop condition
 
