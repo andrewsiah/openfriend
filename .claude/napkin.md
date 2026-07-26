@@ -5,6 +5,7 @@
 | Date       | Source | What went wrong                                                                                   | What to do instead                                                                                                      |
 | ---------- | ------ | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | 2026-07-26 | self   | On Vercel CLI 39.1.3, `vercel list --yes` in an unlinked worktree created a project in the default scope. | Treat that command as mutating on old CLI versions. Discover from known links/provider APIs, or upgrade and verify behavior first. |
+| 2026-07-26 | self   | Inspecting full Claude process command lines can expose credentials serialized from MCP configuration. | Use PID/status-only process checks, and inspect credential-bearing configuration only through redacted, exact-key queries. |
 
 ## User preferences
 
