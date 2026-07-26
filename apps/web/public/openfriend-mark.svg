@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title description">
+  <title id="title">OpenFriend</title>
+  <desc id="description">A warm point of light inside two open circles.</desc>
+  <circle cx="64" cy="64" r="52" fill="#071012" stroke="#E8A95C" stroke-opacity=".48" stroke-width="2"/>
+  <circle cx="64" cy="64" r="31" fill="none" stroke="#E8A95C" stroke-opacity=".2" stroke-width="2"/>
+  <circle cx="64" cy="64" r="10" fill="#FFD39B"/>
+</svg>
