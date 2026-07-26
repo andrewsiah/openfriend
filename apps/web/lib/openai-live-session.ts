@@ -36,10 +36,12 @@ export interface OpenAISdkSession {
 
 export type OpenAISdkSessionFactory = (
   agent: LiveAgentConfig,
+  model: string,
 ) => OpenAISdkSession;
 
 type OpenAILiveSessionOptions = Readonly<{
   agent: LiveAgentConfig;
+  model: string;
   callbacks: LiveSessionCallbacks;
   createSdkSession?: OpenAISdkSessionFactory;
 }>;
@@ -76,9 +78,10 @@ function toLiveHistory(history: RealtimeItem[]): LiveHistoryItem[] {
 
 function createOpenAISdkSession(
   agentConfig: LiveAgentConfig,
+  model: string,
 ): OpenAISdkSession {
   const agent = new RealtimeAgent(agentConfig);
-  return new RealtimeSession(agent);
+  return new RealtimeSession(agent, { model });
 }
 
 export class OpenAILiveSession implements LiveSession {
@@ -91,11 +94,12 @@ export class OpenAILiveSession implements LiveSession {
 
   constructor({
     agent,
+    model,
     callbacks,
     createSdkSession = createOpenAISdkSession,
   }: OpenAILiveSessionOptions) {
     this.callbacks = callbacks;
-    this.sdkSession = createSdkSession(agent);
+    this.sdkSession = createSdkSession(agent, model);
     this.handleConnectionChange = (status) => {
       this.callbacks.onConnectionChange(status);
     };

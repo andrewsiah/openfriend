@@ -1,10 +1,12 @@
 import { getLiveModelProfile } from "@openfriend/contracts";
 
+import { OPENFRIEND_REALTIME_INSTRUCTIONS } from "../../../../lib/live-agent-config";
+
 const OPENAI_CLIENT_SECRETS_URL =
   "https://api.openai.com/v1/realtime/client_secrets";
 // Phase 1 only: replace this opaque identifier with a per-user hash before multi-user access.
 const PHASE_ONE_SAFETY_IDENTIFIER =
-  "of_phase1_9c398ab46d98bc9bb926f412e0b6ceba330195a771ff181a6e04db636b5b4382";
+  "of_phase1_9c398ab46d98bc9bb926f412e0b6ceba330195a771ff181a6e04db";
 
 interface OpenAIClientSecret {
   value: string;
@@ -94,7 +96,7 @@ export async function POST(request: Request): Promise<Response> {
         session: {
           type: "realtime",
           model: profile.model,
-          instructions: "You are OpenFriend, a warm, conversational companion.",
+          instructions: OPENFRIEND_REALTIME_INSTRUCTIONS,
         },
       }),
     });

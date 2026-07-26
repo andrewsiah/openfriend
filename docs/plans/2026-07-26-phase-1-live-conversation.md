@@ -211,6 +211,25 @@ Acceptance:
 8. Update Phase 0/Phase 1 status and evidence truthfully, commit, push, and merge
    only when all required checks pass.
 
+### Current verification evidence
+
+On 2026-07-26:
+
+- focused reducer, route, adapter, and component tests pass;
+- the server successfully mints the expected short-lived Realtime client secret
+  without returning the standard API key;
+- a real browser reached the provider's WebRTC call endpoint through the SDK;
+- the provider rejected that call with an account-quota `429`, so speaking,
+  hearing a reply, interruption, transcript, and live latency remain pending;
+- Claude Fable/high found no critical security issue and requested lifecycle
+  hardening plus an explicit boundary for the unauthenticated mint route;
+- the mint route must remain local or behind provider-level preview protection
+  until application authentication and rate limiting exist.
+
+Phase 1 is not complete. Rerun the full real-conversation acceptance sequence
+after provider quota is available, then obtain green CI and a protected preview
+for the reviewed commit.
+
 ## Stop condition
 
 Stop after one real, interruptible, non-persistent browser conversation and the

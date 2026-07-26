@@ -21,6 +21,40 @@ describe("reduceLiveSessionState", () => {
     expect(ended).toEqual({ status: "ended", hasReconnected: false });
   });
 
+  it("allows a pending connection or reconnection to be ended", () => {
+    const connecting = reduceLiveSessionState(initialLiveSessionState, {
+      type: "start",
+    });
+    const live = reduceLiveSessionState(connecting, { type: "connected" });
+    const reconnecting = reduceLiveSessionState(live, {
+      type: "connection_lost",
+    });
+
+    expect(reduceLiveSessionState(connecting, { type: "end" })).toEqual({
+      status: "ended",
+      hasReconnected: false,
+    });
+    expect(reduceLiveSessionState(reconnecting, { type: "end" })).toEqual({
+      status: "ended",
+      hasReconnected: false,
+    });
+  });
+
+  it("resets an ended or failed session to idle", () => {
+    expect(
+      reduceLiveSessionState(
+        { status: "ended", hasReconnected: true },
+        { type: "reset" },
+      ),
+    ).toEqual(initialLiveSessionState);
+    expect(
+      reduceLiveSessionState(
+        { status: "failed", hasReconnected: true },
+        { type: "reset" },
+      ),
+    ).toEqual(initialLiveSessionState);
+  });
+
   it("fails when the initial connection is lost", () => {
     const connecting = reduceLiveSessionState(initialLiveSessionState, {
       type: "start",

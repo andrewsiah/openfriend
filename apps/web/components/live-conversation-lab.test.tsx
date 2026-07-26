@@ -116,6 +116,10 @@ describe("LiveConversationLab", () => {
     expect(sessionHarness.session.connect).toHaveBeenCalledWith(
       "ek_test_ephemeral",
     );
+    expect(sessionHarness.createSession).toHaveBeenCalledWith(
+      expect.any(Object),
+      "gpt-realtime-2.1-mini",
+    );
 
     act(() => {
       sessionHarness.emitConnection("connected");
@@ -151,6 +155,36 @@ describe("LiveConversationLab", () => {
 
     expect(screen.getByRole("radio", { name: /economy/i })).toBeDisabled();
     expect(screen.getByRole("radio", { name: /quality/i })).toBeDisabled();
+  });
+
+  it("uses the model bound to the minted client secret", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "server-bound-model",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    expect(sessionHarness.createSession).toHaveBeenCalledWith(
+      expect.any(Object),
+      "server-bound-model",
+    );
   });
 
   it("moves focus to the status announcement after Start", async () => {
@@ -487,6 +521,218 @@ describe("LiveConversationLab", () => {
     ).toBeDisabled();
   });
 
+  it("resets an ended session and clears session-local history and latency", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => {
+      sessionHarness.emitConnection("connected");
+      sessionHarness.emitHistory([
+        {
+          id: "user-1",
+          role: "user",
+          status: "completed",
+          text: "This must not survive reset.",
+        },
+      ]);
+    });
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+
+    await user.click(screen.getByRole("button", { name: /reset voice lab/i }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(/idle/i);
+    expect(screen.getByRole("radio", { name: /economy/i })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    ).toBeEnabled();
+    expect(screen.getByRole("log")).not.toHaveTextContent(
+      "This must not survive reset.",
+    );
+    expect(screen.getByText(/connection/i).parentElement).toHaveTextContent(
+      "Not measured",
+    );
+    expect(screen.getByText(/response start/i).parentElement).toHaveTextContent(
+      "Not measured",
+    );
+  });
+
+  it("ends while the initial secret request is pending and ignores its late response", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    let resolveSecretRequest: ((response: Response) => void) | undefined;
+    const secretRequest = new Promise<Response>((resolve) => {
+      resolveSecretRequest = resolve;
+    });
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(secretRequest));
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    const endButton = screen.getByRole("button", {
+      name: /end live conversation/i,
+    });
+    expect(endButton).toBeEnabled();
+    await user.click(endButton);
+    expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+
+    await act(async () => {
+      resolveSecretRequest?.(
+        Response.json({
+          clientSecret: "ek_test_too_late",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      );
+      await secretRequest;
+    });
+
+    expect(sessionHarness.createSession).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+  });
+
+  it("ends while a replacement secret is pending and ignores its late response", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSequentialSessionHarness();
+    let resolveReconnectSecret: ((response: Response) => void) | undefined;
+    const reconnectSecretRequest = new Promise<Response>((resolve) => {
+      resolveReconnectSecret = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_initial",
+            expiresAt: 1_900_000_000,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        )
+        .mockReturnValueOnce(reconnectSecretRequest),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => {
+      sessionHarness.emitConnection(0, "connected");
+      sessionHarness.emitConnection(0, "disconnected");
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(/reconnecting/i);
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+
+    await act(async () => {
+      resolveReconnectSecret?.(
+        Response.json({
+          clientSecret: "ek_test_reconnect_too_late",
+          expiresAt: 1_900_000_100,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      );
+      await reconnectSecretRequest;
+    });
+
+    expect(sessionHarness.createSession).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+  });
+
+  it("ignores a secret response from before reset and restart", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSequentialSessionHarness();
+    let resolveFirstSecret: ((response: Response) => void) | undefined;
+    const firstSecretRequest = new Promise<Response>((resolve) => {
+      resolveFirstSecret = resolve;
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockReturnValueOnce(firstSecretRequest)
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_current",
+            expiresAt: 1_900_000_100,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+    await user.click(screen.getByRole("button", { name: /reset voice lab/i }));
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    await waitFor(() => {
+      expect(sessionHarness.createSession).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      resolveFirstSecret?.(
+        Response.json({
+          clientSecret: "ek_test_stale",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      );
+      await firstSecretRequest;
+    });
+
+    expect(sessionHarness.createSession).toHaveBeenCalledTimes(1);
+    expect(sessionHarness.sessions[0]?.session.connect).toHaveBeenCalledWith(
+      "ek_test_current",
+    );
+    expect(sessionHarness.sessions[0]?.session.close).not.toHaveBeenCalled();
+  });
+
   it("closes an active session exactly once when unmounted", async () => {
     const user = userEvent.setup();
     const sessionHarness = createSessionHarness();
@@ -679,5 +925,124 @@ describe("LiveConversationLab", () => {
     });
 
     expect(screen.getByRole("status")).toHaveTextContent(/live/i);
+  });
+
+  it("does not count a close-triggered connect rejection as a second loss", async () => {
+    const user = userEvent.setup();
+    let rejectInitialConnect: ((reason: unknown) => void) | undefined;
+    const initialConnect = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectInitialConnect = reject;
+      });
+    const sessionHarness = createSequentialSessionHarness([
+      initialConnect,
+      () => Promise.resolve(),
+    ]);
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_initial",
+            expiresAt: 1_900_000_000,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        )
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_reconnect",
+            expiresAt: 1_900_000_100,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    const initialSession = sessionHarness.sessions[0];
+    expect(initialSession).toBeDefined();
+    vi.mocked(initialSession!.session.close).mockImplementation(() => {
+      rejectInitialConnect?.(new Error("connect rejected while closing"));
+    });
+
+    act(() => {
+      sessionHarness.emitConnection(0, "connected");
+      sessionHarness.emitConnection(0, "disconnected");
+    });
+
+    await waitFor(() => {
+      expect(sessionHarness.createSession).toHaveBeenCalledTimes(2);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(/reconnecting/i);
+    act(() => {
+      sessionHarness.emitConnection(1, "connected");
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(/live/i);
+  });
+
+  it("starts a reconnect when the current connected attempt later rejects", async () => {
+    const user = userEvent.setup();
+    let rejectConnectedAttempt: ((reason: unknown) => void) | undefined;
+    const connectedAttempt = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectConnectedAttempt = reject;
+      });
+    const sessionHarness = createSequentialSessionHarness([
+      connectedAttempt,
+      () => Promise.resolve(),
+    ]);
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_initial",
+            expiresAt: 1_900_000_000,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        )
+        .mockResolvedValueOnce(
+          Response.json({
+            clientSecret: "ek_test_reconnect",
+            expiresAt: 1_900_000_100,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => {
+      sessionHarness.emitConnection(0, "connected");
+    });
+
+    await act(async () => {
+      rejectConnectedAttempt?.(new Error("connected attempt rejected"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(/reconnecting/i);
+    await waitFor(() => {
+      expect(sessionHarness.createSession).toHaveBeenCalledTimes(2);
+    });
+    expect(sessionHarness.sessions[1]?.session.connect).toHaveBeenCalledWith(
+      "ek_test_reconnect",
+    );
   });
 });

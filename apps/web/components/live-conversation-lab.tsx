@@ -11,6 +11,7 @@ import {
   initialLiveSessionState,
   reduceLiveSessionState,
 } from "../lib/live-session-state";
+import { OPENFRIEND_REALTIME_INSTRUCTIONS } from "../lib/live-agent-config";
 import type {
   LiveHistoryItem,
   LiveSession,
@@ -21,6 +22,7 @@ import { LiveProfileSelector } from "./live-profile-selector";
 
 export type LiveSessionFactory = (
   callbacks: LiveSessionCallbacks,
+  model: string,
 ) => LiveSession;
 type LiveSessionEvent = Parameters<typeof reduceLiveSessionState>[1];
 
@@ -39,25 +41,36 @@ const statusCopy = {
   failed: "Failed. The live conversation could not continue.",
 } as const;
 
-function getClientSecret(value: unknown): string {
+type RealtimeClientSecret = Readonly<{
+  clientSecret: string;
+  model: string;
+}>;
+
+function getClientSecret(value: unknown): RealtimeClientSecret {
   if (
     typeof value !== "object" ||
     value === null ||
     typeof (value as Record<string, unknown>).clientSecret !== "string" ||
-    !(value as { clientSecret: string }).clientSecret.startsWith("ek_")
+    !(value as { clientSecret: string }).clientSecret.startsWith("ek_") ||
+    typeof (value as Record<string, unknown>).model !== "string" ||
+    (value as { model: string }).model.length === 0
   ) {
     throw new Error("Invalid client secret response");
   }
 
-  return (value as { clientSecret: string }).clientSecret;
+  return value as RealtimeClientSecret;
 }
 
-function createOpenAILiveSession(callbacks: LiveSessionCallbacks): LiveSession {
+function createOpenAILiveSession(
+  callbacks: LiveSessionCallbacks,
+  model: string,
+): LiveSession {
   return new OpenAILiveSession({
     agent: {
       name: "OpenFriend",
-      instructions: "Be a warm, thoughtful conversational companion.",
+      instructions: OPENFRIEND_REALTIME_INSTRUCTIONS,
     },
+    model,
     callbacks,
   });
 }
@@ -89,6 +102,7 @@ export function LiveConversationLab({
   const latestCompletedUserId = useRef<string | null>(null);
   const latestCompletedUserAt = useRef<number | null>(null);
   const activeSession = useRef<LiveSession | null>(null);
+  const connectionAttemptId = useRef(0);
   const isMounted = useRef(true);
   const statusElement = useRef<HTMLDivElement | null>(null);
 
@@ -97,6 +111,7 @@ export function LiveConversationLab({
 
     return () => {
       isMounted.current = false;
+      connectionAttemptId.current += 1;
       const sessionToClose = activeSession.current;
       activeSession.current = null;
       sessionToClose?.close();
@@ -117,12 +132,26 @@ export function LiveConversationLab({
   }
 
   function endConversation(): void {
+    connectionAttemptId.current += 1;
     closeActiveSession();
     transition({ type: "end" });
     statusElement.current?.focus();
   }
 
-  async function requestClientSecret(): Promise<string> {
+  function resetConversation(): void {
+    connectionAttemptId.current += 1;
+    closeActiveSession();
+    setTranscript([]);
+    setConnectionLatency(null);
+    setResponseStartLatency(null);
+    connectionStartedAt.current = null;
+    latestCompletedUserId.current = null;
+    latestCompletedUserAt.current = null;
+    transition({ type: "reset" });
+    statusElement.current?.focus();
+  }
+
+  async function requestClientSecret(): Promise<RealtimeClientSecret> {
     const response = await fetch("/api/realtime/client-secret", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,94 +166,112 @@ export function LiveConversationLab({
   }
 
   async function connectWithFreshSecret(): Promise<void> {
+    const attemptId = connectionAttemptId.current + 1;
+    connectionAttemptId.current = attemptId;
     connectionStartedAt.current = now();
     let nextSession: LiveSession | null = null;
 
     try {
       const clientSecret = await requestClientSecret();
 
-      if (!isMounted.current) {
+      if (
+        !isMounted.current ||
+        connectionAttemptId.current !== attemptId ||
+        (sessionStateRef.current.status !== "connecting" &&
+          sessionStateRef.current.status !== "reconnecting")
+      ) {
         return;
       }
 
-      nextSession = createSession({
-        onConnectionChange(status) {
-          if (
-            !isMounted.current ||
-            nextSession === null ||
-            activeSession.current !== nextSession
-          ) {
-            return;
-          }
+      nextSession = createSession(
+        {
+          onConnectionChange(status) {
+            if (
+              !isMounted.current ||
+              connectionAttemptId.current !== attemptId ||
+              nextSession === null ||
+              activeSession.current !== nextSession
+            ) {
+              return;
+            }
 
-          if (status === "connected") {
-            if (connectionStartedAt.current !== null) {
-              setConnectionLatency(
-                Math.max(0, Math.round(now() - connectionStartedAt.current)),
+            if (status === "connected") {
+              if (connectionStartedAt.current !== null) {
+                setConnectionLatency(
+                  Math.max(0, Math.round(now() - connectionStartedAt.current)),
+                );
+              }
+              transition({ type: "connected" });
+              return;
+            }
+
+            if (status === "disconnected") {
+              connectionAttemptId.current += 1;
+              const nextState = transition({ type: "connection_lost" });
+              closeActiveSession();
+
+              if (nextState.status === "reconnecting") {
+                void connectWithFreshSecret();
+              }
+            }
+          },
+          onHistoryChange(history) {
+            if (
+              !isMounted.current ||
+              connectionAttemptId.current !== attemptId ||
+              nextSession === null ||
+              activeSession.current !== nextSession
+            ) {
+              return;
+            }
+
+            setTranscript(history);
+            let latestCompletedUser: LiveHistoryItem | undefined;
+
+            for (let index = history.length - 1; index >= 0; index -= 1) {
+              const item = history[index];
+
+              if (item?.role === "user" && item.status === "completed") {
+                latestCompletedUser = item;
+                break;
+              }
+            }
+
+            if (
+              latestCompletedUser &&
+              latestCompletedUser.id !== latestCompletedUserId.current
+            ) {
+              latestCompletedUserId.current = latestCompletedUser.id;
+              latestCompletedUserAt.current = now();
+            }
+          },
+          onResponseStart() {
+            if (
+              !isMounted.current ||
+              connectionAttemptId.current !== attemptId ||
+              nextSession === null ||
+              activeSession.current !== nextSession
+            ) {
+              return;
+            }
+
+            if (latestCompletedUserAt.current !== null) {
+              setResponseStartLatency(
+                Math.max(0, Math.round(now() - latestCompletedUserAt.current)),
               );
             }
-            transition({ type: "connected" });
-            return;
-          }
-
-          if (status === "disconnected") {
-            const nextState = transition({ type: "connection_lost" });
-            closeActiveSession();
-
-            if (nextState.status === "reconnecting") {
-              void connectWithFreshSecret();
-            }
-          }
+          },
         },
-        onHistoryChange(history) {
-          if (
-            !isMounted.current ||
-            nextSession === null ||
-            activeSession.current !== nextSession
-          ) {
-            return;
-          }
-
-          setTranscript(history);
-          let latestCompletedUser: LiveHistoryItem | undefined;
-
-          for (let index = history.length - 1; index >= 0; index -= 1) {
-            const item = history[index];
-
-            if (item?.role === "user" && item.status === "completed") {
-              latestCompletedUser = item;
-              break;
-            }
-          }
-
-          if (
-            latestCompletedUser &&
-            latestCompletedUser.id !== latestCompletedUserId.current
-          ) {
-            latestCompletedUserId.current = latestCompletedUser.id;
-            latestCompletedUserAt.current = now();
-          }
-        },
-        onResponseStart() {
-          if (
-            !isMounted.current ||
-            nextSession === null ||
-            activeSession.current !== nextSession
-          ) {
-            return;
-          }
-
-          if (latestCompletedUserAt.current !== null) {
-            setResponseStartLatency(
-              Math.max(0, Math.round(now() - latestCompletedUserAt.current)),
-            );
-          }
-        },
-      });
+        clientSecret.model,
+      );
 
       activeSession.current = nextSession;
-      await nextSession.connect(clientSecret);
+      await nextSession.connect(clientSecret.clientSecret);
     } catch {
+      if (!isMounted.current || connectionAttemptId.current !== attemptId) {
+        return;
+      }
+
       const isCurrentAttempt =
         nextSession === null || activeSession.current === nextSession;
 
@@ -236,8 +283,10 @@ export function LiveConversationLab({
         closeActiveSession();
       }
 
-      if (isMounted.current) {
-        transition({ type: "connection_lost" });
+      const nextState = transition({ type: "connection_lost" });
+
+      if (nextState.status === "reconnecting") {
+        void connectWithFreshSecret();
       }
     }
   }
@@ -338,10 +387,24 @@ export function LiveConversationLab({
         <button
           className="sessionButton"
           type="button"
-          disabled={sessionState.status !== "live"}
+          disabled={
+            sessionState.status !== "connecting" &&
+            sessionState.status !== "live" &&
+            sessionState.status !== "reconnecting"
+          }
           onClick={endConversation}
         >
           End live conversation
+        </button>
+        <button
+          className="sessionButton"
+          type="button"
+          disabled={
+            sessionState.status !== "ended" && sessionState.status !== "failed"
+          }
+          onClick={resetConversation}
+        >
+          Reset voice lab
         </button>
       </div>
     </div>

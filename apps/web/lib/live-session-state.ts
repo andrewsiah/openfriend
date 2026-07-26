@@ -7,7 +7,8 @@ type LiveSessionEvent =
   | Readonly<{ type: "start" }>
   | Readonly<{ type: "connected" }>
   | Readonly<{ type: "connection_lost" }>
-  | Readonly<{ type: "end" }>;
+  | Readonly<{ type: "end" }>
+  | Readonly<{ type: "reset" }>;
 
 export const initialLiveSessionState: LiveSessionState = {
   status: "idle",
@@ -18,6 +19,13 @@ export function reduceLiveSessionState(
   state: LiveSessionState,
   event: LiveSessionEvent,
 ): LiveSessionState {
+  if (
+    event.type === "reset" &&
+    (state.status === "ended" || state.status === "failed")
+  ) {
+    return initialLiveSessionState;
+  }
+
   if (state.status === "idle" && event.type === "start") {
     return { ...state, status: "connecting" };
   }
@@ -54,7 +62,12 @@ export function reduceLiveSessionState(
     return { ...state, status: "failed" };
   }
 
-  if (state.status === "live" && event.type === "end") {
+  if (
+    event.type === "end" &&
+    (state.status === "connecting" ||
+      state.status === "live" ||
+      state.status === "reconnecting")
+  ) {
     return { ...state, status: "ended" };
   }
 

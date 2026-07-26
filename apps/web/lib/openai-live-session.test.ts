@@ -111,6 +111,7 @@ function createLiveSession(
       name: "OpenFriend",
       instructions: "Be a thoughtful conversational companion.",
     },
+    model: "gpt-realtime-2.1-mini",
     callbacks: {
       onConnectionChange: callbacks.onConnectionChange ?? vi.fn(),
       onHistoryChange: callbacks.onHistoryChange ?? vi.fn(),
@@ -130,6 +131,10 @@ describe("OpenAILiveSession", () => {
     await liveSession.connect("ek_test_ephemeral");
 
     expect(createSdkSession).toHaveBeenCalledOnce();
+    expect(createSdkSession).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "OpenFriend" }),
+      "gpt-realtime-2.1-mini",
+    );
     expect(sdkSession.connect).toHaveBeenCalledWith({
       apiKey: "ek_test_ephemeral",
     });

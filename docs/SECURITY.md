@@ -46,6 +46,17 @@ or another company organization. Verify owner and environment before any
 provider mutation. Development is the default; production access, paid plans,
 and spend changes require explicit human intent.
 
+## Realtime client-secret boundary
+
+The Phase 1 client-secret route intentionally has no application authentication
+yet. It may run locally or on a preview protected by the hosting provider, but
+must not be exposed on an unprotected public deployment. Before public access,
+add application authentication and request rate limiting to the route.
+
+The route may return only the short-lived Realtime client secret, its expiry,
+and the selected model. It must never return or log the server API key or an
+upstream error body.
+
 ## Threats to address by phase
 
 Phase 0 protects repository and account boundaries. Phase 1 adds ephemeral

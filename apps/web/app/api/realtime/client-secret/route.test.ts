@@ -45,10 +45,15 @@ describe("POST /api/realtime/client-secret", () => {
         Authorization: "Bearer test-server-key",
         "Content-Type": "application/json",
         "OpenAI-Safety-Identifier": expect.stringMatching(
-          /^of_phase1_[a-f0-9]{64}$/,
+          /^of_phase1_[a-f0-9]{54}$/,
         ),
       },
     });
+    expect(
+      String(
+        (init.headers as Record<string, string>)["OpenAI-Safety-Identifier"],
+      ).length,
+    ).toBeLessThanOrEqual(64);
     expect(JSON.parse(String(init.body))).toEqual({
       expires_after: {
         anchor: "created_at",
