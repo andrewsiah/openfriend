@@ -9,7 +9,7 @@
 ## Summary
 
 OpenFriend is a personal-first, open-source life assistant inspired by the ease,
-continuity, and conversational presence of Samantha in *Her*. It is not a voice
+continuity, and conversational presence of Samantha in _Her_. It is not a voice
 command interface with a friendly prompt. Its primary product is a rich,
 continuous relationship conducted through full-duplex voice, backed by an
 operator that can remember, reason, prepare work, and act with permission.
@@ -205,10 +205,10 @@ Model selection is configuration, not branching application code. A
 
 The initial profiles are:
 
-| Profile | Model | Purpose |
-| --- | --- | --- |
+| Profile | Model                   | Purpose                             |
+| ------- | ----------------------- | ----------------------------------- |
 | Economy | `gpt-realtime-2.1-mini` | Default development and routine use |
-| Quality | `gpt-realtime-2.1` | Conversation-quality comparison |
+| Quality | `gpt-realtime-2.1`      | Conversation-quality comparison     |
 
 The older `gpt-realtime-mini` model is deprecated and must not be used for new
 work.

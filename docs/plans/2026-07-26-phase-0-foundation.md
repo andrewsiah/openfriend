@@ -89,7 +89,7 @@ Keep `CLAUDE.md` as a pointer to `AGENTS.md`.
 
 Explain:
 
-- the Samantha-from-*Her* aspiration without implying affiliation;
+- the Samantha-from-_Her_ aspiration without implying affiliation;
 - why full-duplex conversation is categorically different from a voice command
   assistant;
 - the live companion/background operator split;
