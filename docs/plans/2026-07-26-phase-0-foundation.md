@@ -42,12 +42,26 @@ Acceptance criteria:
 ## Non-goals
 
 - No Realtime API call, microphone capture, auth flow, database schema, billing,
-  calendar connector, background operator, iPhone app, or Watch app is
-  implemented in Phase 0.
+  calendar connector, background operator, iPhone app, Watch voice transport,
+  Watch networking, or physical-device deployment is implemented in Phase 0. A
+  truthful unsigned Watch simulator skeleton is allowed as parallel readiness
+  work, but it does not advance or claim Phase 2.
 - No generic provider abstraction beyond the fields needed by the two accepted
   OpenAI profiles.
 - No production resources, paid upgrades, or company-owned provider scopes.
 - No secret copied from chat, committed to Git, or printed in a shell command.
+
+## Execution strategy
+
+The primary Codex task is the user-facing orchestrator. It delegates independent
+workstreams with concrete, non-overlapping scope, reviews every return, and runs
+the integrated gate. Shared contracts, ambiguous external-account mutations,
+and dependent product behavior remain sequential.
+
+Use Andrew's Claude CLI read-only for a bounded first-pass plan or
+high-leverage review when practical. If workspace trust, availability, rate
+limits, usage limits, or budget prevent a useful result, record the fallback
+and continue with Codex's own review rather than blocking delivery.
 
 ## Task 1: Establish the agent-first repository knowledge system
 
@@ -392,6 +406,65 @@ Expected: PASS.
 git add scripts .github package.json docs/QUALITY_SCORE.md
 git commit -m "ci: enforce foundation quality gates"
 ```
+
+## Task 4A: Prepare an independent Watch simulator skeleton in parallel
+
+**Files:**
+
+- Create in an isolated worktree: `apps/watch/OpenFriendWatch.xcodeproj`
+- Create: `apps/watch/OpenFriendWatch/App/OpenFriendWatchApp.swift`
+- Create: `apps/watch/OpenFriendWatch/App/ContentView.swift`
+- Create:
+  `apps/watch/OpenFriendWatch/Tests/WatchConnectionStateTests.swift`
+- Create: `apps/watch/README.md`
+
+This task may run in parallel after Task 4. It must not change Apple accounts,
+register bundle identifiers, create provisioning profiles, or depend on the
+Phase 1 web runtime.
+
+### Step 1: Create the smallest failing state test
+
+Generate a Watch-only SwiftUI project with a unit-test target, then write a test
+requiring an idle connection state whose user-visible description is
+`Voice not connected`. Do not add audio, networking, auth, or Realtime code.
+
+### Step 2: Run the unsigned simulator test and observe RED
+
+Use an installed watchOS 26.2 simulator and:
+
+```bash
+xcodebuild test \
+  -project apps/watch/OpenFriendWatch.xcodeproj \
+  -scheme OpenFriendWatch \
+  -destination 'platform=watchOS Simulator,name=Apple Watch SE (3rd generation) (40mm)' \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+Expected: FAIL because the connection-state behavior is absent.
+
+### Step 3: Implement the truthful idle shell
+
+Add only:
+
+- the idle state needed by the test;
+- an independent Watch-only SwiftUI entry point;
+- a glanceable `OpenFriend` title;
+- `Watch foundation ready`;
+- `Voice not connected`.
+
+Do not display a microphone control or fake connected state.
+
+### Step 4: Run GREEN and build verification
+
+Run the focused test and an unsigned simulator build. Record the exact Xcode,
+Swift, watchOS SDK, simulator, and commands in `apps/watch/README.md`.
+
+### Step 5: Keep the product gate explicit
+
+The skeleton may be reviewed and integrated as Phase 0 readiness, but Phase 2
+voice, networking, signing, physical-device deployment, and acceptance claims
+remain blocked until the Phase 1 browser Realtime session contract is stable
+and Andrew confirms a personal Apple team.
 
 ## Task 5: Record and verify personal Stripe Projects infrastructure
 

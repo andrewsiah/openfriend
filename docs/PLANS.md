@@ -16,11 +16,15 @@ scope, acceptance criteria, decisions, and evidence.
 1. Begin from an accepted user story.
 2. Record goal, architecture, stack, non-goals, exact files, TDD steps, commands,
    expected results, and external-state boundaries.
-3. Execute in an isolated branch or worktree.
-4. Update progress and decisions in the plan when reality differs.
-5. Capture verification evidence in the plan or
+3. Request a bounded Claude CLI review when practical and resolve actionable
+   findings; continue without it when limits or availability block the call.
+4. Identify independent workstreams and assign concrete, non-overlapping
+   parallel agent tasks.
+5. Execute in an isolated branch or worktree.
+6. Update progress and decisions in the plan when reality differs.
+7. Capture verification evidence in the plan or
    [QUALITY_SCORE.md](QUALITY_SCORE.md).
-6. Move the plan link from active to completed; keep the file for provenance.
+8. Move the plan link from active to completed; keep the file for provenance.
 
 Plans are not a substitute for tests or current product documentation. When a
 decision becomes durable, update the relevant system-of-record document.

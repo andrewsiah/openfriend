@@ -29,6 +29,30 @@ reliability, user-story, and planning guidance.
 8. Preserve user work already present in the tree. Keep commits narrow and
    intentional.
 
+## Orchestration and delegation
+
+The primary Codex task is the user-facing orchestrator. It owns the integrated
+plan, stays in conversation with Andrew, and is accountable for the final
+result.
+
+- Before executing multi-step work sequentially, identify independent
+  workstreams that can run in parallel.
+- Delegate independent work to parallel agent tasks whenever scopes can be made
+  concrete and non-overlapping. Keep tightly coupled changes local.
+- Give each agent a bounded goal, file or system scope, safety constraints,
+  expected verification, and required return summary.
+- Delegation never expands authority. External mutations, secrets, destructive
+  actions, and account boundaries remain governed by the original user request.
+- The orchestrator reviews every returned change, checks for conflicts, and
+  runs the integrated quality gate. Agent reports are evidence, not completion.
+
+Use Andrew's installed Claude CLI for first-pass plans and high-leverage
+architecture or code reviews when practical. Keep Claude read-only for reviews,
+send only the context it needs, and never expose secrets. Treat its output as a
+second opinion; the Codex orchestrator still makes and verifies the decision.
+If Claude is unavailable, rate-limited, over budget, or otherwise blocked,
+continue with Codex reasoning rather than pausing the project.
+
 ## Personal account boundary
 
 This is Andrew's personal project. Use only personal GitHub, Stripe, Vercel,

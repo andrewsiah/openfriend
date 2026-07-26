@@ -68,17 +68,62 @@ Ready Homes and every other company organization are prohibited. Verify the
 resolved owner before creating, linking, deploying, migrating, or deleting an
 external resource. Ambiguous ownership is a blocker.
 
+## Orchestrator-led execution
+
+Andrew interfaces with one primary Codex task. That task acts as the
+orchestrator: it owns the current plan, decomposes work, keeps the user informed,
+integrates results, and verifies the finished experience.
+
+Parallel work is the default when tasks are genuinely independent. Good
+delegation candidates include separate provider-readiness audits, bounded
+documentation or CI work, independent platform scaffolds, focused tests, and
+reviews. Keep work sequential when tasks edit the same contract, depend on an
+unresolved decision, share mutable external state, or could race on an account.
+
+Every delegated task states:
+
+- one concrete outcome;
+- the allowed file or provider scope;
+- non-goals and safety boundaries;
+- the evidence it must produce;
+- whether it may edit, commit, or mutate external state.
+
+The orchestrator reviews returned diffs and evidence, resolves overlaps, and
+runs the complete integrated gate. Delegated work is never accepted solely
+because another agent says it passed.
+
+### Claude as a planning and review peer
+
+Use Andrew's installed Claude CLI for an early second opinion on multi-step
+plans and for high-leverage architecture, security, and code reviews when the
+expected value justifies its higher cost.
+
+- Prefer a read-only or plan permission mode.
+- Provide the narrowest relevant files and question.
+- Set a reasonable effort and budget for non-interactive calls.
+- Never include credentials, private conversations, or unrelated personal data.
+- Treat findings as advisory and verify them against the repository and real
+  environment.
+
+If Claude is unauthenticated, unavailable, rate-limited, over its usage limit,
+or times out, note the fallback and proceed with Codex's own review. Claude
+availability must not become a delivery dependency.
+
 ## Change workflow
 
 1. Read [docs/README.md](README.md) and the relevant product guidance.
 2. Add or update the accepted story.
-3. Write a checked-in plan for multi-step work.
-4. Work on an isolated branch or worktree.
-5. Follow red-green-refactor.
-6. Run focused checks, then `pnpm verify`.
-7. Update docs and quality evidence with the code.
-8. Review the diff for secrets, unrelated user changes, and false claims.
-9. Commit narrow units and publish through the personal GitHub account.
+3. Ask Claude for a bounded plan review when practical; fall back without
+   blocking if it is unavailable.
+4. Write a checked-in plan for multi-step work.
+5. Split independent work into bounded parallel tasks.
+6. Work on an isolated branch or worktree.
+7. Follow red-green-refactor.
+8. Review and integrate delegated changes.
+9. Run focused checks, then `pnpm verify`.
+10. Update docs and quality evidence with the code.
+11. Review the diff for secrets, unrelated user changes, and false claims.
+12. Commit narrow units and publish through the personal GitHub account.
 
 ## Definition of done
 
