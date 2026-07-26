@@ -92,11 +92,15 @@ Do not put the value on the command line, in `.env.example`, or in Git.
 
 ## Deployment
 
-Stripe Projects created the personal Vercel project, but a deployment is not
-considered verified until:
+Stripe Projects created the personal Vercel project. Its project root is
+`apps/web`, while deployments upload the repository root so pnpm can resolve
+the workspace contracts package. SSO deployment protection is disabled for this
+public, credential-free foundation shell; Git fork protection remains enabled.
 
-- the repository is linked from the personal GitHub account;
-- Vercel reports the personal scope;
-- the production build succeeds remotely;
-- the deployed user story is checked in a real browser;
-- the evidence is recorded in [QUALITY_SCORE.md](QUALITY_SCORE.md).
+The current
+[public preview](https://openfriend-8dst6mpnm-andrewsiah-stripe.vercel.app)
+completed its remote production build and passed the deployed browser story.
+Detailed evidence is recorded in [QUALITY_SCORE.md](QUALITY_SCORE.md).
+
+The preview is not a production promotion. Git-based deployments remain pending
+until the repository is published from the personal GitHub account.
