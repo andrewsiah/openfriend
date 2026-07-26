@@ -16,6 +16,8 @@ document below.
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — runtime boundaries, repository shape,
   shared contracts, and action lifecycle.
+- [INFRASTRUCTURE.md](INFRASTRUCTURE.md) — personal cloud topology, Stripe
+  Projects workflow, and environment-variable names.
 - [ENGINEERING.md](ENGINEERING.md) — user-story workflow, TDD, YAGNI,
   dependencies, and account boundaries.
 - [TESTING.md](TESTING.md) — local gates, test layers, conversation evaluation,

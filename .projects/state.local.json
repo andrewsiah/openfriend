@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "project": {
+    "initializedAt": "2026-07-26T19:26:55.950Z",
+    "merchantDisplayName": "Andrew",
+    "merchantId": "acct_1HqvN8IyLcOpmiJj",
+    "projectId": "project_61V6vehr5c7KA6iU916P2SoZQ1KWQIe0shmZTb7H6WVU",
+    "projectName": "openfriend"
+  },
+  "providers": {
+    "supabase": {
+      "accountRequestId": "fprvcnn_61UqVkbZE0H6POGoW16P2SoZQ1KWQIe0shmZTb7H64g4",
+      "configuration": {},
+      "linkedAt": "2026-06-11T12:33:09.490Z",
+      "providerId": "prvdr_61UIXYHdsyF69pZbG52n2",
+      "providerName": "Supabase",
+      "redirectUrl": null,
+      "requestedAt": "2026-06-11T12:33:09.490Z",
+      "status": "complete"
+    },
+    "vercel": {
+      "accountRequestId": "facctrq_61V6w50JZtebkPqHD16P2SoZQ1KWQIe0shmZTb7H65Xk",
+      "configuration": {},
+      "linkedAt": "2026-07-26T19:54:07.972Z",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "redirectUrl": null,
+      "requestedAt": "2026-07-26T19:54:07.972Z",
+      "status": "complete"
+    }
+  },
+  "resources": {
+    "supabase": {
+      "configuration": {
+        "name": "openfriend",
+        "region": "americas"
+      },
+      "createdAt": "2026-07-26T19:53:59.624Z",
+      "lastRevealedAt": "2026-07-26T19:53:59.967Z",
+      "lastStatus": "complete",
+      "name": "supabase",
+      "providerId": "prvdr_61UIXYHdsyF69pZbG52n2",
+      "providerName": "Supabase",
+      "resourceId": "fres_61V6w4c1JiCXH1RJW16P2SoZQ1KWQIe0shmZTb7H6JqS",
+      "serviceId": "project"
+    },
+    "supabase-plan": {
+      "configuration": {},
+      "createdAt": "2026-07-26T19:53:34.443Z",
+      "lastRevealedAt": "2026-07-26T19:53:34.662Z",
+      "lastStatus": "complete",
+      "name": "supabase-plan",
+      "providerId": "prvdr_61UIXYHdsyF69pZbG52n2",
+      "providerName": "Supabase",
+      "resourceId": "fres_61V6w4C238snLZVtB16P2SoZQ1KWQIe0shmZTb7H6Odc",
+      "serviceId": "free"
+    },
+    "vercel-plan": {
+      "configuration": {},
+      "createdAt": "2026-07-26T19:54:09.134Z",
+      "lastRevealedAt": "2026-07-26T19:54:09.405Z",
+      "lastStatus": "complete",
+      "name": "vercel-plan",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "resourceId": "fres_61V6w52FFLQdioX0k16P2SoZQ1KWQIe0shmZTb7H6Tfs",
+      "serviceId": "hobby"
+    },
+    "web": {
+      "configuration": {
+        "name": "openfriend"
+      },
+      "createdAt": "2026-07-26T19:54:16.376Z",
+      "lastRevealedAt": "2026-07-26T19:54:16.618Z",
+      "lastStatus": "complete",
+      "name": "web",
+      "providerId": "prvdr_61ULUAr4zlQgZkvXY5LsG",
+      "providerName": "Vercel",
+      "resourceId": "fres_61V6w59W2yBJGGaJR16P2SoZQ1KWQIe0shmZTb7H60em",
+      "serviceId": "project"
+    }
+  }
+}

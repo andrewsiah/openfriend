@@ -496,7 +496,7 @@ Use exact service slugs from catalog output. Never guess a slug and never open
 Record:
 
 - Stripe account: Andrew's personal account;
-- Vercel scope: `andrewsiahs-projects`;
+- Vercel scope: personal Stripe-created scope `andrewsiah-stripe`;
 - prohibited Vercel scopes: Ready Homes and other company teams;
 - existing Supabase CLI scope is company-only and must not be used;
 - Supabase must be newly created under Andrew's personal ownership through the

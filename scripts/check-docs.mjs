@@ -8,6 +8,7 @@ export const REQUIRED_DOCS = [
   "docs/README.md",
   "docs/PRODUCT.md",
   "docs/ARCHITECTURE.md",
+  "docs/INFRASTRUCTURE.md",
   "docs/ENGINEERING.md",
   "docs/TESTING.md",
   "docs/SECURITY.md",

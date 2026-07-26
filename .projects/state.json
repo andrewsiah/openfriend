@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "providers": {
+    "supabase": {
+      "name": "Supabase"
+    },
+    "vercel": {
+      "name": "Vercel"
+    }
+  },
+  "resources": {
+    "supabase": {
+      "name": "supabase",
+      "providerName": "Supabase",
+      "serviceId": "project"
+    },
+    "supabase-plan": {
+      "name": "supabase-plan",
+      "providerName": "Supabase",
+      "serviceId": "free"
+    },
+    "vercel-plan": {
+      "name": "vercel-plan",
+      "providerName": "Vercel",
+      "serviceId": "hobby"
+    },
+    "web": {
+      "name": "web",
+      "providerName": "Vercel",
+      "serviceId": "project"
+    }
+  }
+}
