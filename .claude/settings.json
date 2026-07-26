@@ -4,5 +4,7 @@
       "Bash(stripe:*)",
       "Bash(stripe projects:*)"
     ]
-  }
+  },
+  "model": "fable",
+  "effortLevel": "high"
 }

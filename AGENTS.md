@@ -31,27 +31,65 @@ reliability, user-story, and planning guidance.
 
 ## Orchestration and delegation
 
-The primary Codex task is the user-facing orchestrator. It owns the integrated
-plan, stays in conversation with Andrew, and is accountable for the final
-result.
+The active interface determines the user-facing coordinator:
 
-- Before executing multi-step work sequentially, identify independent
-  workstreams that can run in parallel.
-- Delegate independent work to parallel agent tasks whenever scopes can be made
-  concrete and non-overlapping. Keep tightly coupled changes local.
-- Give each agent a bounded goal, file or system scope, safety constraints,
-  expected verification, and required return summary.
+- In Codex Desktop, the primary Codex task is the orchestrator.
+- In Claude Code, Claude Fable at high effort is the conversational
+  orchestrator and delegates execution to Codex.
+
+The role split is constant in both cases:
+
+- Fable/high is consulted for first-pass plans and high-leverage architecture,
+  product, and code reviews.
+- Codex is the primary executor and task runner. It owns repository
+  investigation, implementation, command execution, tests, fixes, and
+  verification.
+- The active orchestrator stays in conversation with Andrew, preserves intent,
+  integrates the plan and evidence, and decides what happens next.
+
+Before substantial multi-step implementation, obtain a bounded Fable/high plan.
+After implementation, use Fable/high for a focused review when the change
+benefits from one. Codex assesses the advice against the repository, implements
+accepted changes, and verifies the final result.
+
+- Identify independent workstreams before executing multi-step work
+  sequentially.
+- Give every delegated task a bounded goal, file or system scope, safety
+  constraints, expected verification, required return summary, and explicit
+  stop point.
 - Delegation never expands authority. External mutations, secrets, destructive
   actions, and account boundaries remain governed by the original user request.
-- The orchestrator reviews every returned change, checks for conflicts, and
-  runs the integrated quality gate. Agent reports are evidence, not completion.
+- Treat all agent reports and reviews as evidence, not completion. Inspect the
+  actual repository state and run the integrated quality gate.
+- Do not create recursive or unbounded delegation loops, and do not enable the
+  automatic Codex review gate unless Andrew explicitly asks for it.
 
-Use Andrew's installed Claude CLI for first-pass plans and high-leverage
-architecture or code reviews when practical. Keep Claude read-only for reviews,
-send only the context it needs, and never expose secrets. Treat its output as a
-second opinion; the Codex orchestrator still makes and verifies the decision.
-If Claude is unavailable, rate-limited, over budget, or otherwise blocked,
-continue with Codex reasoning rather than pausing the project.
+If Fable or the Codex integration is unavailable, rate-limited, over budget, or
+otherwise blocked, report the constraint and agree on a fallback rather than
+silently changing this role split.
+
+## Public repository and secrets
+
+This is a public repository. Treat every commit, branch, tag, pull request,
+issue, review comment, artifact, and CI log as permanently visible to anyone on
+the internet.
+
+- Never commit or paste API keys, access tokens, passwords, session cookies,
+  private keys, certificates, signing material, database credentials, webhook
+  secrets, or populated connection strings.
+- Never commit `.env` files or local provider state. Commit only sanitized
+  examples such as `.env.example`, using placeholder values.
+- Keep credentials in Stripe Projects, the provider's secret store, or an
+  approved local credential store. Reference environment-variable names in the
+  repository, never their values.
+- Do not include real personal data, private conversations, production payloads,
+  or sensitive logs in source, fixtures, screenshots, documentation, issues, or
+  pull requests. Use clearly synthetic examples.
+- Before staging or pushing, inspect the complete diff and untracked files for
+  sensitive material. Run an available secret scanner when practical.
+- If a secret may have been exposed, stop immediately. Tell Andrew, revoke or
+  rotate the credential first, and then coordinate removal from Git history.
+  Deleting it in a later commit is not sufficient.
 
 ## Personal account boundary
 
