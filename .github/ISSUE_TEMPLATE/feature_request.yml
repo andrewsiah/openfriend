@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a user-story-driven improvement to OpenFriend.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User story
+      description: Describe the person, desired outcome, and reason.
+      placeholder: As a …, I want …, so that …
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What present-day problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Observable acceptance criteria
+      description: List the smallest outcomes that would prove the story works.
+    validations:
+      required: true
+  - type: textarea
+    id: smallest-scope
+    attributes:
+      label: Smallest useful scope
+      description: What can be deferred under YAGNI?
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification approach
+      description: How should this be tested on the relevant surfaces or devices?
+    validations:
+      required: true

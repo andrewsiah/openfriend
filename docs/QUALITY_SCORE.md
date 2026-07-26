@@ -3,17 +3,17 @@
 This scorecard records observable evidence, not confidence. A blank or pending
 field means the behavior is not yet proven.
 
-| Dimension            | Phase 0 target                                       | Status  | Evidence |
-| -------------------- | ---------------------------------------------------- | ------- | -------- |
-| Product truthfulness | No claim that voice, memory, or actions already work | Pending | —        |
-| Model profiles       | Economy and Quality registry is tested               | Pending | —        |
-| Web usability        | Responsive, keyboard-accessible profile selection    | Pending | —        |
-| Tests                | Unit and component suites pass                       | Pending | —        |
-| Static quality       | Typecheck, lint, format, docs checks pass            | Pending | —        |
-| Build                | Next.js production build passes                      | Pending | —        |
-| Account isolation    | Stripe, Vercel, Supabase, GitHub are personal        | Pending | —        |
-| Deployment           | Web story verified in a real deployed browser        | Pending | —        |
-| Publication          | Public MIT repository and CI verified                | Pending | —        |
+| Dimension            | Phase 0 target                                       | Status  | Evidence                                                              |
+| -------------------- | ---------------------------------------------------- | ------- | --------------------------------------------------------------------- |
+| Product truthfulness | No claim that voice, memory, or actions already work | Passing | `apps/web/app/page.test.tsx`                                          |
+| Model profiles       | Economy and Quality registry is tested               | Passing | `packages/contracts/src/live-model-profile.test.ts`                   |
+| Web usability        | Responsive, keyboard-accessible profile selection    | Pending | —                                                                     |
+| Tests                | Unit and component suites pass                       | Passing | `pnpm test`                                                           |
+| Static quality       | Typecheck, lint, format, docs checks pass            | Passing | `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm docs:check` |
+| Build                | Next.js production build passes                      | Passing | `pnpm build`                                                          |
+| Account isolation    | Stripe, Vercel, Supabase, GitHub are personal        | Pending | —                                                                     |
+| Deployment           | Web story verified in a real deployed browser        | Pending | —                                                                     |
+| Publication          | Public MIT repository and CI verified                | Pending | —                                                                     |
 
 ## Evidence format
 

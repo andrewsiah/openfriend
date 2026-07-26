@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "pnpm --filter @openfriend/web dev",
     "build": "pnpm -r --if-present build",
-    "test": "pnpm -r --if-present test",
+    "test": "node --test scripts/check-docs.test.mjs && pnpm -r --if-present test",
     "test:watch": "pnpm -r --parallel --if-present test:watch",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
