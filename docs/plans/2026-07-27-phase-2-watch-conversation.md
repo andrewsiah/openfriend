@@ -99,86 +99,6 @@ git add docs/plans/2026-07-27-phase-2-watch-conversation.md
 git commit -m "docs: accept phase 2 watch prerequisites"
 ```
 
-## Task 0A: Prove signed audio-plus-WebSocket feasibility first
-
-This spike is a hard gate. Run it immediately after Task 0 and before Tasks
-1–8. Do not defer the transport proof to the integrated physical test in Task 9.
-
-**Files:**
-
-- Create after personal-team confirmation:
-  `apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements`
-- Create:
-  `apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift`
-- Modify: `apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj`
-- Modify: `apps/watch/README.md`
-- Modify:
-  `docs/plans/2026-07-27-phase-2-watch-conversation.md`
-- Modify: `docs/QUALITY_SCORE.md`
-
-**Step 1: Configure only the minimum signed diagnostic**
-
-After the Task 0 authority checks pass, configure personal signing, microphone
-usage, and only the audio-streaming capability required for this diagnostic.
-Keep the target watch-only. Do not add Sign in with Apple or production
-authentication code in this spike.
-
-**Step 2: Obtain one short-lived test credential safely**
-
-For this time-bounded development diagnostic only, fetch an Economy credential
-from the existing protected Phase 1 preview route. Inject the preview origin at
-launch; do not commit it into the Watch target. Never paste a permanent OpenAI
-key, client secret, bearer token, or provider identifier into source, scheme
-files, logs, screenshots, or public evidence.
-
-**Step 3: Build the smallest physical probe**
-
-The development-only probe:
-
-1. confirms `supportsAudioStreaming`;
-2. requests microphone permission;
-3. activates a play-and-record `AVAudioSession`;
-4. starts real capture and playback engines;
-5. opens `URLSessionWebSocketTask` only after audio becomes active;
-6. sends one current, official Realtime session configuration;
-7. streams bounded microphone PCM and plays one bounded response;
-8. closes the socket and deactivates audio.
-
-Record only event categories and monotonic timings. Do not implement the
-production protocol model, reconnect controller, authentication UI, or full
-conversation UI here.
-
-**Step 4: Prove the negative ordering**
-
-On the same physical Watch, attempt the development socket without an active
-audio stream.
-
-Expected: the connection is unavailable or rejected consistently with Apple's
-documented low-level-networking boundary, and cleanup completes.
-
-**Step 5: Prove the accepted ordering**
-
-Repeat with audio active before the socket opens.
-
-Expected: the signed Watch connects, sends live microphone audio, receives and
-plays response audio, and tears both resources down. Record the Watch model,
-watchOS version, date, expected result, actual sanitized result, and cleanup
-state.
-
-**Step 6: Stop if feasibility fails**
-
-If active audio does not unlock the direct WebSocket or simultaneous capture
-and playback is unusable, do not implement Tasks 1–8. Record the actual failure
-and request a new transport decision. Do not add a relay or third-party WebRTC
-dependency without a new accepted design.
-
-**Step 7: Commit the bounded spike**
-
-```bash
-git add apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj apps/watch/README.md docs/QUALITY_SCORE.md docs/plans/2026-07-27-phase-2-watch-conversation.md
-git commit -m "test: prove direct watch realtime transport"
-```
-
 ## Task 1: Verify a nonce-bound Apple identity server-side
 
 **Files:**
@@ -421,6 +341,99 @@ git add .env.example apps/web/package.json pnpm-lock.yaml apps/web/app/api/realt
 git commit -m "feat: mint authenticated watch realtime credentials"
 ```
 
+## Task 2A: Prove signed audio-plus-WebSocket feasibility
+
+This spike is a hard gate. Run it after the minimal authenticated gateway in
+Tasks 1–2 and before the production Watch client in Tasks 3–8. Do not defer the
+transport proof to the integrated physical test in Task 9.
+
+**Files:**
+
+- Create after personal-team confirmation:
+  `apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements`
+- Create:
+  `apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift`
+- Modify: `apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj`
+- Modify: `apps/watch/README.md`
+- Modify:
+  `docs/plans/2026-07-27-phase-2-watch-conversation.md`
+- Modify: `docs/QUALITY_SCORE.md`
+
+**Step 1: Configure only the minimum signed diagnostic**
+
+After the Task 0 authority checks pass, configure personal signing, microphone
+usage, Sign in with Apple, and only the audio-streaming capability required for
+this diagnostic. Keep the target watch-only. Do not add refresh tokens,
+cookies, persistence, reconnect behavior, or production conversation UI.
+
+**Step 2: Authenticate and obtain one short-lived credential safely**
+
+Deploy the Task 2 route to the existing personal preview, configure the
+accepted WAF rule on the exact Watch credential path, and verify sanitized
+`401`, `429`, and no-store responses before making that preview path reachable
+without Vercel deployment authentication. The Watch must rely on application
+authentication plus the WAF rule, not a Vercel session or protection-bypass
+credential.
+
+Use `AuthenticationServices` to create a fresh raw nonce, send only its SHA-256
+hash in the Sign in with Apple request, and keep the returned identity token
+and raw nonce in memory. Call the authenticated Watch route from Task 2 with
+that bearer token and raw nonce. Accept only the three-field Economy response
+and reject a non-future expiry or model mismatch.
+
+Do not call the protected Phase 1 browser route, carry a Vercel protection
+bypass credential, disable deployment protection, or paste any credential into
+source, scheme files, launch arguments, logs, screenshots, or public evidence.
+
+**Step 3: Build the smallest physical probe**
+
+The development-only probe:
+
+1. confirms `supportsAudioStreaming`;
+2. requests microphone permission;
+3. authenticates and obtains the ephemeral credential over HTTPS;
+4. activates a play-and-record `AVAudioSession`;
+5. starts real capture and playback engines;
+6. opens `URLSessionWebSocketTask` only after audio becomes active;
+7. sends one current, official Realtime session configuration;
+8. streams bounded microphone PCM and plays one bounded response;
+9. closes the socket, deactivates audio, and erases both credentials.
+
+Record only event categories and monotonic timings. Do not implement the
+production protocol model, reconnect controller, authentication UI, or full
+conversation UI here.
+
+**Step 4: Prove the negative ordering**
+
+On the same physical Watch, attempt the development socket without an active
+audio stream.
+
+Expected: the connection is unavailable or rejected consistently with Apple's
+documented low-level-networking boundary, and cleanup completes.
+
+**Step 5: Prove the accepted ordering**
+
+Repeat with audio active before the socket opens.
+
+Expected: the signed Watch authenticates, connects, sends live microphone
+audio, receives and plays response audio, and tears both resources down. Record
+the Watch model, watchOS version, date, expected result, actual sanitized
+result, and cleanup state.
+
+**Step 6: Stop if feasibility fails**
+
+If active audio does not unlock the direct WebSocket or simultaneous capture
+and playback is unusable, do not implement Tasks 3–8. Record the actual failure
+and request a new transport decision. Do not add a relay or third-party WebRTC
+dependency without a new accepted design.
+
+**Step 7: Commit the bounded spike**
+
+```bash
+git add apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj apps/watch/README.md docs/QUALITY_SCORE.md docs/plans/2026-07-27-phase-2-watch-conversation.md
+git commit -m "test: prove direct watch realtime transport"
+```
+
 ## Task 3: Define the Watch Realtime wire protocol
 
 **Files:**
@@ -441,11 +454,14 @@ Use synthetic JSON fixtures for:
 - `response.output_audio.delta` with `item_id`, `content_index`, and Base64
   payload;
 - `response.output_audio.done`;
-- `response.cancelled`;
+- `response.done` with completed, cancelled, failed, and incomplete statuses;
 - `error`;
 - an unknown future event.
 
 Unknown events must decode to `.ignored(type:)`, not crash.
+Cancelled responses must become terminal without reporting a failure. Failed
+and incomplete responses must preserve only a sanitized status category so the
+Watch cannot remain misleadingly live.
 
 **Step 2: Write encoder RED tests**
 
@@ -1045,7 +1061,7 @@ git commit -m "feat: present watch live conversation"
 Read-only verify:
 
 - current Xcode signing settings;
-- the signed feasibility evidence from Task 0A;
+- the signed feasibility evidence from Task 2A;
 - selected personal team;
 - App ID ownership;
 - Sign in with Apple availability;
@@ -1062,7 +1078,7 @@ for explicit authorization before changing Apple provider state.
 
 After authorization:
 
-- reuse the personal automatic or approved manual signing proven in Task 0A;
+- reuse the personal automatic or approved manual signing proven in Task 2A;
 - microphone usage description;
 - Sign in with Apple entitlement;
 - Audio background mode only for the real streaming-audio story;
