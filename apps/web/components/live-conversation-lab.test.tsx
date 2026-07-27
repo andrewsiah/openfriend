@@ -41,6 +41,11 @@ function createSessionHarness() {
     emitResponseStart() {
       callbacks?.onResponseStart();
     },
+    emitUsageUpdate(
+      usage: Parameters<LiveSessionCallbacks["onUsageUpdate"]>[0],
+    ) {
+      callbacks?.onUsageUpdate(usage);
+    },
   };
 }
 
@@ -248,6 +253,195 @@ describe("LiveConversationLab", () => {
         body: JSON.stringify({ profile: "quality" }),
       }),
     );
+  });
+
+  it("shows one fixed guide and the current capability disclosure", () => {
+    render(<LiveConversationLab profiles={listLiveModelProfiles()} />);
+
+    const guide = screen.getByRole("region", {
+      name: /same guide for both profiles/i,
+    });
+    expect(guide).toHaveTextContent(
+      "I’ve had a long day. Help me reset in one minute.",
+    );
+    expect(guide).toHaveTextContent(
+      "Help me choose between a quiet evening and seeing friends.",
+    );
+    expect(guide).toHaveTextContent(
+      "Actually, make that practical: give me one next step.",
+    );
+    expect(screen.getByText(/both profiles support/i)).toHaveTextContent(
+      /full-duplex audio.*interruption.*tool use/i,
+    );
+  });
+
+  it("requires a rating before saving an ended run with median latency and cost", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    const now = vi
+      .fn<() => number>()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(2_000)
+      .mockReturnValueOnce(2_400)
+      .mockReturnValueOnce(3_000)
+      .mockReturnValueOnce(3_600);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        now={now}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => {
+      sessionHarness.emitConnection("connected");
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitResponseStart();
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitResponseStart();
+      sessionHarness.emitUsageUpdate({
+        uncachedInputTextTokens: 1_000,
+        cachedInputTextTokens: 0,
+        uncachedInputAudioTokens: 1_000,
+        cachedInputAudioTokens: 0,
+        uncachedInputUnknownTokens: 0,
+        cachedInputUnknownTokens: 0,
+        outputTextTokens: 1_000,
+        outputAudioTokens: 1_000,
+        outputUnknownTokens: 0,
+      });
+    });
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+
+    const saveButton = screen.getByRole("button", {
+      name: /save economy result/i,
+    });
+    expect(saveButton).toBeDisabled();
+    await user.click(screen.getByRole("radio", { name: /5.*excellent/i }));
+    expect(saveButton).toBeEnabled();
+    await user.click(saveButton);
+
+    const result = screen.getByRole("article", {
+      name: /economy result/i,
+    });
+    expect(result).toHaveTextContent("500 ms");
+    expect(result).toHaveTextContent("5 / 5");
+    expect(result).toHaveTextContent("$0.0330");
+    expect(result).not.toHaveTextContent(/conversation transcript/i);
+  });
+
+  it("prepares the other profile without starting its microphone", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => sessionHarness.emitConnection("connected"));
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+    await user.click(screen.getByRole("radio", { name: /4.*good/i }));
+    await user.click(
+      screen.getByRole("button", { name: /save economy result/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /prepare quality session/i }),
+    );
+
+    expect(screen.getByRole("radio", { name: /quality/i })).toBeChecked();
+    expect(screen.getByRole("status")).toHaveTextContent(/idle/i);
+    expect(sessionHarness.createSession).toHaveBeenCalledOnce();
+    expect(sessionHarness.session.close).toHaveBeenCalledOnce();
+    expect(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    ).toBeEnabled();
+  });
+
+  it("resets a comparison from a live second session and closes its media", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          Response.json({
+            clientSecret: "ek_test_ephemeral",
+            expiresAt: 1_900_000_000,
+            model: "gpt-realtime-2.1-mini",
+          }),
+        ),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => sessionHarness.emitConnection("connected"));
+    await user.click(
+      screen.getByRole("button", { name: /end live conversation/i }),
+    );
+    await user.click(screen.getByRole("radio", { name: /4.*good/i }));
+    await user.click(
+      screen.getByRole("button", { name: /save economy result/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /prepare quality session/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    await waitFor(() =>
+      expect(sessionHarness.createSession).toHaveBeenCalledTimes(2),
+    );
+    act(() => sessionHarness.emitConnection("connected"));
+
+    await user.click(screen.getByRole("button", { name: /reset comparison/i }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(/idle/i);
+    expect(screen.getByRole("radio", { name: /economy/i })).toBeChecked();
+    expect(
+      screen.queryByRole("article", { name: /economy result/i }),
+    ).not.toBeInTheDocument();
+    expect(sessionHarness.session.close).toHaveBeenCalledTimes(2);
   });
 
   it("shows a sanitized failure when the secret request fails", async () => {
