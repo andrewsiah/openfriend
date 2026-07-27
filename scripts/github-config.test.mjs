@@ -155,22 +155,22 @@ test("Dependabot groups weekly pnpm dependency updates with a cooldown", async (
   assertWeeklyGroupedUpdates(npmUpdates, "pnpm");
 });
 
-test("Dependabot suppresses only known-incompatible TypeScript and ESLint majors", async () => {
+test("Dependabot keeps security-relevant TypeScript and ESLint majors visible", async () => {
   const config = parseConfiguration(
     await readRepositoryFile(".github/dependabot.yml"),
   );
   const npmUpdates = dependencyUpdate(config, "npm");
+  const hiddenSecurityMajors = (npmUpdates.ignore ?? []).filter(
+    (rule) =>
+      ["typescript", "eslint"].includes(rule["dependency-name"]) &&
+      rule["update-types"]?.includes("version-update:semver-major"),
+  );
 
-  assert.deepEqual(npmUpdates.ignore ?? [], [
-    {
-      "dependency-name": "typescript",
-      "update-types": ["version-update:semver-major"],
-    },
-    {
-      "dependency-name": "eslint",
-      "update-types": ["version-update:semver-major"],
-    },
-  ]);
+  assert.deepEqual(
+    hiddenSecurityMajors,
+    [],
+    "Dependabot ignore rules also affect security updates, so incompatible majors must be triaged rather than hidden",
+  );
 });
 
 test("configuration validation rejects malformed YAML", () => {

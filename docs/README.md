@@ -42,7 +42,7 @@ document below.
 - [plans/2026-07-26-public-codebase-harness.md](plans/2026-07-26-public-codebase-harness.md)
   — implemented deterministic browser, architecture, and maintenance checks.
 - [plans/2026-07-27-dependabot-review-loop-design.md](plans/2026-07-27-dependabot-review-loop-design.md)
-  — accepted Dependabot, Greptile, and incompatible-major review policy.
+  — accepted Dependabot, Greptile, and security-visible major-update policy.
 - [decisions/README.md](decisions/README.md) — architectural decision record
   policy.
 

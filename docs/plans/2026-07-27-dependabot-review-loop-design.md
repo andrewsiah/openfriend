@@ -13,9 +13,9 @@
 - the existing `verify`, `Dependency Review`, and Greptile ruleset requirements
   remain unchanged and have no bypass;
 - no workflow is allowed to imitate, replace, or manufacture a Greptile result;
-- known-incompatible TypeScript and ESLint major versions stop generating
-  routine version-update pull requests while minor, patch, and security updates
-  remain visible;
+- known-incompatible TypeScript and ESLint major pull requests are closed with
+  current compatibility evidence rather than hidden by a Dependabot ignore
+  rule that could also suppress security updates;
 - the existing Dependabot pull requests are retriggered or triaged from current
   checks, not merged from stale evidence; and
 - live provider evidence is recorded before completion is claimed.
@@ -36,11 +36,13 @@ repository's dependency workflow. GitHub branch protection remains the
 enforcement layer, and Greptile remains the sole producer of its required
 check.
 
-The npm Dependabot entry explicitly ignores semver-major version updates for
-`typescript` and `eslint`. Their current major pull requests fail the repository
-gate, while the pinned supported majors continue receiving routine minor,
-patch, and security updates. This policy is reviewable in Git and can be
-removed deliberately when the repository is ready for either migration.
+The npm Dependabot entry intentionally has no semver-major ignore for
+`typescript` or `eslint`. GitHub documents that Dependabot ignore rules can
+affect both version and security update pull requests, so suppressing those
+majors could hide a future security fix available only in a new major. A
+repository test protects that visibility. The current incompatible major pull
+requests are closed with their failing verification evidence and can be
+reconsidered when the ecosystem support arrives.
 
 ## Alternatives rejected
 
@@ -52,8 +54,11 @@ removed deliberately when the repository is ready for either migration.
 - Removing Greptile from branch protection for dependency updates would create
   a weaker merge path and GitHub required checks cannot be scoped safely by
   pull-request author.
-- Ignoring every major dependency update would hide useful migrations that have
-  not been shown to be incompatible.
+- Ignoring the TypeScript and ESLint majors in `dependabot.yml` was prototyped
+  and rejected after review because the same ignore policy can suppress
+  security-update pull requests.
+- Ignoring every major dependency update would additionally hide useful
+  migrations that have not been shown to be incompatible.
 
 ## External-state boundary
 

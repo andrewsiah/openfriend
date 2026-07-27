@@ -3,11 +3,12 @@
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Make Dependabot updates enter the same real Greptile-protected merge
-path as every other pull request and stop known-incompatible routine majors.
+path as every other pull request and triage incompatible majors without hiding
+security updates.
 
 **Architecture:** Remove the live Greptile author exclusion at its source, keep
-the GitHub ruleset unchanged, encode only proven major-version exclusions in
-Dependabot, and verify the integrated behavior on real pull requests.
+the GitHub ruleset unchanged, keep security-relevant majors visible, and verify
+the integrated behavior on real pull requests.
 
 **Tech Stack:** Greptile GitHub App, GitHub repository rulesets, Dependabot,
 Node.js test runner, YAML, pnpm.
@@ -36,7 +37,7 @@ Node.js test runner, YAML, pnpm.
 5. Retrigger the passing pull request and require the real Greptile App check
    before treating the provider fix as complete.
 
-### Task 2: Encode known-incompatible major policy with TDD
+### Task 2: Protect security-relevant major visibility with TDD
 
 **Files:**
 
@@ -45,11 +46,11 @@ Node.js test runner, YAML, pnpm.
 
 **Steps:**
 
-1. Add a focused configuration test requiring TypeScript and ESLint ignores to
-   apply only to `version-update:semver-major`.
+1. Add a focused configuration test preventing TypeScript and ESLint
+   semver-major ignore rules.
 2. Run `node --test scripts/github-config.test.mjs` and confirm the focused test
-   fails against the current configuration.
-3. Add the minimal npm `ignore` entries.
+   fails against the initially proposed ignore configuration.
+3. Remove the unsafe ignore entries and document why majors remain visible.
 4. Re-run the focused test and `pnpm verify`; expect both to pass.
 
 ### Task 3: Publish through the protected path
@@ -79,7 +80,7 @@ Node.js test runner, YAML, pnpm.
 **Steps:**
 
 1. Close the failing TypeScript and ESLint major pull requests with concise,
-   public compatibility reasons after the ignore policy reaches `main`.
+   public compatibility reasons after the review policy reaches `main`.
 2. Re-run or refresh the passing jsdom and Node type pull requests so Greptile
    reviews their current heads.
 3. Merge an update only if all required checks pass and the version is
@@ -94,7 +95,10 @@ The required Fable/high review was attempted and stopped at the account usage
 limit. Opus/high reviewed the design instead. Its key finding was to prove the
 manual trigger and exact check identity before adding automation. That
 investigation exposed the organization-level Dependabot exclusion, so the
-proposed comment workflow was rejected.
+proposed comment workflow was rejected. A subsequent Codex review on PR #10
+identified that Dependabot ignore rules can also suppress security updates.
+Official GitHub documentation confirmed the behavior, so the proposed
+TypeScript and ESLint ignores were removed.
 
 ## Evidence
 
