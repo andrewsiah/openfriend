@@ -96,6 +96,25 @@ Add a dated checklist to this plan containing only non-sensitive facts:
 - [ ] Watch route/WAF/preview mutation authorized
 ```
 
+### Task 0 acceptance record — 2026-07-27
+
+- [x] Personal Apple signing team confirmed — Andrew authorizes his personal
+      Apple account and team for OpenFriend.
+- [x] Watch App ID/capability changes authorized — Andrew authorizes Watch App
+      ID and capability work.
+- [ ] Physical cellular Watch identified — the exact Watch model, watchOS
+      version, and active cellular-plan status remain unconfirmed.
+- [x] Personal Vercel/OpenAI development scopes confirmed — both are Andrew's
+      personal accounts.
+- [x] Authenticated-route rate limit accepted — exact-path WAF keyed by source
+      IP, fixed one-minute window, 10 requests per IP, and an HTTP `429`
+      response. Before preview exposure changes, verify the cap and `429` from
+      one source IP within the window.
+- [x] Watch route/WAF/preview mutation authorized — Andrew authorizes the
+      authenticated Watch credential route plus its preview deployment,
+      exact-path WAF, and preview protection changes after application
+      authentication and rate limiting are verified.
+
 **Step 5: Stop on any unresolved ownership**
 
 Expected: no code or provider mutation begins while a prerequisite is
