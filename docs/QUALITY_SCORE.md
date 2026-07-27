@@ -85,3 +85,45 @@ These Phase 0 limitations were subsequently resolved:
 
 The deployment evidence is still a branch preview rather than a production
 claim.
+
+## 2026-07-26 Greptile merge-gate evidence
+
+Environment:
+
+- personal public repository `andrewsiah/openfriend`;
+- Andrewsiah Greptile organization with `andrewsiah/openfriend` enabled;
+- configuration pull request
+  [#2](https://github.com/andrewsiah/openfriend/pull/2);
+- active GitHub repository ruleset
+  [19789735](https://github.com/andrewsiah/openfriend/rules/19789735).
+
+Initial review:
+
+- commit `696c11e` started the `Greptile Review` check automatically;
+- Greptile finished at `4/5` confidence and GitHub recorded the check as
+  successful;
+- GitHub identified the check source as Greptile App ID `867647`;
+- GitHub Actions `verify`, from App ID `15368`, also passed;
+- Greptile found no executable-code issue and noted that contributor guidance
+  described enforcement before the live ruleset existed.
+
+Enforcement:
+
+- ruleset `19789735` is active for `~DEFAULT_BRANCH`;
+- its bypass-actor list is empty, including for the repository administrator;
+- updates require a pull request, resolved review conversations, current
+  `verify`, and current `Greptile Review` checks;
+- each required check is pinned to its source GitHub App;
+- strict status-check policy requires the pull request to be tested with the
+  latest `main`;
+- deletion and non-fast-forward updates are blocked;
+- activating the ruleset before the evidence update resolved Greptile's timing
+  concern about the contributor guidance.
+
+Still required before changing Merge safety to Passing:
+
+- push this evidence update and observe the previous Greptile result become
+  stale;
+- confirm a second automatic review covers the new head commit and reaches at
+  least `4/5`;
+- confirm GitHub continues to enforce both required checks on that commit.

@@ -105,4 +105,31 @@ repository rulesets, GitHub Actions, pnpm.
 
 ## Evidence
 
-Pending live pull-request and ruleset verification.
+### Initial pull-request review
+
+- PR [#2](https://github.com/andrewsiah/openfriend/pull/2) opened ready for
+  review at commit `696c11e`.
+- `verify` passed from GitHub Actions App ID `15368`.
+- `Greptile Review` started automatically, returned `4/5`, and passed from
+  Greptile App ID `867647`.
+- Greptile's only concern was the short staging interval when
+  `CONTRIBUTING.md` described enforcement before the external ruleset existed.
+
+### Active enforcement
+
+- Repository ruleset
+  [19789735](https://github.com/andrewsiah/openfriend/rules/19789735) is active
+  for the default branch with an empty bypass list.
+- Effective rules require a pull request, resolved conversations, current
+  `verify`, and current `Greptile Review` checks.
+- Required check contexts are pinned to their observed GitHub Apps and use the
+  strict latest-`main` policy.
+- Branch deletion and non-fast-forward updates are blocked.
+- The ruleset was read back through both the ruleset endpoint and the effective
+  branch-rules endpoint.
+
+### Pending final proof
+
+This evidence update is the deliberate follow-up commit. Completion requires it
+to trigger a fresh Greptile review automatically and for both required checks
+to pass on the new head.
