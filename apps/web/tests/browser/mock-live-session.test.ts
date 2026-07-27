@@ -23,6 +23,7 @@ function createCallbackHarness() {
     onResponseStart() {
       order.push("response-start");
     },
+    onUsageUpdate() {},
   };
 
   return { callbacks, history, order };

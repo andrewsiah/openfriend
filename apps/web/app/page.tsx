@@ -5,10 +5,10 @@ import { LiveConversationLab } from "../components/live-conversation-lab";
 const deliveryPhases = [
   {
     number: "01",
-    eyebrow: "Now",
-    title: "Web Voice Lab",
+    eyebrow: "Now · Web Voice Lab",
+    title: "Compare Economy and Quality",
     description:
-      "Prove the rhythm first: natural turns, interruptions, latency, and conversational quality.",
+      "Use the same live conversation guide twice, then compare perceived quality, median response time, and estimated cost.",
   },
   {
     number: "02",
@@ -95,9 +95,10 @@ export default function HomePage() {
             Choose the conversation, not the code path.
           </h2>
           <p>
-            Start economical while we shape the experience. Switch to the full
-            model when you want to compare conversational depth. Harder work can
-            still move to a separate, stronger operator.
+            Run the same short conversation with Economy and Quality, score how
+            each one feels, and compare latency and estimated cost without
+            storing the conversation. Harder work can still move to a separate,
+            stronger operator.
           </p>
         </div>
 

@@ -47,8 +47,11 @@ explicit Interrupt control, and end the session cleanly.
 
 Conversation content remains in the browser session only. OpenFriend does not
 yet persist memory, perform external actions, or provide physical-device Watch
-voice behavior. The next story compares otherwise equivalent Economy and
-Quality sessions; the independent Watch field test follows.
+voice behavior. The voice lab now guides otherwise equivalent Economy and
+Quality sessions, asks for a 1–5 quality score, and compares median response
+latency, provider-reported usage, and estimated cost. Those evaluation summaries
+also remain in memory only and clear on reload. The independent Watch field
+test follows this Phase 1 comparison.
 
 An unsigned, Watch-only SwiftUI simulator skeleton is also available under
 `apps/watch`. It proves the independent target and truthful idle state build on
@@ -62,9 +65,11 @@ The initial voice profiles are configuration rather than separate code paths:
 | Economy | `gpt-realtime-2.1-mini` | Development and routine conversations |
 | Quality | `gpt-realtime-2.1`      | Conversation-quality comparison       |
 
-Switching profiles will start a new live session. The live voice model and the
-background operator model remain separate choices, allowing an economical
-conversation to delegate hard work to a stronger agent.
+Preparing the other profile closes the old session, clears its live transcript,
+and still requires an explicit Start before a fresh microphone and provider
+session begins. The live voice model and the background operator model remain
+separate choices, allowing an economical conversation to delegate hard work to
+a stronger agent.
 
 ## Architecture at a glance
 

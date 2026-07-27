@@ -1,9 +1,13 @@
 import {
+  OpenAIRealtimeWebRTC,
   RealtimeAgent,
   RealtimeSession,
   type RealtimeItem,
+  type TransportEvent,
 } from "@openai/agents/realtime";
+import type { Usage } from "@openai/agents";
 
+import type { LiveTokenUsage } from "./live-session-evaluation";
 import type {
   LiveConnectionStatus,
   LiveHistoryItem,
@@ -18,8 +22,17 @@ type LiveAgentConfig = Readonly<{
 
 type HistoryListener = (history: RealtimeItem[]) => void;
 type ConnectionListener = (status: LiveConnectionStatus) => void;
+type RawTransportListener = (event: TransportEvent) => void;
 type ResponseStartListener = () => void;
+type UsageListener = (usage: Usage) => void;
 type UserSpeechStoppedListener = () => void;
+
+const LIVE_AUDIO_CAPTURE_CONSTRAINTS = {
+  autoGainControl: true,
+  channelCount: 1,
+  echoCancellation: true,
+  noiseSuppression: true,
+} as const satisfies MediaTrackConstraints;
 
 export interface OpenAISdkSession {
   connect(options: { apiKey: string }): Promise<void>;
@@ -28,6 +41,8 @@ export interface OpenAISdkSession {
   on(event: "history_updated", listener: HistoryListener): void;
   off(event: "history_updated", listener: HistoryListener): void;
   transport: {
+    requestResponse?(): void;
+    on(event: "*", listener: RawTransportListener): void;
     on(event: "connection_change", listener: ConnectionListener): void;
     on(
       event: "input_audio_buffer.speech_stopped",
@@ -37,6 +52,8 @@ export interface OpenAISdkSession {
       event: "output_audio_buffer.started",
       listener: ResponseStartListener,
     ): void;
+    on(event: "usage_update", listener: UsageListener): void;
+    off(event: "*", listener: RawTransportListener): void;
     off(event: "connection_change", listener: ConnectionListener): void;
     off(
       event: "input_audio_buffer.speech_stopped",
@@ -46,6 +63,7 @@ export interface OpenAISdkSession {
       event: "output_audio_buffer.started",
       listener: ResponseStartListener,
     ): void;
+    off(event: "usage_update", listener: UsageListener): void;
   };
 }
 
@@ -80,6 +98,10 @@ function toLiveHistory(history: RealtimeItem[]): LiveHistoryItem[] {
       })
       .join("");
 
+    if (text.trim() === "") {
+      return [];
+    }
+
     return [
       {
         id: item.itemId,
@@ -96,7 +118,122 @@ function createOpenAISdkSession(
   model: string,
 ): OpenAISdkSession {
   const agent = new RealtimeAgent(agentConfig);
-  return new RealtimeSession(agent, { model });
+  const transport = new OpenAIRealtimeWebRTC({
+    async changePeerConnection(peerConnection) {
+      const audioTrack = peerConnection
+        .getSenders()
+        .find((sender) => sender.track?.kind === "audio")?.track;
+
+      if (!audioTrack) {
+        throw new Error("Realtime microphone track is unavailable");
+      }
+
+      await audioTrack.applyConstraints(LIVE_AUDIO_CAPTURE_CONSTRAINTS);
+      return peerConnection;
+    },
+  });
+
+  return new RealtimeSession(agent, {
+    config: {
+      audio: {
+        input: {
+          noiseReduction: { type: "near_field" },
+          turnDetection: {
+            createResponse: false,
+            interruptResponse: true,
+            prefixPaddingMs: 300,
+            silenceDurationMs: 1_000,
+            threshold: 0.65,
+            type: "server_vad",
+          },
+        },
+      },
+    },
+    model,
+    transport,
+  });
+}
+
+function count(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : 0;
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function sumDetail(
+  details: readonly Record<string, number>[],
+  key: string,
+): number {
+  return details.reduce(
+    (total, detail) => total + count((detail as Record<string, unknown>)[key]),
+    0,
+  );
+}
+
+function sumCachedModality(
+  details: readonly Record<string, number>[],
+  key: string,
+): number {
+  return details.reduce((total, detail) => {
+    const cachedDetails = record(
+      (detail as Record<string, unknown>).cached_tokens_details,
+    );
+    return total + count(cachedDetails[key]);
+  }, 0);
+}
+
+function toLiveTokenUsage(usage: Usage): LiveTokenUsage {
+  const inputTextTokens = sumDetail(usage.inputTokensDetails, "text_tokens");
+  const inputAudioTokens = sumDetail(usage.inputTokensDetails, "audio_tokens");
+  const cachedInputTextTokens = Math.min(
+    inputTextTokens,
+    sumCachedModality(usage.inputTokensDetails, "text_tokens"),
+  );
+  const cachedInputAudioTokens = Math.min(
+    inputAudioTokens,
+    sumCachedModality(usage.inputTokensDetails, "audio_tokens"),
+  );
+  const inputUnknownTokens = Math.max(
+    0,
+    count(usage.inputTokens) - inputTextTokens - inputAudioTokens,
+  );
+  const reportedCachedTokens = sumDetail(
+    usage.inputTokensDetails,
+    "cached_tokens",
+  );
+  const cachedInputUnknownTokens = Math.min(
+    inputUnknownTokens,
+    Math.max(
+      0,
+      reportedCachedTokens - cachedInputTextTokens - cachedInputAudioTokens,
+    ),
+  );
+  const outputTextTokens = sumDetail(usage.outputTokensDetails, "text_tokens");
+  const outputAudioTokens = sumDetail(
+    usage.outputTokensDetails,
+    "audio_tokens",
+  );
+
+  return {
+    uncachedInputTextTokens: inputTextTokens - cachedInputTextTokens,
+    cachedInputTextTokens,
+    uncachedInputAudioTokens: inputAudioTokens - cachedInputAudioTokens,
+    cachedInputAudioTokens,
+    uncachedInputUnknownTokens: inputUnknownTokens - cachedInputUnknownTokens,
+    cachedInputUnknownTokens,
+    outputTextTokens,
+    outputAudioTokens,
+    outputUnknownTokens: Math.max(
+      0,
+      count(usage.outputTokens) - outputTextTokens - outputAudioTokens,
+    ),
+  };
 }
 
 export class OpenAILiveSession implements LiveSession {
@@ -104,7 +241,9 @@ export class OpenAILiveSession implements LiveSession {
   private readonly callbacks: LiveSessionCallbacks;
   private readonly handleConnectionChange: ConnectionListener;
   private readonly handleHistoryChange: HistoryListener;
+  private readonly handleRawTransportEvent: RawTransportListener;
   private readonly handleResponseStart: ResponseStartListener;
+  private readonly handleUsageUpdate: UsageListener;
   private readonly handleUserSpeechStopped: UserSpeechStoppedListener;
   private readonly sdkSession: OpenAISdkSession;
 
@@ -122,8 +261,21 @@ export class OpenAILiveSession implements LiveSession {
     this.handleHistoryChange = (history) => {
       this.callbacks.onHistoryChange(toLiveHistory(history));
     };
+    this.handleRawTransportEvent = (event) => {
+      if (
+        event.type ===
+          "conversation.item.input_audio_transcription.completed" &&
+        typeof event.transcript === "string" &&
+        event.transcript.trim() !== ""
+      ) {
+        this.sdkSession.transport.requestResponse?.();
+      }
+    };
     this.handleResponseStart = () => {
       this.callbacks.onResponseStart();
+    };
+    this.handleUsageUpdate = (usage) => {
+      this.callbacks.onUsageUpdate(toLiveTokenUsage(usage));
     };
     this.handleUserSpeechStopped = () => {
       this.callbacks.onUserSpeechStopped();
@@ -132,6 +284,7 @@ export class OpenAILiveSession implements LiveSession {
       "connection_change",
       this.handleConnectionChange,
     );
+    this.sdkSession.transport.on("*", this.handleRawTransportEvent);
     this.sdkSession.on("history_updated", this.handleHistoryChange);
     this.sdkSession.transport.on(
       "input_audio_buffer.speech_stopped",
@@ -141,6 +294,7 @@ export class OpenAILiveSession implements LiveSession {
       "output_audio_buffer.started",
       this.handleResponseStart,
     );
+    this.sdkSession.transport.on("usage_update", this.handleUsageUpdate);
   }
 
   async connect(clientSecret: string): Promise<void> {
@@ -162,6 +316,7 @@ export class OpenAILiveSession implements LiveSession {
       "connection_change",
       this.handleConnectionChange,
     );
+    this.sdkSession.transport.off("*", this.handleRawTransportEvent);
     this.sdkSession.transport.off(
       "input_audio_buffer.speech_stopped",
       this.handleUserSpeechStopped,
@@ -170,6 +325,7 @@ export class OpenAILiveSession implements LiveSession {
       "output_audio_buffer.started",
       this.handleResponseStart,
     );
+    this.sdkSession.transport.off("usage_update", this.handleUsageUpdate);
     this.sdkSession.close();
   }
 }

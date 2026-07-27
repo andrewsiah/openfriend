@@ -1,3 +1,5 @@
+import type { LiveTokenUsage } from "./live-session-evaluation";
+
 export type LiveConnectionStatus = "connecting" | "connected" | "disconnected";
 
 export type LiveHistoryItem = Readonly<{
@@ -11,6 +13,7 @@ export type LiveSessionCallbacks = Readonly<{
   onConnectionChange: (status: LiveConnectionStatus) => void;
   onHistoryChange: (history: readonly LiveHistoryItem[]) => void;
   onResponseStart: () => void;
+  onUsageUpdate: (usage: LiveTokenUsage) => void;
   onUserSpeechStopped: () => void;
 }>;
 

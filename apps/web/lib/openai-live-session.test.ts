@@ -1,5 +1,38 @@
-import type { RealtimeItem } from "@openai/agents/realtime";
-import { describe, expect, it, vi } from "vitest";
+import type { RealtimeItem, TransportEvent } from "@openai/agents/realtime";
+import type { Usage } from "@openai/agents";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const sdkConstructors = vi.hoisted(() => ({
+  agent: vi.fn(),
+  sessionInstance: {} as Record<string, unknown>,
+  session: vi.fn(),
+  webRtc: vi.fn(),
+}));
+
+vi.mock("@openai/agents/realtime", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@openai/agents/realtime")>();
+
+  return {
+    ...actual,
+    OpenAIRealtimeWebRTC: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.webRtc(...args);
+      }
+    },
+    RealtimeAgent: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.agent(...args);
+      }
+    },
+    RealtimeSession: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.session(...args);
+        Object.assign(this, sdkConstructors.sessionInstance);
+      }
+    },
+  };
+});
 
 import {
   OpenAILiveSession,
@@ -12,44 +45,62 @@ import type {
 
 type SdkTransport = OpenAISdkSession["transport"];
 type ConnectionListener = (status: LiveConnectionStatus) => void;
+type RawTransportListener = (event: TransportEvent) => void;
 type ResponseStartListener = () => void;
 type TurnStartedListener = () => void;
+type UsageListener = (usage: Usage) => void;
 type UserSpeechStoppedListener = () => void;
 
 class SdkTransportHarness implements SdkTransport {
   readonly connectionListeners = new Set<ConnectionListener>();
+  readonly rawTransportListeners = new Set<RawTransportListener>();
   readonly responseStartListeners = new Set<ResponseStartListener>();
   readonly turnStartedListeners = new Set<TurnStartedListener>();
+  readonly usageListeners = new Set<UsageListener>();
   readonly userSpeechStoppedListeners = new Set<UserSpeechStoppedListener>();
   readonly offConnectionChange =
     vi.fn<(listener: ConnectionListener) => void>();
+  readonly offRawTransport = vi.fn<(listener: RawTransportListener) => void>();
   readonly offResponseStart =
     vi.fn<(listener: ResponseStartListener) => void>();
+  readonly offUsage = vi.fn<(listener: UsageListener) => void>();
   readonly offUserSpeechStopped =
     vi.fn<(listener: UserSpeechStoppedListener) => void>();
+  readonly requestResponse = vi.fn();
 
+  on(event: "*", listener: RawTransportListener): void;
   on(event: "connection_change", listener: ConnectionListener): void;
   on(
     event: "output_audio_buffer.started",
     listener: ResponseStartListener,
   ): void;
   on(event: "turn_started", listener: TurnStartedListener): void;
+  on(event: "usage_update", listener: UsageListener): void;
   on(
     event: "input_audio_buffer.speech_stopped",
     listener: UserSpeechStoppedListener,
   ): void;
   on(
     event:
+      | "*"
       | "connection_change"
       | "input_audio_buffer.speech_stopped"
       | "output_audio_buffer.started"
-      | "turn_started",
+      | "turn_started"
+      | "usage_update",
     listener:
       | ConnectionListener
+      | RawTransportListener
       | ResponseStartListener
       | TurnStartedListener
+      | UsageListener
       | UserSpeechStoppedListener,
   ): void {
+    if (event === "*") {
+      this.rawTransportListeners.add(listener as RawTransportListener);
+      return;
+    }
+
     if (event === "connection_change") {
       this.connectionListeners.add(listener as ConnectionListener);
       return;
@@ -67,31 +118,49 @@ class SdkTransportHarness implements SdkTransport {
       return;
     }
 
+    if (event === "usage_update") {
+      this.usageListeners.add(listener as UsageListener);
+      return;
+    }
+
     this.turnStartedListeners.add(listener as TurnStartedListener);
   }
 
+  off(event: "*", listener: RawTransportListener): void;
   off(event: "connection_change", listener: ConnectionListener): void;
   off(
     event: "output_audio_buffer.started",
     listener: ResponseStartListener,
   ): void;
   off(event: "turn_started", listener: TurnStartedListener): void;
+  off(event: "usage_update", listener: UsageListener): void;
   off(
     event: "input_audio_buffer.speech_stopped",
     listener: UserSpeechStoppedListener,
   ): void;
   off(
     event:
+      | "*"
       | "connection_change"
       | "input_audio_buffer.speech_stopped"
       | "output_audio_buffer.started"
-      | "turn_started",
+      | "turn_started"
+      | "usage_update",
     listener:
       | ConnectionListener
+      | RawTransportListener
       | ResponseStartListener
       | TurnStartedListener
+      | UsageListener
       | UserSpeechStoppedListener,
   ): void {
+    if (event === "*") {
+      const rawTransportListener = listener as RawTransportListener;
+      this.rawTransportListeners.delete(rawTransportListener);
+      this.offRawTransport(rawTransportListener);
+      return;
+    }
+
     if (event === "connection_change") {
       const connectionListener = listener as ConnectionListener;
       this.connectionListeners.delete(connectionListener);
@@ -113,12 +182,25 @@ class SdkTransportHarness implements SdkTransport {
       return;
     }
 
+    if (event === "usage_update") {
+      const usageListener = listener as UsageListener;
+      this.usageListeners.delete(usageListener);
+      this.offUsage(usageListener);
+      return;
+    }
+
     this.turnStartedListeners.delete(listener as TurnStartedListener);
   }
 
   emitConnectionChange(status: LiveConnectionStatus): void {
     for (const listener of this.connectionListeners) {
       listener(status);
+    }
+  }
+
+  emitRawTransportEvent(event: TransportEvent): void {
+    for (const listener of this.rawTransportListeners) {
+      listener(event);
     }
   }
 
@@ -131,6 +213,12 @@ class SdkTransportHarness implements SdkTransport {
   emitTurnStarted(): void {
     for (const listener of this.turnStartedListeners) {
       listener();
+    }
+  }
+
+  emitUsage(usage: Usage): void {
+    for (const listener of this.usageListeners) {
+      listener(usage);
     }
   }
 
@@ -172,8 +260,14 @@ function createSdkSessionHarness() {
     emitResponseStart() {
       transport.emitResponseStart();
     },
+    emitRawTransportEvent(event: TransportEvent) {
+      transport.emitRawTransportEvent(event);
+    },
     emitTurnStarted() {
       transport.emitTurnStarted();
+    },
+    emitUsage(usage: Usage) {
+      transport.emitUsage(usage);
     },
     emitUserSpeechStopped() {
       transport.emitUserSpeechStopped();
@@ -196,6 +290,7 @@ function createLiveSession(
       onConnectionChange: callbacks.onConnectionChange ?? vi.fn(),
       onHistoryChange: callbacks.onHistoryChange ?? vi.fn(),
       onResponseStart: callbacks.onResponseStart ?? vi.fn(),
+      onUsageUpdate: callbacks.onUsageUpdate ?? vi.fn(),
       onUserSpeechStopped: callbacks.onUserSpeechStopped ?? vi.fn(),
     },
     createSdkSession,
@@ -205,6 +300,110 @@ function createLiveSession(
 }
 
 describe("OpenAILiveSession", () => {
+  beforeEach(() => {
+    sdkConstructors.agent.mockReset();
+    sdkConstructors.sessionInstance = {};
+    sdkConstructors.session.mockReset();
+    sdkConstructors.webRtc.mockReset();
+  });
+
+  it("uses near-field noise reduction and noise-tolerant server turn detection", () => {
+    const { sdkSession } = createSdkSessionHarness();
+    sdkConstructors.sessionInstance = sdkSession as unknown as Record<
+      string,
+      unknown
+    >;
+
+    new OpenAILiveSession({
+      agent: {
+        name: "OpenFriend",
+        instructions: "Be a thoughtful conversational companion.",
+      },
+      model: "gpt-realtime-2.1-mini",
+      callbacks: {
+        onConnectionChange: vi.fn(),
+        onHistoryChange: vi.fn(),
+        onResponseStart: vi.fn(),
+        onUsageUpdate: vi.fn(),
+        onUserSpeechStopped: vi.fn(),
+      },
+    });
+
+    expect(sdkConstructors.session).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        config: {
+          audio: {
+            input: {
+              noiseReduction: { type: "near_field" },
+              turnDetection: {
+                createResponse: false,
+                interruptResponse: true,
+                prefixPaddingMs: 300,
+                silenceDurationMs: 1_000,
+                threshold: 0.65,
+                type: "server_vad",
+              },
+            },
+          },
+        },
+        transport: expect.anything(),
+      }),
+    );
+  });
+
+  it("enables browser speech processing before creating the WebRTC offer", async () => {
+    const { sdkSession } = createSdkSessionHarness();
+    sdkConstructors.sessionInstance = sdkSession as unknown as Record<
+      string,
+      unknown
+    >;
+
+    new OpenAILiveSession({
+      agent: {
+        name: "OpenFriend",
+        instructions: "Be a thoughtful conversational companion.",
+      },
+      model: "gpt-realtime-2.1-mini",
+      callbacks: {
+        onConnectionChange: vi.fn(),
+        onHistoryChange: vi.fn(),
+        onResponseStart: vi.fn(),
+        onUsageUpdate: vi.fn(),
+        onUserSpeechStopped: vi.fn(),
+      },
+    });
+
+    const options = sdkConstructors.webRtc.mock.calls[0]?.[0] as
+      | {
+          changePeerConnection?: (
+            peerConnection: RTCPeerConnection,
+          ) => Promise<RTCPeerConnection>;
+        }
+      | undefined;
+    const applyConstraints = vi.fn().mockResolvedValue(undefined);
+    const peerConnection = {
+      getSenders: () => [
+        {
+          track: {
+            applyConstraints,
+            kind: "audio",
+          },
+        },
+      ],
+    } as unknown as RTCPeerConnection;
+
+    await expect(options?.changePeerConnection?.(peerConnection)).resolves.toBe(
+      peerConnection,
+    );
+    expect(applyConstraints).toHaveBeenCalledWith({
+      autoGainControl: true,
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+    });
+  });
+
   it("connects the SDK session with the ephemeral client secret", async () => {
     const { sdkSession } = createSdkSessionHarness();
     const { createSdkSession, liveSession } = createLiveSession(sdkSession);
@@ -248,6 +447,19 @@ describe("OpenAILiveSession", () => {
         type: "message",
         role: "system",
         content: [{ type: "input_text", text: "Internal instructions" }],
+      },
+      {
+        itemId: "user-empty",
+        type: "message",
+        role: "user",
+        status: "completed",
+        content: [
+          {
+            type: "input_audio",
+            audio: null,
+            transcript: "",
+          },
+        ],
       },
       {
         itemId: "user-1",
@@ -318,6 +530,65 @@ describe("OpenAILiveSession", () => {
     expect(onUserSpeechStopped).toHaveBeenCalledOnce();
   });
 
+  it("requests a response only after a non-empty user transcription", () => {
+    const harness = createSdkSessionHarness();
+    createLiveSession(harness.sdkSession);
+
+    harness.emitRawTransportEvent({
+      type: "conversation.item.input_audio_transcription.completed",
+      item_id: "empty-audio",
+      transcript: "   ",
+    });
+    harness.emitRawTransportEvent({
+      type: "input_audio_buffer.committed",
+    });
+
+    expect(harness.transport.requestResponse).not.toHaveBeenCalled();
+
+    harness.emitRawTransportEvent({
+      type: "conversation.item.input_audio_transcription.completed",
+      item_id: "spoken-turn",
+      transcript: "Help me reset.",
+    });
+
+    expect(harness.transport.requestResponse).toHaveBeenCalledOnce();
+  });
+
+  it("maps SDK usage into non-overlapping token counts", () => {
+    const harness = createSdkSessionHarness();
+    const onUsageUpdate = vi.fn();
+    createLiveSession(harness.sdkSession, { onUsageUpdate });
+
+    harness.emitUsage({
+      inputTokens: 400,
+      outputTokens: 150,
+      inputTokensDetails: [
+        {
+          text_tokens: 300,
+          audio_tokens: 80,
+          cached_tokens: 200,
+          cached_tokens_details: {
+            text_tokens: 180,
+            audio_tokens: 10,
+          },
+        },
+      ],
+      outputTokensDetails: [{ text_tokens: 50, audio_tokens: 80 }],
+    } as unknown as Usage);
+
+    expect(onUsageUpdate).toHaveBeenCalledWith({
+      uncachedInputTextTokens: 120,
+      cachedInputTextTokens: 180,
+      uncachedInputAudioTokens: 70,
+      cachedInputAudioTokens: 10,
+      uncachedInputUnknownTokens: 10,
+      cachedInputUnknownTokens: 10,
+      outputTextTokens: 50,
+      outputAudioTokens: 80,
+      outputUnknownTokens: 20,
+    });
+  });
+
   it("delegates manual interruption to the SDK session", () => {
     const { sdkSession } = createSdkSessionHarness();
     const { liveSession } = createLiveSession(sdkSession);
@@ -341,6 +612,9 @@ describe("OpenAILiveSession", () => {
     const harness = createSdkSessionHarness();
     const { liveSession } = createLiveSession(harness.sdkSession);
     const historyListener = harness.onSessionEvent.mock.calls[0]?.[1];
+    const rawTransportListener = [
+      ...harness.transport.rawTransportListeners,
+    ][0];
     const connectionListener = [...harness.transport.connectionListeners][0];
     const responseStartListener = [
       ...harness.transport.responseStartListeners,
@@ -348,12 +622,16 @@ describe("OpenAILiveSession", () => {
     const userSpeechStoppedListener = [
       ...harness.transport.userSpeechStoppedListeners,
     ][0];
+    const usageListener = [...harness.transport.usageListeners][0];
 
     liveSession.close();
 
     expect(harness.offSessionEvent).toHaveBeenCalledWith(
       "history_updated",
       historyListener,
+    );
+    expect(harness.transport.offRawTransport).toHaveBeenCalledWith(
+      rawTransportListener,
     );
     expect(harness.transport.offConnectionChange).toHaveBeenCalledWith(
       connectionListener,
@@ -364,5 +642,6 @@ describe("OpenAILiveSession", () => {
     expect(harness.transport.offUserSpeechStopped).toHaveBeenCalledWith(
       userSpeechStoppedListener,
     );
+    expect(harness.transport.offUsage).toHaveBeenCalledWith(usageListener);
   });
 });

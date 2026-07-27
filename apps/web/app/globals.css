@@ -57,7 +57,8 @@ a {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible + .profileCard {
+input:focus-visible + .profileCard,
+.qualityRatings input:focus-visible + span {
   outline: 2px solid var(--amber-bright);
   outline-offset: 4px;
 }
@@ -530,6 +531,80 @@ footer {
   min-width: 0;
 }
 
+.comparisonGuide {
+  position: relative;
+  padding: 30px;
+  margin-bottom: 34px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(239, 173, 91, 0.09), transparent 52%),
+    rgba(10, 21, 22, 0.74);
+}
+
+.comparisonGuide::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 74px;
+  height: 1px;
+  background: var(--amber);
+  content: "";
+}
+
+.comparisonGuide .eyebrow,
+.comparisonResults .eyebrow {
+  margin-bottom: 12px;
+}
+
+.comparisonGuide h3,
+.comparisonResults h3,
+.evaluationCard h4 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+}
+
+.comparisonGuide h3,
+.comparisonResults h3 {
+  font-size: clamp(1.45rem, 2.8vw, 2.15rem);
+}
+
+.comparisonGuide ol {
+  display: grid;
+  gap: 0;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: comparison-step;
+}
+
+.comparisonGuide li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  color: #d9ded8;
+  counter-increment: comparison-step;
+}
+
+.comparisonGuide li::before {
+  color: var(--amber);
+  content: "0" counter(comparison-step);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.capabilityDisclosure,
+.estimateDisclosure {
+  margin: 20px 0 0;
+  color: var(--ink-faint);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
 .liveConversationLab > .presenceStatus {
   padding-top: 0;
 }
@@ -666,6 +741,155 @@ footer {
   color: var(--ink-faint);
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+.evaluationCapture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  padding: 26px 0;
+  margin-top: 24px;
+  border-block: 1px solid var(--line);
+}
+
+.evaluationCapture fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.evaluationCapture legend {
+  margin-bottom: 14px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.1rem;
+}
+
+.qualityRatings {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.qualityRatings label {
+  position: relative;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.qualityRatings input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.qualityRatings span {
+  display: grid;
+  min-height: 52px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  font-size: 0.68rem;
+  place-items: center;
+  text-align: center;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.qualityRatings label:hover span,
+.qualityRatings input:checked + span {
+  border-color: var(--line-strong);
+  background: rgba(239, 173, 91, 0.09);
+  color: var(--ink);
+}
+
+.evaluationCapture > .sessionButton {
+  min-width: 160px;
+}
+
+.comparisonResults {
+  padding-top: 34px;
+  margin-top: 34px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.comparisonResultsHeader {
+  display: flex;
+  gap: 24px;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.comparisonResultsHeader .sessionButton {
+  min-height: 48px;
+}
+
+.evaluationCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.evaluationCard {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(143, 184, 167, 0.06), transparent 46%),
+    rgba(8, 18, 19, 0.68);
+}
+
+.evaluationCard h4 {
+  color: var(--amber-bright);
+  font-size: 1.45rem;
+}
+
+.evaluationCard > code {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-faint);
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
+.evaluationCard dl {
+  margin: 24px 0 0;
+}
+
+.evaluationCard dl div {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.evaluationCard dt {
+  color: var(--ink-faint);
+  font-size: 0.64rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.evaluationCard dd {
+  margin: 0;
+  color: var(--ink-muted);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.comparisonResults > .voiceButton {
+  width: 100%;
+  margin-top: 22px;
 }
 
 @keyframes listeningPulse {
@@ -859,6 +1083,15 @@ footer p {
     gap: 6px;
   }
 
+  .comparisonGuide {
+    padding: 22px 20px;
+  }
+
+  .comparisonGuide li {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+  }
+
   .transcriptEntry {
     grid-template-columns: 70px minmax(0, 1fr);
     gap: 12px;
@@ -880,6 +1113,26 @@ footer p {
   .sessionButton {
     min-width: 0;
     padding-inline: 10px;
+  }
+
+  .evaluationCapture {
+    grid-template-columns: 1fr;
+  }
+
+  .qualityRatings {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .evaluationCapture > .sessionButton {
+    width: 100%;
+  }
+
+  .comparisonResultsHeader {
+    display: grid;
+  }
+
+  .evaluationCards {
+    grid-template-columns: 1fr;
   }
 
   .deliverySequence li {

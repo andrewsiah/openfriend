@@ -99,6 +99,32 @@ The deprecated `gpt-realtime-mini` identifier is prohibited. Switching profile
 starts a new live session. The background operator model is configured
 separately.
 
+### Session-only profile evaluations
+
+Phase 1 compares the two profiles inside the existing voice lab. The browser
+shows one fixed conversation guide, gathers every valid voice-response-start
+sample, receives sanitized provider usage through the Agents SDK
+`usage_update` event, and asks Andrew for a 1–5 overall quality score after End.
+It saves only a summary for each profile in mounted React state:
+
+- profile and provider model;
+- connection latency and median voice-response-start latency;
+- the human quality score;
+- non-overlapping text, audio, cached, and unknown token counts; and
+- a dated estimated cost.
+
+Transcript text is not copied into the summary. Reloading or Reset comparison
+clears both summaries; no cookie, browser storage, analytics event, database
+row, or new route exists. Preparing the other profile returns the state machine
+to idle and changes the selected profile, but microphone access and credential
+minting still begin only through the next explicit Start.
+
+Cached input counts are subsets of the provider's text and audio totals. The
+adapter subtracts cached modality counts before reporting uncached counts so
+the estimator cannot double-charge them. Unknown tokens use the higher
+applicable audio rate. A missing or zero-only usage event produces an
+unavailable estimate rather than `$0`.
+
 ## Data direction
 
 Supabase will provide Postgres, Auth, and Storage when a story first needs

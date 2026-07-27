@@ -109,6 +109,78 @@ The next Phase 1 story adds quality, latency, and cost comparison between
 otherwise equivalent Economy and Quality sessions. Phase 2 then adds the
 physical Watch network matrix from [TESTING.md](TESTING.md).
 
+## Phase 1 profile-comparison score
+
+| Dimension            | Target                                                       | Status   | Evidence                                                                                                                 |
+| -------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Equivalent guide     | Both profiles use the same visible three-step conversation   | Passing  | `live-conversation-lab.test.tsx`                                                                                         |
+| Fresh session        | Preparing a profile closes media and never auto-starts mic   | Passing  | Component lifecycle tests                                                                                                |
+| Usage accounting     | Cached tokens are not double-counted                         | Passing  | Adapter and pure evaluation tests                                                                                        |
+| Cost truthfulness    | Dated estimate discloses missing and separate charges        | Passing  | Evaluation tests and visible disclosure                                                                                  |
+| Privacy boundary     | Summaries omit transcript and remain mounted-memory-only     | Passing  | Component tests and architecture inspection                                                                              |
+| Automated quality    | Complete local gates pass                                    | Passing  | `pnpm verify`; 82 web tests and 6 contract tests                                                                         |
+| Responsive browser   | Workflow fits 320 px and desktop without application errors  | Passing  | [Vercel preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app), 320 px and 1440 px |
+| Synthetic pair       | Real Economy and Quality WebRTC sessions complete unattended | Passing  | Local pair: three finalized turns, natural interruption, usage, recording, and clean close for each profile              |
+| Audio turn stability | Silence does not create false user or assistant turns        | Passing  | 12-second physical-microphone silence gate; empty audio produced no assistant response; spoken fixture still responded   |
+| Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Passing  | Prerecorded guide played through Mac speakers into the physical microphone; three clean turns each and live interruption |
+| Human quality        | Andrew records a 1–5 score for each real run                 | Passing  | Economy: `5 / 5`; Quality: `5 / 5`; direct local physical-microphone sessions on 2026-07-27                              |
+| Deployment           | Paired workflow passes deployed browser acceptance           | Passing  | Andrew completed user-visible Economy and Quality microphone sessions on the Vercel branch preview on 2026-07-27         |
+| Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Deferred | Earlier comparison review passed; final audio-fix review remains unavailable at the Fable usage limit                    |
+
+The automated rows prove behavior and boundaries, not comparative model
+quality. The final browser path requests mono capture, echo cancellation, noise
+suppression, and automatic gain control. Realtime adds near-field noise
+reduction and noise-tolerant server VAD with a `0.65` activation threshold,
+`300 ms` prefix padding, and `1,000 ms` silence completion. Automatic response
+creation is disabled: a response is requested only after a completed,
+non-blank input transcript. A physical-microphone check held silence for
+12 seconds, ignored a non-speech system sound, proved an empty provider
+transcript does not trigger a reply, and still answered the next prerecorded
+spoken turn. The final adapter also filters textless provider history items
+from the visible transcript. Unrelated room speech was stopped and was not
+copied into repository evidence.
+
+The Vercel branch preview was checked again on 2026-07-27. Its authenticated
+shell loaded and its protected route minted a short-lived credential for the
+exact Economy model without exposing the credential. The off-screen controlled
+Chrome session could not surface or grant the deployed origin's microphone
+permission, so WebRTC remained in `Connecting`. Both test sessions were ended
+without playing speech. The UI now bounds client-secret and WebRTC negotiation
+to 30 seconds, closes any active media session on timeout, reports `Failed`,
+and ignores late callbacks. That left a user-visible deployed microphone run
+as the remaining deployment gate. Andrew then opened the authenticated preview
+in a visible browser, granted microphone access, and confirmed that both
+Economy and Quality worked great.
+
+The physical paired run on 2026-07-26 played the same prerecorded three-step
+guide through Mac speakers into Chrome's MacBook Air microphone. Economy
+connected in `1,059 ms` with a `971 ms` median response-start interval. Quality
+connected in `1,205 ms` with a `1,674 ms` median interval. Both profiles
+captured three clean guide turns and completed three responses; Quality's
+second response was visibly truncated by the third-turn redirect. This proves
+the physical browser capture and interruption path without requiring Andrew to
+repeat the script, but it does not supply a human quality rating.
+
+Andrew then completed direct local sessions for both profiles on 2026-07-27
+and rated each `5 / 5`. Economy connected in `4,658 ms`, had a `1,502 ms`
+median voice-response interval, reported `2,180` provider tokens, and estimated
+`$0.0242` in usage. Quality connected in `1,578 ms`, had a `1,704 ms` median
+voice-response interval, reported `1,772` provider tokens, and estimated
+`$0.0777` in usage.
+
+The final unattended local pair used the real development client-secret route,
+Agents SDK, WebRTC transport, the same server-VAD and transcript-gated response
+path, and the same three-step guide for both profiles. Economy connected in
+`636 ms`, recorded `1,038,927` bytes, had a `1,281 ms` median
+speech-stop-to-audio-start interval, and an estimated `$0.02619332` usage cost.
+Quality connected in `770 ms`, recorded `1,070,907` bytes, had a `1,038 ms`
+median interval, and an estimated `$0.0896368` usage cost. Both sessions
+finalized three user turns, naturally cleared output on the redirect, produced
+nonzero provider usage, and closed cleanly. The recordings are local test
+artifacts, not repository content. Andrew explicitly deferred the new
+Fable/high review after Claude reported its usage limit. A second bounded
+attempt on 2026-07-27 reached the same limit without running a review.
+
 ## 2026-07-26 deployed foundation evidence
 
 Environment:

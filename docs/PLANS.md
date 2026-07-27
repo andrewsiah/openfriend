@@ -5,19 +5,23 @@ scope, acceptance criteria, decisions, and evidence.
 
 ## Active
 
-Phase 1 remains active. Its next accepted story is Economy-versus-Quality
-comparison; an implementation plan has not yet been accepted.
+Phase 2 is next. Its first accepted story is a useful phone-free conversation
+on Andrew's physical Apple Watch. A bounded transport and authentication design
+must be accepted before implementation begins.
 
 ## Completed
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
 - [Phase 1 live conversation](plans/2026-07-26-phase-1-live-conversation.md)
+- [Phase 1 profile comparison](plans/2026-07-26-phase-1-profile-comparison.md)
+- [Synthetic paired voice acceptance](plans/2026-07-26-synthetic-paired-voice.md)
 - [Greptile merge gate](plans/2026-07-26-greptile-merge-gate.md)
 - [Public codebase harness](plans/2026-07-26-public-codebase-harness.md)
 
 ## Accepted design
 
 - [OpenFriend foundation design](plans/2026-07-26-openfriend-foundation-design.md)
+- [Synthetic paired voice design](plans/2026-07-26-synthetic-paired-voice-design.md)
 - [Greptile merge-gate design](plans/2026-07-26-greptile-merge-gate-design.md)
 
 ## Plan lifecycle

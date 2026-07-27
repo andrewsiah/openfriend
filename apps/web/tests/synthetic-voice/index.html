@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpenFriend synthetic Realtime harness</title>
+    <title>OpenFriend synthetic paired Realtime harness</title>
     <style>
       :root {
         color-scheme: dark;
@@ -44,17 +44,48 @@
         padding: 1rem;
         white-space: pre-wrap;
       }
+
+      #recordings {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        margin-block: 1.5rem;
+      }
+
+      .recording {
+        background: #1b1916;
+        border: 1px solid #37312a;
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+
+      audio {
+        display: block;
+        margin-block: 0.75rem;
+        max-width: 100%;
+      }
+
+      a {
+        color: #e9c99b;
+      }
     </style>
   </head>
   <body>
-    <h1>Synthetic Realtime acceptance harness</h1>
+    <h1>Synthetic paired Realtime acceptance harness</h1>
     <p>
       This local-only harness bypasses hardware capture. It still uses the real
       dev client-secret route through a local proxy, Agents SDK, WebRTC
-      transport, model, transcripts, interruption, and cleanup.
+      transport, Economy and Quality models, transcripts, natural interruption,
+      usage, temporary response recordings, and cleanup.
     </p>
-    <button id="start" type="button">Run synthetic conversation</button>
+    <button id="start" type="button">
+      Run synthetic Economy + Quality pair
+    </button>
     <p id="status" role="status">Ready.</p>
+    <section
+      id="recordings"
+      aria-label="Temporary profile recordings"
+    ></section>
     <pre id="output" aria-label="Harness evidence"></pre>
     <script type="module" src="/main.ts"></script>
   </body>

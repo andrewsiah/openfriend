@@ -42,7 +42,7 @@ Acceptance:
 - local checks, personal infrastructure ownership, deployment, and public repo
   state are verified.
 
-## Next: Phase 1 web voice lab
+## Accepted: Phase 1 web voice lab
 
 ### Start a live conversation
 
@@ -71,6 +71,14 @@ Acceptance:
 - switching ends the old session and creates a new one;
 - evaluation records profile, latency, qualitative score, and estimated cost;
 - missing capabilities are disclosed.
+
+Implementation status: the guided, session-only comparison and its automated
+quality gates pass. Local unattended and physical-microphone pairs passed
+against real Economy and Quality Realtime WebRTC sessions, including three
+transcribed turns per profile, natural interruption, usage, latency, recordings,
+and cleanup. Andrew rated both profiles `5 / 5` and confirmed both profiles on
+the authenticated Vercel preview. The final Fable/high review remains explicitly
+deferred because the Claude CLI is still at its Fable usage limit.
 
 ## Then: Phase 2 Watch field test
 

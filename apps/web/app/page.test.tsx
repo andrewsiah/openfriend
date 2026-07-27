@@ -17,13 +17,13 @@ describe("OpenFriend foundation page", () => {
     ).toBeInTheDocument();
   });
 
-  it("moves from the web voice lab directly to the Watch field test", () => {
+  it("puts profile comparison before the Watch field test", () => {
     render(<HomePage />);
 
     const deliverySequence = screen.getByLabelText("Delivery sequence");
 
     expect(deliverySequence).toHaveTextContent(
-      /Web Voice Lab[\s\S]*Watch Field Test/,
+      /Compare Economy and Quality[\s\S]*Watch Field Test/,
     );
   });
 

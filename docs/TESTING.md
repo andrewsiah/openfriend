@@ -150,10 +150,32 @@ For Phase 1, interpret `Voice response start` as the client-observed interval
 from server-detected speech stop to the first output-audio buffer. It excludes
 the VAD silence window and is not derived from transcript-finalization timing.
 
-The deterministic browser story is the default pull-request gate. When macOS
-hardware capture is unavailable, the separate local-only synthetic Realtime
-harness can verify the remaining real browser transport without adding a
-production route:
+The deterministic browser story is the default pull-request gate.
+
+The production browser capture path requests a mono microphone track with echo
+cancellation, noise suppression, and automatic gain control. The Realtime
+session also uses near-field input noise reduction and server VAD with a `0.65`
+activation threshold, `300 ms` prefix padding, and `1,000 ms` silence
+completion. VAD interrupts active output immediately, but automatic response
+creation is disabled. The browser requests a response only after input
+transcription completes with non-blank text, so empty audio cannot produce an
+invented assistant turn.
+
+Client-secret retrieval and WebRTC negotiation are bounded to 30 seconds. If
+either remains pending, the lab must close any active media session, announce a
+failed state, and ignore a late credential or connection callback. Resetting
+the lab allows a fresh explicit attempt.
+
+Before running the paired guide on a physical microphone, keep the room quiet
+for at least ten seconds after the session becomes live: no assistant turn
+should appear. If VAD commits a non-speech sound, a blank provider history item
+must not trigger a response and must not appear in the visible transcript. This
+silence gate catches false replies but does not replace a complete spoken-turn
+check.
+
+When macOS hardware capture is unavailable, the local-only synthetic Realtime
+harness can verify the remaining browser transport without adding a production
+route:
 
 ```bash
 # Run the web app with OPENAI_API_KEY on port 3010 first.
@@ -163,13 +185,24 @@ pnpm --filter @openfriend/web test:synthetic-voice
 Open `http://127.0.0.1:4173/` and run the synthetic conversation. The harness
 generates clearly synthetic speech with macOS `say`, obtains a short-lived
 credential through a local proxy to the real development API route, and
-exercises the Agents SDK, WebRTC, transcription, model response, manual
-interruption, latency, and clean close. The result reports when an explicit
-input-buffer commit was needed instead of server VAD. It does not prove
-production route protection, hardware capture, echo cancellation, automatic
-gain control, device switching, or natural barge-in; those browser acceptance
-checks remain open. This command is manual, requires a real development API
-key, and is billable; it must not run in routine CI.
+exercises the Agents SDK, WebRTC, automatic server-VAD turn commits,
+transcription-gated model response, natural interruption, usage,
+response-start latency, remote-stream recording, and clean close. It runs the
+accepted guide through Economy and then Quality with fresh sequential sessions.
+
+The spoken fixtures keep the accepted words but omit sentence punctuation that
+causes macOS `say` to insert turn-length internal pauses. The Web Audio playback
+normalizes their level and appends explicit silent frames so server VAD can
+finalize each complete turn without a manual input-buffer commit. The local
+harness allows up to 75 seconds for a complete spoken response; this does not
+change production latency behavior. The result leaves labeled in-memory
+recordings that can be downloaded before the harness reloads.
+
+This local harness does not prove production route protection, physical
+microphone capture, browser echo cancellation, noise suppression, automatic
+gain control, or device switching. Those browser acceptance checks remain
+separate. This command is manual, requires a real development API key, and is
+billable; it must not run in routine CI.
 
 ### Conversation evaluations
 
@@ -186,6 +219,27 @@ Evaluate product behavior, not just transcripts:
 
 Keep repeatable prompts and scored observations in version control when Phase 1
 begins.
+
+The Phase 1 paired experiment uses this exact guide for both profiles:
+
+1. “I've had a long day. Help me reset in one minute.”
+2. “Help me choose between a quiet evening and seeing friends. Ask me one
+   question before advising.”
+3. While OpenFriend answers, redirect it: “Actually, make that practical: give
+   me one next step.”
+
+End and rate the first profile before preparing the other one. Preparing must
+close the old session, return the lab to idle, clear the live transcript, and
+leave the microphone off until Start. A completed pair records profile,
+connection latency, median voice-response start, provider usage, estimated
+cost, and a 1–5 human quality score without retaining transcript text.
+
+Cost is an estimate based on provider-reported Realtime response usage and the
+published model rates dated in the UI. Provider cached counts are subsets of
+input modality totals and must be subtracted before uncached pricing.
+Separately billed transcription, a response still in flight when End is
+pressed, and future provider charges can be absent. Missing or zero-only usage
+is unavailable, never free.
 
 ### Physical Watch
 
