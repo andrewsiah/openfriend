@@ -75,7 +75,15 @@ Vercel project. Do not add a database or new socket host.
 Expected: a written limit, key, window, failure response, and verification
 method exist before the route can become publicly reachable.
 
-**Step 3: Record the accepted constraints**
+**Step 3: Obtain provider-mutation authority**
+
+Obtain explicit authority to deploy the authenticated route, configure the
+accepted exact-path WAF rule, and change preview deployment protection only
+after application authentication and the rate limit are verified. Do not
+change production promotion, domains, unrelated firewall rules, or account
+scope.
+
+**Step 4: Record the accepted constraints**
 
 Add a dated checklist to this plan containing only non-sensitive facts:
 
@@ -85,14 +93,15 @@ Add a dated checklist to this plan containing only non-sensitive facts:
 - [ ] Physical cellular Watch identified
 - [ ] Personal Vercel/OpenAI development scopes confirmed
 - [ ] Authenticated-route rate limit accepted
+- [ ] Watch route/WAF/preview mutation authorized
 ```
 
-**Step 4: Stop on any unresolved ownership**
+**Step 5: Stop on any unresolved ownership**
 
 Expected: no code or provider mutation begins while a prerequisite is
 ambiguous.
 
-**Step 5: Commit the non-sensitive acceptance record**
+**Step 6: Commit the non-sensitive acceptance record**
 
 ```bash
 git add docs/plans/2026-07-27-phase-2-watch-conversation.md
@@ -368,12 +377,15 @@ cookies, persistence, reconnect behavior, or production conversation UI.
 
 **Step 2: Authenticate and obtain one short-lived credential safely**
 
-Deploy the Task 2 route to the existing personal preview, configure the
-accepted WAF rule on the exact Watch credential path, and verify sanitized
-`401`, `429`, and no-store responses before making that preview path reachable
-without Vercel deployment authentication. The Watch must rely on application
-authentication plus the WAF rule, not a Vercel session or protection-bypass
-credential.
+After the Task 0 provider-mutation authorization, deploy the Task 2 route to
+the existing personal preview, configure and publish the accepted WAF rule on
+the exact Watch credential path, and verify sanitized `401`, `429`, and
+no-store responses from the deployed source before making that preview path
+reachable without Vercel deployment authentication. Record the non-sensitive
+rule name, path, key, fixed window, request cap, `429` action, verification
+time, and rollback procedure in `docs/INFRASTRUCTURE.md`. The Watch must rely
+on application authentication plus the WAF rule, not a Vercel session or
+protection-bypass credential.
 
 Use `AuthenticationServices` to create a fresh raw nonce, send only its SHA-256
 hash in the Sign in with Apple request, and keep the returned identity token
@@ -451,6 +463,8 @@ Use synthetic JSON fixtures for:
 - `input_audio_buffer.speech_started`;
 - `input_audio_buffer.speech_stopped`;
 - completed non-blank and blank input transcription;
+- `conversation.item.input_audio_transcription.failed` with only a sanitized
+  failure category;
 - `response.output_audio.delta` with `item_id`, `content_index`, and Base64
   payload;
 - `response.output_audio.done`;
@@ -836,7 +850,8 @@ enum WatchConnectionState: Equatable {
 Test:
 
 - happy path to live and ended;
-- auth, permission, audio activation, socket, and protocol failure;
+- auth, permission, audio activation, socket, protocol, and transcription
+  failure;
 - one loss enters reconnecting;
 - recovery sets `hasReconnected`;
 - failed reconnect and second loss are terminal;
@@ -884,6 +899,9 @@ Also prove:
 
 - blank completed transcription does not call `response.create`;
 - non-blank completion calls it once;
+- input-transcription failure transitions to terminal
+  `.failed(.transcription)` and performs full cleanup instead of silently
+  waiting in `live`;
 - speech-started invokes local stop/truncate immediately;
 - one reconnect stops media flow, waits no more than five seconds, fetches a
   new secret, creates a new empty session, and announces lost continuity;
