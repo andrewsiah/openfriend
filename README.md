@@ -117,9 +117,14 @@ OpenFriend is:
 
 - **user-story driven** — changes begin with a real experience and observable
   acceptance criteria;
-- **test-driven** — behavior follows red, green, refactor;
+- **specification-first** — consequential behavior, constraints, and non-goals
+  are explicit before implementation;
+- **test-and-verification driven** — behavior proceeds through red, green,
+  refactor, with deterministic evidence of completion;
 - **YAGNI-constrained** — abstractions and infrastructure must earn their place
   through an accepted near-term story;
+- **small-batch and reversible** — changes are independently reviewable,
+  verifiable, and cheap to undo;
 - **agent-first** — `AGENTS.md` is a short map and `docs/` is the versioned
   system of record, following OpenAI's
   [harness-engineering guidance](https://openai.com/index/harness-engineering/).

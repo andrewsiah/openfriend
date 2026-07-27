@@ -1,7 +1,18 @@
 # Engineering method
 
-OpenFriend uses user-story-driven development, test-driven development, and
-YAGNI as working constraints rather than slogans.
+OpenFriend treats its coding principles as working constraints rather than
+slogans:
+
+- **user-story driven** — changes begin with a real experience and observable
+  acceptance criteria;
+- **specification-first** — consequential behavior, constraints, and non-goals
+  are explicit before implementation;
+- **test-and-verification driven** — behavior proceeds through red, green,
+  refactor, with deterministic evidence of completion;
+- **YAGNI-constrained** — abstractions and infrastructure must earn their place
+  through an accepted near-term story;
+- **small-batch and reversible** — changes are independently reviewable,
+  verifiable, and cheap to undo.
 
 ## Start with a user story
 
