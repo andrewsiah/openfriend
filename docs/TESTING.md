@@ -43,6 +43,24 @@ Use for microphone/session controls, profile switching, live state,
 interruptions, transcripts, review and approval, reconnection, keyboard access,
 responsive layout, browser errors, and request failures.
 
+## Voice and browser teardown
+
+Every test or manual check that opens a browser, microphone, audio stream, or
+billable live voice connection must clean it up before the test or task is
+considered finished:
+
+- disconnect every Realtime, WebRTC, WebSocket, and provider voice session;
+- stop every microphone and audio `MediaStreamTrack`;
+- close the test page, browser context, and browser process opened for the test;
+- put cleanup in `afterEach`, `afterAll`, or `finally` so it also runs after
+  failures, timeouts, and interruptions; and
+- confirm the provider/session state is ended when that confirmation is
+  available.
+
+Never leave a browser voice test or real-time connection running in the
+background. These sessions may continue incurring charges even when no test is
+actively interacting with them.
+
 ### Conversation evaluations
 
 Evaluate product behavior, not just transcripts:

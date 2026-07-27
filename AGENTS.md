@@ -24,8 +24,8 @@ reliability, user-story, and planning guidance.
    completion.
 6. Keep secrets server-side and out of Git, prompts, logs, browser bundles, and
    durable Watch storage.
-7. Run the checks documented in [docs/TESTING.md](docs/TESTING.md) before
-   claiming completion, and record durable decisions or evidence in `docs/`.
+7. Follow [docs/TESTING.md](docs/TESTING.md) before claiming completion,
+   including its mandatory browser/voice teardown, and record evidence in `docs/`.
 8. Preserve user work already present in the tree. Keep commits narrow and
    intentional.
 
