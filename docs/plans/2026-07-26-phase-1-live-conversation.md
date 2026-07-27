@@ -223,10 +223,17 @@ On 2026-07-26:
 - a full Realtime data-channel turn using the server-minted client secret
   received the exact model reply `realtime works`, resolving the earlier
   provider-quota blocker;
-- the real browser voice sequence remains pending because the tested Chromium
-  browsers enumerate zero audio inputs and `getUserMedia({ audio: true })`
-  returns `NotFoundError`, even though macOS reports available microphones and
-  microphone permission is enabled;
+- the real browser voice sequence remains pending because macOS can enumerate
+  the available microphones but cannot open an input stream: direct
+  `getUserMedia({ audio: true })` calls time out in Chrome, Safari remains
+  connecting after microphone permission is granted, and an independent
+  AVFoundation capture also hangs;
+- Chrome's site permission is allowed and its permission details enumerate all
+  four inputs, while WebRTC internals records unresolved `getUserMedia` calls
+  and media internals never creates an input controller;
+- restarting Chrome's audio helper, selecting a virtual input, and toggling the
+  built-in microphone sample rate do not restore capture, so restarting the
+  system `coreaudiod` service is the next required gate;
 - `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
   lint, formatting, documentation, and production-build gates;
 - GitHub CI passes on reviewed commit `ff82f30`;
@@ -238,9 +245,9 @@ On 2026-07-26:
 - an unauthenticated browser is redirected to Vercel Login before any
   OpenFriend content is served.
 
-Phase 1 is not complete. Restore browser microphone enumeration, rerun the full
-spoken-conversation acceptance sequence, then update status and merge only if
-that sequence passes.
+Phase 1 is not complete. Restart the system audio service, rerun the full spoken
+conversation acceptance sequence, then update status and merge only if that
+sequence passes.
 
 ## Stop condition
 
