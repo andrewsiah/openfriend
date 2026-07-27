@@ -20,6 +20,7 @@ import {
   OpenAILiveSession,
   type OpenAISdkSession,
 } from "../../lib/openai-live-session";
+import { playSyntheticFixture } from "./fixture-playback";
 import {
   runSyntheticProfilePair,
   type SyntheticProfileRunner,
@@ -113,20 +114,6 @@ async function decodeFixture(
   }
 
   return audioContext.decodeAudioData(await response.arrayBuffer());
-}
-
-async function playFixture(
-  audioContext: AudioContext,
-  destination: MediaStreamAudioDestinationNode,
-  fixture: AudioBuffer,
-): Promise<void> {
-  await new Promise<void>((resolve) => {
-    const source = audioContext.createBufferSource();
-    source.buffer = fixture;
-    source.connect(destination);
-    source.addEventListener("ended", () => resolve(), { once: true });
-    source.start();
-  });
 }
 
 function createRecordingController(
@@ -375,7 +362,7 @@ async function runSyntheticProfile(
     );
 
     statusElement.textContent = `Running synthetic ${profile} guide step 1…`;
-    await playFixture(audioContext, inputDestination, fixtures[0]);
+    await playSyntheticFixture(audioContext, inputDestination, fixtures[0]);
     await waitFor(
       `${profile} first completed response`,
       () =>
@@ -389,14 +376,14 @@ async function runSyntheticProfile(
     );
 
     statusElement.textContent = `Running synthetic ${profile} guide step 2…`;
-    await playFixture(audioContext, inputDestination, fixtures[1]);
+    await playSyntheticFixture(audioContext, inputDestination, fixtures[1]);
     await waitFor(
       `${profile} second response audio`,
       () => outputStartedCount >= 2,
     );
 
     statusElement.textContent = `Interrupting synthetic ${profile} response with step 3…`;
-    await playFixture(audioContext, inputDestination, fixtures[2]);
+    await playSyntheticFixture(audioContext, inputDestination, fixtures[2]);
     await waitFor(
       `${profile} final response and evidence`,
       () =>

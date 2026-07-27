@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import { createServer } from "vite";
 
+import { SYNTHETIC_PAIRED_SPEECH } from "./spoken-guide.mjs";
+
 const harnessDirectory = dirname(fileURLToPath(import.meta.url));
 const fixtureDirectory = await mkdtemp(
   join(tmpdir(), "openfriend-synthetic-voice-"),
@@ -39,17 +41,17 @@ if (process.platform !== "darwin") {
 
 generateFixture(
   "reset",
-  "I've had a long day. Help me reset in one minute.",
+  SYNTHETIC_PAIRED_SPEECH[0],
   205,
 );
 generateFixture(
   "decision",
-  "Help me choose between a quiet evening and seeing friends. Ask me one question before advising.",
+  SYNTHETIC_PAIRED_SPEECH[1],
   205,
 );
 generateFixture(
   "redirect",
-  "Actually, make that practical. Give me one next step.",
+  SYNTHETIC_PAIRED_SPEECH[2],
   215,
 );
 
