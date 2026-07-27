@@ -51,19 +51,19 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 
 ## Phase 1 profile-comparison score
 
-| Dimension           | Target                                                      | Status  | Evidence                                           |
-| ------------------- | ----------------------------------------------------------- | ------- | -------------------------------------------------- |
-| Equivalent guide    | Both profiles use the same visible three-step conversation  | Passing | `live-conversation-lab.test.tsx`                   |
-| Fresh session       | Preparing a profile closes media and never auto-starts mic  | Passing | Component lifecycle tests                          |
-| Usage accounting    | Cached tokens are not double-counted                        | Passing | Adapter and pure evaluation tests                  |
-| Cost truthfulness   | Dated estimate discloses missing and separate charges       | Passing | Evaluation tests and visible disclosure            |
-| Privacy boundary    | Summaries omit transcript and remain mounted-memory-only    | Passing | Component tests and architecture inspection        |
-| Automated quality   | Complete local gates pass                                   | Passing | `pnpm verify`; 68 web tests and 6 contract tests   |
-| Responsive browser  | Workflow fits 320 px and desktop without application errors | Passing | Local real-browser checks on 2026-07-26            |
-| Paired conversation | Real Economy and Quality microphone runs use the same guide | Pending | —                                                  |
-| Human quality       | Andrew records a 1–5 score for each real run                | Pending | —                                                  |
-| Deployment          | Paired workflow passes deployed browser acceptance          | Pending | —                                                  |
-| Final review        | Claude Fable/high finds no actionable P0/P1 issue           | Passing | Structured `APPROVED` verdict on runtime and tests |
+| Dimension           | Target                                                      | Status  | Evidence                                                                                                                 |
+| ------------------- | ----------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Equivalent guide    | Both profiles use the same visible three-step conversation  | Passing | `live-conversation-lab.test.tsx`                                                                                         |
+| Fresh session       | Preparing a profile closes media and never auto-starts mic  | Passing | Component lifecycle tests                                                                                                |
+| Usage accounting    | Cached tokens are not double-counted                        | Passing | Adapter and pure evaluation tests                                                                                        |
+| Cost truthfulness   | Dated estimate discloses missing and separate charges       | Passing | Evaluation tests and visible disclosure                                                                                  |
+| Privacy boundary    | Summaries omit transcript and remain mounted-memory-only    | Passing | Component tests and architecture inspection                                                                              |
+| Automated quality   | Complete local gates pass                                   | Passing | `pnpm verify`; 68 web tests and 6 contract tests                                                                         |
+| Responsive browser  | Workflow fits 320 px and desktop without application errors | Passing | [Vercel preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app), 320 px and 1440 px |
+| Paired conversation | Real Economy and Quality microphone runs use the same guide | Pending | —                                                                                                                        |
+| Human quality       | Andrew records a 1–5 score for each real run                | Pending | —                                                                                                                        |
+| Deployment          | Paired workflow passes deployed browser acceptance          | Pending | Preview shell passes at 320 px and 1440 px; paired microphone run remains                                                |
+| Final review        | Claude Fable/high finds no actionable P0/P1 issue           | Passing | Structured `APPROVED` verdict on runtime and tests                                                                       |
 
 The automated rows prove behavior and boundaries, not comparative model
 quality. A physical-microphone attempt on 2026-07-26 was stopped when unrelated

@@ -223,9 +223,11 @@ On 2026-07-26:
   and reset during a live second session;
 - the complete `pnpm verify` gate passes with 68 web tests, 6 contract tests,
   typecheck, lint, formatting, docs validation, and the production build;
-- real-browser checks at 320 px and desktop widths show no horizontal overflow,
-  keep the fixed guide visible, and produce no application-sourced console
-  error;
+- real-browser checks against the
+  [Vercel branch preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app)
+  at 320 px and 1440 px show no horizontal overflow, keep the fixed guide and
+  profile controls visible, and produce no application-sourced console warning
+  or error;
 - the complete public branch diff has zero credential-shaped matches;
 - Claude Fable/high returned a structured `APPROVED` final verdict with no
   actionable P0/P1 runtime or regression-test finding;
@@ -233,5 +235,5 @@ On 2026-07-26:
   connection, but was stopped immediately when unrelated room speech reached
   the microphone; the session was ended and the mounted transcript state was
   reset without treating the attempt as comparative evidence;
-- the quiet-room paired-microphone and deployed-browser evidence remain
-  pending.
+- the quiet-room paired-microphone run and its deployed two-session acceptance
+  remain pending.
