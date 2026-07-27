@@ -51,21 +51,21 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 
 ## Phase 1 profile-comparison score
 
-| Dimension            | Target                                                       | Status  | Evidence                                                                                                                 |
-| -------------------- | ------------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Equivalent guide     | Both profiles use the same visible three-step conversation   | Passing | `live-conversation-lab.test.tsx`                                                                                         |
-| Fresh session        | Preparing a profile closes media and never auto-starts mic   | Passing | Component lifecycle tests                                                                                                |
-| Usage accounting     | Cached tokens are not double-counted                         | Passing | Adapter and pure evaluation tests                                                                                        |
-| Cost truthfulness    | Dated estimate discloses missing and separate charges        | Passing | Evaluation tests and visible disclosure                                                                                  |
-| Privacy boundary     | Summaries omit transcript and remain mounted-memory-only     | Passing | Component tests and architecture inspection                                                                              |
-| Automated quality    | Complete local gates pass                                    | Passing | `pnpm verify`; 82 web tests and 6 contract tests                                                                         |
-| Responsive browser   | Workflow fits 320 px and desktop without application errors  | Passing | [Vercel preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app), 320 px and 1440 px |
-| Synthetic pair       | Real Economy and Quality WebRTC sessions complete unattended | Passing | Local pair: three finalized turns, natural interruption, usage, recording, and clean close for each profile              |
-| Audio turn stability | Silence does not create false user or assistant turns        | Passing | 12-second physical-microphone silence gate; empty audio produced no assistant response; spoken fixture still responded   |
-| Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Passing | Prerecorded guide played through Mac speakers into the physical microphone; three clean turns each and live interruption |
-| Human quality        | Andrew records a 1–5 score for each real run                 | Passing | Economy: `5 / 5`; Quality: `5 / 5`; direct local physical-microphone sessions on 2026-07-27                              |
-| Deployment           | Paired workflow passes deployed browser acceptance           | Passing | Andrew completed user-visible Economy and Quality microphone sessions on the Vercel branch preview on 2026-07-27         |
-| Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Pending | Earlier comparison review passed; audio-fix review deferred after Fable usage limit                                      |
+| Dimension            | Target                                                       | Status   | Evidence                                                                                                                 |
+| -------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Equivalent guide     | Both profiles use the same visible three-step conversation   | Passing  | `live-conversation-lab.test.tsx`                                                                                         |
+| Fresh session        | Preparing a profile closes media and never auto-starts mic   | Passing  | Component lifecycle tests                                                                                                |
+| Usage accounting     | Cached tokens are not double-counted                         | Passing  | Adapter and pure evaluation tests                                                                                        |
+| Cost truthfulness    | Dated estimate discloses missing and separate charges        | Passing  | Evaluation tests and visible disclosure                                                                                  |
+| Privacy boundary     | Summaries omit transcript and remain mounted-memory-only     | Passing  | Component tests and architecture inspection                                                                              |
+| Automated quality    | Complete local gates pass                                    | Passing  | `pnpm verify`; 82 web tests and 6 contract tests                                                                         |
+| Responsive browser   | Workflow fits 320 px and desktop without application errors  | Passing  | [Vercel preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app), 320 px and 1440 px |
+| Synthetic pair       | Real Economy and Quality WebRTC sessions complete unattended | Passing  | Local pair: three finalized turns, natural interruption, usage, recording, and clean close for each profile              |
+| Audio turn stability | Silence does not create false user or assistant turns        | Passing  | 12-second physical-microphone silence gate; empty audio produced no assistant response; spoken fixture still responded   |
+| Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Passing  | Prerecorded guide played through Mac speakers into the physical microphone; three clean turns each and live interruption |
+| Human quality        | Andrew records a 1–5 score for each real run                 | Passing  | Economy: `5 / 5`; Quality: `5 / 5`; direct local physical-microphone sessions on 2026-07-27                              |
+| Deployment           | Paired workflow passes deployed browser acceptance           | Passing  | Andrew completed user-visible Economy and Quality microphone sessions on the Vercel branch preview on 2026-07-27         |
+| Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Deferred | Earlier comparison review passed; final audio-fix review remains unavailable at the Fable usage limit                    |
 
 The automated rows prove behavior and boundaries, not comparative model
 quality. The final browser path requests mono capture, echo cancellation, noise
@@ -118,7 +118,8 @@ median interval, and an estimated `$0.0896368` usage cost. Both sessions
 finalized three user turns, naturally cleared output on the redirect, produced
 nonzero provider usage, and closed cleanly. The recordings are local test
 artifacts, not repository content. Andrew explicitly deferred the new
-Fable/high review after Claude reported its usage limit.
+Fable/high review after Claude reported its usage limit. A second bounded
+attempt on 2026-07-27 reached the same limit without running a review.
 
 ## 2026-07-26 deployed foundation evidence
 

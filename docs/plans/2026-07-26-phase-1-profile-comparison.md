@@ -263,6 +263,15 @@ On 2026-07-26:
 - the resulting pair passed with three finalized user turns, natural
   interruption, nonzero usage, latency samples, non-empty response recordings,
   and clean close for each profile;
-- a complete physical-microphone spoken turn, the quiet-room paired-microphone
-  run, deployed two-session browser acceptance, Andrew's 1–5 ratings, and the
-  deferred audio-fix review remain pending.
+- the final local physical-microphone pair completed with the accepted guide,
+  live interruption, and clean turns for both profiles;
+- Andrew rated Economy and Quality `5 / 5` and then confirmed both profiles
+  worked on the authenticated Vercel branch preview;
+- the complete gate passes with 82 web tests, 6 contract tests, typecheck, lint,
+  formatting, docs validation, and the production build;
+- the public branch diff has zero credential-shaped matches;
+- a final bounded Fable/high review was attempted again on 2026-07-27, but the
+  Claude CLI remained at its Fable usage limit, so Andrew's earlier explicit
+  deferral remains in effect;
+- Phase 1 is accepted with that review transparently deferred. Phase 2 must use
+  its own design and implementation plan rather than extending this plan.
