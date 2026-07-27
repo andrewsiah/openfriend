@@ -82,13 +82,13 @@ Provider security state:
 - CodeQL default setup is configured for Actions, JavaScript/TypeScript, and
   Swift;
 - five inherited dependency alerts closed after safe package floors landed;
-- [alert #6](https://github.com/andrewsiah/openfriend/security/dependabot/6)
-  remains visible for `brace-expansion@1.1.16` through the development ESLint
-  chain. A forced incompatible major breaks the current ESLint plugin API, so
-  this exception is monitored rather than hidden or dismissed. Dependabot run
-  [`30247197846`](https://github.com/andrewsiah/openfriend/actions/runs/30247197846)
-  independently reported `1.1.16` as the latest resolvable version and `5.0.8`
-  as the earliest fixed version.
+- the final inherited [alert
+  #6](https://github.com/andrewsiah/openfriend/security/dependabot/6) identified
+  `brace-expansion@1.1.16` through the development ESLint chain. The repository
+  now selects patched 5.0.8 and carries a narrow checked-in `minimatch` 3 export
+  adapter until upstream compatibility arrives. Frozen install, ESLint, the
+  full gate, browser tests, and `pnpm audit --audit-level high` pass with no
+  known vulnerabilities.
 
 ## Phase 1 live-conversation score
 

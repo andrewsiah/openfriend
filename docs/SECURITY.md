@@ -81,13 +81,16 @@ Sharp to patched releases. The frozen install, full local gate, deterministic
 browser stories, production build, and a native Sharp transform pass with those
 versions.
 
-One high-severity `brace-expansion` advisory remains visible through the
-development-only ESLint chain. The patched major is not a compatible drop-in
-for `minimatch` 3, and forcing current `minimatch` breaks a callable API used by
-the installed React lint plugin. OpenFriend does not pass remote or
-user-controlled glob patterns into this local lint path. The alert is not
-dismissed: keep it visible and replace the exception when the upstream lint
-chain publishes a compatible resolution.
+The final high-severity `brace-expansion` advisory was isolated to the
+development-only ESLint chain. `minimatch` 3 requires the legacy callable
+CommonJS export, while patched `brace-expansion` 5 provides a named `expand`
+export. OpenFriend now overrides only that vulnerable transitive copy to 5.0.8
+and carries a three-line compatibility adapter for `minimatch` 3. The adapter
+accepts either export shape without changing matching behavior. Frozen install,
+ESLint, the full repository gate, deterministic browser stories, and
+`pnpm audit --audit-level high` pass; the audit reports no known
+vulnerabilities. Remove the checked-in patch and override together when the
+upstream ESLint chain adopts a compatible `minimatch`.
 
 ## Realtime client-secret boundary
 
