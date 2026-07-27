@@ -56,6 +56,11 @@ creation is disabled. The browser requests a response only after input
 transcription completes with non-blank text, so empty audio cannot produce an
 invented assistant turn.
 
+Client-secret retrieval and WebRTC negotiation are bounded to 30 seconds. If
+either remains pending, the lab must close any active media session, announce a
+failed state, and ignore a late credential or connection callback. Resetting
+the lab allows a fresh explicit attempt.
+
 Before running the paired guide on a physical microphone, keep the room quiet
 for at least ten seconds after the session becomes live: no assistant turn
 should appear. If VAD commits a non-speech sound, a blank provider history item

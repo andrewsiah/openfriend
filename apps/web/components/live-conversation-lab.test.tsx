@@ -136,6 +136,105 @@ describe("LiveConversationLab", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/live/i);
   });
 
+  it("fails and closes a session when connection negotiation never settles", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSequentialSessionHarness([
+      () => new Promise<void>(() => undefined),
+    ]);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        connectionTimeoutMs={10}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/failed/i);
+    });
+    expect(sessionHarness.sessions[0]?.session.close).toHaveBeenCalledOnce();
+
+    act(() => {
+      sessionHarness.emitConnection(0, "connected");
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(/failed/i);
+  });
+
+  it("fails when the initial client-secret request never settles", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockReturnValue(new Promise<Response>(() => undefined)),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        connectionTimeoutMs={10}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/failed/i);
+    });
+    expect(sessionHarness.createSession).not.toHaveBeenCalled();
+  });
+
+  it("clears the connection timeout after the session becomes live", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        connectionTimeoutMs={10}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+    act(() => {
+      sessionHarness.emitConnection("connected");
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(screen.getByRole("status")).toHaveTextContent(/live/i);
+    expect(sessionHarness.session.close).not.toHaveBeenCalled();
+  });
+
   it("locks the profile choice as soon as a session starts", async () => {
     const user = userEvent.setup();
     const sessionHarness = createSessionHarness();

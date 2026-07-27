@@ -36,8 +36,11 @@ type LiveSessionEvent = Parameters<typeof reduceLiveSessionState>[1];
 interface LiveConversationLabProps {
   profiles: readonly LiveModelProfile[];
   createSession?: LiveSessionFactory;
+  connectionTimeoutMs?: number;
   now?: () => number;
 }
+
+const DEFAULT_CONNECTION_TIMEOUT_MS = 30_000;
 
 const statusCopy = {
   idle: "Idle. Choose a profile, then start when you are ready.",
@@ -118,6 +121,7 @@ function readPerformanceClock(): number {
 export function LiveConversationLab({
   profiles,
   createSession = createOpenAILiveSession,
+  connectionTimeoutMs = DEFAULT_CONNECTION_TIMEOUT_MS,
   now = readPerformanceClock,
 }: LiveConversationLabProps) {
   const [sessionState, dispatch] = useReducer(
@@ -148,6 +152,9 @@ export function LiveConversationLab({
   const latestUserSpeechStoppedAt = useRef<number | null>(null);
   const activeSession = useRef<LiveSession | null>(null);
   const connectionAttemptId = useRef(0);
+  const connectionTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isMounted = useRef(true);
   const statusElement = useRef<HTMLDivElement | null>(null);
 
@@ -157,6 +164,7 @@ export function LiveConversationLab({
     return () => {
       isMounted.current = false;
       connectionAttemptId.current += 1;
+      clearConnectionTimeout();
       const sessionToClose = activeSession.current;
       activeSession.current = null;
       sessionToClose?.close();
@@ -169,6 +177,15 @@ export function LiveConversationLab({
     sessionToClose?.close();
   }
 
+  function clearConnectionTimeout(): void {
+    if (connectionTimeoutId.current === null) {
+      return;
+    }
+
+    clearTimeout(connectionTimeoutId.current);
+    connectionTimeoutId.current = null;
+  }
+
   function transition(event: LiveSessionEvent) {
     const nextState = reduceLiveSessionState(sessionStateRef.current, event);
     sessionStateRef.current = nextState;
@@ -178,6 +195,7 @@ export function LiveConversationLab({
 
   function endConversation(): void {
     connectionAttemptId.current += 1;
+    clearConnectionTimeout();
     closeActiveSession();
     latestUserSpeechStoppedAt.current = null;
     transition({ type: "end" });
@@ -186,6 +204,7 @@ export function LiveConversationLab({
 
   function resetConversation(): void {
     connectionAttemptId.current += 1;
+    clearConnectionTimeout();
     closeActiveSession();
     setTranscript([]);
     setConnectionLatency(null);
@@ -265,6 +284,24 @@ export function LiveConversationLab({
   async function connectWithFreshSecret(): Promise<void> {
     const attemptId = connectionAttemptId.current + 1;
     connectionAttemptId.current = attemptId;
+    clearConnectionTimeout();
+    connectionTimeoutId.current = setTimeout(() => {
+      if (
+        !isMounted.current ||
+        connectionAttemptId.current !== attemptId ||
+        (sessionStateRef.current.status !== "connecting" &&
+          sessionStateRef.current.status !== "reconnecting")
+      ) {
+        return;
+      }
+
+      connectionTimeoutId.current = null;
+      connectionAttemptId.current += 1;
+      closeActiveSession();
+      latestUserSpeechStoppedAt.current = null;
+      transition({ type: "connection_lost" });
+      statusElement.current?.focus();
+    }, connectionTimeoutMs);
     connectionStartedAt.current = now();
     latestUserSpeechStoppedAt.current = null;
     let nextSession: LiveSession | null = null;
@@ -294,6 +331,7 @@ export function LiveConversationLab({
             }
 
             if (status === "connected") {
+              clearConnectionTimeout();
               if (connectionStartedAt.current !== null) {
                 setConnectionLatency(
                   Math.max(0, Math.round(now() - connectionStartedAt.current)),
@@ -304,6 +342,7 @@ export function LiveConversationLab({
             }
 
             if (status === "disconnected") {
+              clearConnectionTimeout();
               connectionAttemptId.current += 1;
               const nextState = transition({ type: "connection_lost" });
               closeActiveSession();
@@ -395,6 +434,7 @@ export function LiveConversationLab({
         return;
       }
 
+      clearConnectionTimeout();
       if (nextSession !== null) {
         closeActiveSession();
       }
