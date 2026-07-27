@@ -272,6 +272,35 @@ test("CI uses immutable allowlisted actions and supported repository pnpm", asyn
   assert.ok(actions.includes("actions/setup-node"));
 });
 
+test("repository and automation require jsdom 29's Node 22.13 floor", async () => {
+  const packageJson = JSON.parse(await readRepositoryFile("package.json"));
+  const workflowPaths = [
+    ".github/workflows/ci.yml",
+    ".github/workflows/maintenance-report.yml",
+  ];
+
+  assert.equal(packageJson.engines?.node, ">=22.13.0");
+
+  for (const workflowPath of workflowPaths) {
+    const workflow = parseConfiguration(await readRepositoryFile(workflowPath));
+    const setupNodeSteps = Object.values(workflow.jobs ?? {}).flatMap((job) =>
+      (job.steps ?? []).filter(
+        (step) =>
+          typeof step.uses === "string" &&
+          actionName(step.uses) === "actions/setup-node",
+      ),
+    );
+
+    assert.ok(
+      setupNodeSteps.length > 0,
+      `${workflowPath} must set up the repository Node runtime`,
+    );
+    for (const step of setupNodeSteps) {
+      assert.equal(String(step.with?.["node-version"]), "22.13.0");
+    }
+  }
+});
+
 test("CI runs the isolated browser story after verify and retains only failure evidence", async () => {
   const source = await readRepositoryFile(".github/workflows/ci.yml");
   const workflow = parseConfiguration(source);
