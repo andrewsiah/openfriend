@@ -10,6 +10,7 @@ type MockLiveSessionEvent =
 type MockLiveSessionOptions = Readonly<{
   advanceClock?: (milliseconds: number) => void;
   failConnect?: boolean;
+  onConnect?: (clientSecret: string) => void;
   onEvent?: (event: MockLiveSessionEvent) => void;
 }>;
 
@@ -35,8 +36,9 @@ export function createMockLiveSession(
   let history: readonly LiveHistoryItem[] = [];
 
   return {
-    async connect() {
+    async connect(clientSecret) {
       callbacks.onConnectionChange("connecting");
+      options.onConnect?.(clientSecret);
 
       if (options.failConnect) {
         options.onEvent?.("connect-failed");

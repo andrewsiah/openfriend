@@ -5,9 +5,11 @@ import { expect, test } from "@playwright/test";
 
 type BrowserEvidence = {
   browser: string[];
+  clientSecretRequests: { body: unknown; method: string }[];
   console: string[];
   errors: string[];
   network: string[];
+  websockets: string[];
 };
 
 const evidence = new WeakMap<object, BrowserEvidence>();
@@ -15,9 +17,11 @@ const evidence = new WeakMap<object, BrowserEvidence>();
 test.beforeEach(async ({ page }) => {
   const testEvidence: BrowserEvidence = {
     browser: [],
+    clientSecretRequests: [],
     console: [],
     errors: [],
     network: [],
+    websockets: [],
   };
   evidence.set(page, testEvidence);
 
@@ -63,7 +67,32 @@ test.beforeEach(async ({ page }) => {
     await route.abort("blockedbyclient");
   });
 
+  await page.routeWebSocket("**/*", async (webSocket) => {
+    const requestUrl = new URL(webSocket.url());
+    const harnessUrl = new URL(
+      process.env.OPENFRIEND_BROWSER_BASE_URL ?? "http://127.0.0.1",
+    );
+    const allowedOrigin = `${harnessUrl.protocol === "https:" ? "wss:" : "ws:"}//${harnessUrl.host}`;
+
+    if (requestUrl.origin === allowedOrigin) {
+      webSocket.connectToServer();
+      return;
+    }
+
+    const blocked = `blocked external websocket ${webSocket.url()}`;
+    testEvidence.browser.push(blocked);
+    testEvidence.websockets.push(blocked);
+    await webSocket.close({
+      code: 1008,
+      reason: "External WebSocket blocked",
+    });
+  });
+
   await page.route("**/api/realtime/client-secret", async (route) => {
+    testEvidence.clientSecretRequests.push({
+      body: route.request().postDataJSON(),
+      method: route.request().method(),
+    });
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -122,12 +151,22 @@ test("Quality conversation becomes live, measures response, interrupts, ends, an
   await expect(
     page.getByRole("log", { name: /conversation transcript/i }),
   ).toContainText("Of course. What would make this morning feel manageable?");
-  await expect(page.getByText("Connection").locator("..")).toContainText(
-    "12 ms",
+  await expect(page.getByLabel("Connection latency")).toHaveText("12 ms");
+  await expect(page.getByLabel("Voice response start latency")).toHaveText(
+    "34 ms",
   );
-  await expect(
-    page.getByText("Voice response start").locator(".."),
-  ).toContainText("34 ms");
+  expect(evidence.get(page)?.clientSecretRequests).toEqual([
+    {
+      method: "POST",
+      body: { profile: "quality" },
+    },
+  ]);
+  await expect(page.getByTestId("harness-diagnostics")).toContainText(
+    "factory-model:gpt-realtime-2.1",
+  );
+  await expect(page.getByTestId("harness-diagnostics")).toContainText(
+    "connect-secret:ek_synthetic_browser_test",
+  );
 
   await page.getByRole("button", { name: /interrupt openfriend/i }).click();
   await expect(
@@ -164,9 +203,34 @@ test("deterministic connection failure reaches an honest failed state and closes
   await expect(page.getByTestId("harness-events")).toContainText("close:1");
 });
 
+test("an attempted external WebSocket is blocked and recorded without network access", async ({
+  page,
+}) => {
+  await page.goto("/harness.html");
+
+  const result = await page.evaluate(async () => {
+    return window.__openfriendBrowserHarness?.attemptExternalWebSocket();
+  });
+
+  expect(result).toEqual({
+    code: 1008,
+    reason: "External WebSocket blocked",
+  });
+  expect(evidence.get(page)?.websockets).toEqual([
+    "blocked external websocket wss://external.openfriend.invalid/socket",
+  ]);
+  expect(evidence.get(page)?.network).not.toContainEqual(
+    expect.stringContaining("external.openfriend.invalid"),
+  );
+});
+
 declare global {
   interface Window {
     __openfriendBrowserHarness?: {
+      attemptExternalWebSocket(): Promise<{
+        code: number;
+        reason: string;
+      }>;
       unmount(): void;
     };
   }

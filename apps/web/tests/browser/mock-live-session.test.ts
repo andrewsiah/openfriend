@@ -32,9 +32,11 @@ describe("deterministic mock LiveSession", () => {
   it("connects and emits transcript and speech-to-response events in a stable order", async () => {
     const harness = createCallbackHarness();
     const advanceClock = vi.fn();
+    const onConnect = vi.fn();
     const events: string[] = [];
     const session = createMockLiveSession(harness.callbacks, {
       advanceClock,
+      onConnect,
       onEvent: (event) => events.push(event),
     });
 
@@ -61,6 +63,9 @@ describe("deterministic mock LiveSession", () => {
       }),
     ]);
     expect(advanceClock.mock.calls).toEqual([[12], [34]]);
+    expect(onConnect).toHaveBeenCalledExactlyOnceWith(
+      "ek_synthetic_browser_test",
+    );
     expect(events).toEqual(["connect"]);
   });
 

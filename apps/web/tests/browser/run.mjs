@@ -1,6 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
-import { createServer as createTcpServer } from "node:net";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -13,34 +12,33 @@ const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
 const resultsRoot = path.join(repositoryRoot, "test-results", "browser");
 const serverLog = [];
 
+await rm(resultsRoot, { recursive: true, force: true });
 await mkdir(resultsRoot, { recursive: true });
 
-function chooseLoopbackPort() {
+function listenOnEphemeralLoopback(vite) {
   return new Promise((resolve, reject) => {
-    const reservation = createTcpServer();
-    reservation.once("error", reject);
-    reservation.listen(0, "127.0.0.1", () => {
-      const address = reservation.address();
+    const httpServer = vite.httpServer;
 
-      if (!address || typeof address === "string") {
-        reservation.close();
-        reject(new Error("Could not reserve a loopback TCP port"));
-        return;
-      }
+    if (!httpServer) {
+      reject(new Error("Vite did not create an HTTP server"));
+      return;
+    }
 
-      reservation.close((error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+    const onError = (error) => {
+      httpServer.off("listening", onListening);
+      reject(error);
+    };
+    const onListening = () => {
+      httpServer.off("error", onError);
+      resolve();
+    };
 
-        resolve(address.port);
-      });
-    });
+    httpServer.once("error", onError);
+    httpServer.once("listening", onListening);
+    httpServer.listen(0, "127.0.0.1");
   });
 }
 
-const port = await chooseLoopbackPort();
 const vite = await createViteServer({
   root: browserRoot,
   appType: "mpa",
@@ -65,8 +63,6 @@ const vite = await createViteServer({
   },
   server: {
     host: "127.0.0.1",
-    port,
-    strictPort: true,
   },
 });
 
@@ -104,7 +100,7 @@ function runPlaywright(baseURL) {
 let exitCode = 1;
 
 try {
-  await vite.listen();
+  await listenOnEphemeralLoopback(vite);
   const address = vite.httpServer?.address();
 
   if (!address || typeof address === "string") {
