@@ -39,6 +39,9 @@ Node.js test runner, YAML, pnpm.
 6. If the existing pull request remains filtered, make the all-author repository
    policy explicit with `includeAuthors: ["*"]`, protect it with a configuration
    test, and repeat the live proof without weakening the required gate.
+7. If Greptile still does not start on a native Dependabot pull request, promote
+   the exact dependency commit to a human-owned pull request. Require the real
+   Greptile App check there; do not synthesize or bypass the protected check.
 
 ### Task 2: Protect security-relevant major visibility with TDD
 
@@ -84,12 +87,16 @@ Node.js test runner, YAML, pnpm.
 
 1. Close the failing TypeScript and ESLint major pull requests with concise,
    public compatibility reasons after the review policy reaches `main`.
-2. Re-run or refresh the passing jsdom and Node type pull requests so Greptile
-   reviews their current heads.
-3. Merge an update only if all required checks pass and the version is
-   compatible with the repository runtime; otherwise leave it open with the
-   blocking evidence.
-4. Record the final provider and pull-request evidence below and move this plan
+2. Close the Node type major because the repository and CI still target Node 22;
+   keep the major visible rather than hiding future security updates.
+3. Recreate the passing jsdom pull request after the all-author policy reaches
+   `main`.
+4. If Greptile still does not start on that bot-owned pull request, promote its
+   exact commit to a human-owned pull request and require all normal checks.
+5. Merge the promoted update only if all required checks pass and the version is
+   compatible with the repository runtime; close the bot pull request as
+   superseded only after the protected merge succeeds.
+6. Record the final provider and pull-request evidence below and move this plan
    to Completed.
 
 ## Review fallback
@@ -112,6 +119,19 @@ TypeScript and ESLint ignores were removed.
   main commit `2b6c45b`; `verify` and `Dependency Review` passed but Greptile did
   not start, including after a fresh human `@greptileai` trigger.
 - Repository policy now explicitly includes every author with
-  `includeAuthors: ["*"]`; its live proof remains required.
-- Live pull-request, protected-merge, and final-main evidence will be appended
-  during execution.
+  `includeAuthors: ["*"]`, protected by a repository configuration test.
+- PR #10 merged as `2b6c45b` after `verify`, `Dependency Review`, and the real
+  `Greptile Review` check passed. Its review findings led to keeping dependency
+  majors visible so security updates are not suppressed.
+- PR #12 merged as `17e1d86` after the same three required checks passed,
+  establishing the explicit all-author repository policy.
+- TypeScript PR #5 was closed because TypeScript 7 broke 14 architecture
+  fixture tests; ESLint PR #8 was closed because `eslint-plugin-react@7.37.5`
+  is incompatible with ESLint 10; Node types PR #7 was closed because the
+  repository and CI target Node 22 rather than Node 26.
+- PR #6 was recreated again from `17e1d86` as head `c9a8915`; `verify` and
+  `Dependency Review` ran, but Greptile still did not start on the native bot
+  pull request. Its exact commit is being promoted without modification on
+  `andrew/jsdom-29-reviewed` for a real Greptile review.
+- The promoted pull-request, protected-merge, bot-closure, and final-main
+  evidence will be appended during execution.
