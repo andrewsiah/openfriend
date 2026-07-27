@@ -468,7 +468,9 @@ async function runSyntheticPair(): Promise<void> {
   };
 
   try {
-    const evidence = await runSyntheticProfilePair(runProfile);
+    const evidence = await runSyntheticProfilePair(runProfile, () => {
+      renderRecordings(recordings);
+    });
     const evaluation = evaluateSyntheticPairedVoiceRun(evidence);
     const result: PresentedPairResult = {
       evaluation,
@@ -484,7 +486,6 @@ async function runSyntheticPair(): Promise<void> {
     };
     window.__openfriendSyntheticVoiceResult = result;
     outputElement.textContent = JSON.stringify(result, null, 2);
-    renderRecordings(recordings);
     statusElement.textContent = evaluation.passed
       ? "Passed synthetic Economy + Quality acceptance. Listen and rate later."
       : "Synthetic paired Realtime acceptance did not pass.";

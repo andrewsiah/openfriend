@@ -1,3 +1,5 @@
+import type { LiveTokenUsage } from "./live-session-evaluation";
+
 export type LiveConnectionStatus = "connecting" | "connected" | "disconnected";
 
 export type LiveHistoryItem = Readonly<{
@@ -20,4 +22,3 @@ export interface LiveSession {
   interrupt(): void;
   close(): void;
 }
-import type { LiveTokenUsage } from "./live-session-evaluation";

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { LiveTokenUsage } from "../../lib/live-session-evaluation";
 import type { SyntheticProfileEvidence } from "./result";
-import { runSyntheticProfilePair, SYNTHETIC_PAIRED_GUIDE } from "./paired-run";
+import { runSyntheticProfilePair } from "./paired-run";
 
 const usage: LiveTokenUsage = {
   cachedInputAudioTokens: 0,
@@ -34,12 +34,8 @@ function evidence(profile: "economy" | "quality"): SyntheticProfileEvidence {
 }
 
 describe("runSyntheticProfilePair", () => {
-  it("runs Economy then Quality with the same immutable guide", async () => {
-    const guides: (readonly string[])[] = [];
-    const runProfile = vi.fn(async (profile, guide: readonly string[]) => {
-      guides.push(guide);
-      return evidence(profile);
-    });
+  it("runs Economy then Quality", async () => {
+    const runProfile = vi.fn(async (profile) => evidence(profile));
 
     const result = await runSyntheticProfilePair(runProfile);
 
@@ -47,9 +43,6 @@ describe("runSyntheticProfilePair", () => {
       "economy",
       "quality",
     ]);
-    expect(guides[0]).toBe(SYNTHETIC_PAIRED_GUIDE);
-    expect(guides[1]).toBe(SYNTHETIC_PAIRED_GUIDE);
-    expect(Object.isFrozen(SYNTHETIC_PAIRED_GUIDE)).toBe(true);
     expect(result.map((profileResult) => profileResult.profile)).toEqual([
       "economy",
       "quality",
@@ -89,5 +82,23 @@ describe("runSyntheticProfilePair", () => {
         return evidence(profile);
       }),
     ).rejects.toThrow("Synthetic quality profile failed: transport timeout");
+  });
+
+  it("reports completed Economy evidence before Quality fails", async () => {
+    const onProfileComplete = vi.fn();
+
+    await expect(
+      runSyntheticProfilePair(async (profile) => {
+        if (profile === "quality") {
+          throw new Error("transport timeout");
+        }
+
+        return evidence(profile);
+      }, onProfileComplete),
+    ).rejects.toThrow("Synthetic quality profile failed: transport timeout");
+
+    expect(onProfileComplete).toHaveBeenCalledExactlyOnceWith(
+      evidence("economy"),
+    );
   });
 });
