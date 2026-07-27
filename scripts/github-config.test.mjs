@@ -173,6 +173,13 @@ test("Dependabot keeps security-relevant TypeScript and ESLint majors visible", 
   );
 });
 
+test("Greptile explicitly includes every pull request author", async () => {
+  const config = JSON.parse(await readRepositoryFile(".greptile/config.json"));
+
+  assert.deepEqual(config.includeAuthors, ["*"]);
+  assert.deepEqual(config.excludeAuthors, []);
+});
+
 test("configuration validation rejects malformed YAML", () => {
   const malformed = `
 version: 2
