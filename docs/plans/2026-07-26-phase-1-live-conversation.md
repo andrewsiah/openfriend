@@ -265,20 +265,23 @@ On 2026-07-26:
 cheerful thing about today?`, displayed the assistant reply, measured
   `389 ms` from server-detected speech stop to first output audio, and ended
   cleanly;
-- `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
+- `pnpm verify` passes with 57 web tests and 6 contract tests, plus typecheck,
   lint, formatting, documentation, and production-build gates;
-- GitHub CI passes on reviewed commit `ff82f30`;
+- GitHub CI passes on reviewed commit `1a3696a`;
 - Claude Fable/high approved the final lifecycle hardening with no actionable
-  P0/P1 finding;
+  P0/P1 finding after the requested timing-guard coverage was added;
 - personal Vercel preview
-  [openfriend-78y3gta36-andrewsiah-stripe.vercel.app](https://openfriend-78y3gta36-andrewsiah-stripe.vercel.app)
-  is `READY` with Standard Protection and Vercel Authentication enabled;
-- an unauthenticated browser is redirected to Vercel Login before any
-  OpenFriend content is served.
+  [openfriend-admyt5p2y-andrewsiah-stripe.vercel.app](https://openfriend-admyt5p2y-andrewsiah-stripe.vercel.app)
+  is `READY` on `1a3696a`;
+- the deployed page shows the reviewed `Voice response start` diagnostic at
+  both 320 px and desktop widths without horizontal overflow, and its only
+  recorded console errors came from the browser-control extension rather than
+  the application.
 
-The local real-browser conversation gate now passes. Phase 1 remains active
-until the reviewed latency repair is pushed, GitHub CI and the personal Vercel
-preview pass on that commit, and the final status documents are updated.
+The local real-browser conversation gate passes. The reviewed repair is pushed,
+GitHub CI and the personal Vercel preview pass on that commit, and the final
+status documents record the result. This implementation plan is complete;
+Phase 1 continues with the separate profile-comparison story.
 
 ## Stop condition
 

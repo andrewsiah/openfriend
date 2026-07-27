@@ -39,10 +39,16 @@ See [the product guide](docs/PRODUCT.md) for the accepted scope.
 
 ## Current status
 
-OpenFriend is in **Phase 0: Foundation**. The repository and web shell are being
-prepared for the first Realtime conversation. It does not yet connect a
-microphone, establish a voice session, write personal data, or perform external
-actions.
+OpenFriend is in **Phase 1: Web Voice Lab**. Its first story is complete: the web
+app can start a real, ephemeral OpenAI Realtime conversation from the
+microphone, show finalized user and assistant transcripts, measure connection
+and audible response-start latency, support both natural barge-in and an
+explicit Interrupt control, and end the session cleanly.
+
+Conversation content remains in the browser session only. OpenFriend does not
+yet persist memory, perform external actions, or provide physical-device Watch
+voice behavior. The next story compares otherwise equivalent Economy and
+Quality sessions; the independent Watch field test follows.
 
 An unsigned, Watch-only SwiftUI simulator skeleton is also available under
 `apps/watch`. It proves the independent target and truthful idle state build on
@@ -104,9 +110,10 @@ pnpm docs:check
 pnpm build
 ```
 
-`pnpm verify` runs the complete local gate once the foundation workspace lands.
-No OpenAI, Supabase, or Vercel credential is required to render or test the
-Phase 0 shell.
+`pnpm verify` runs the complete local gate without provider credentials.
+Rendering the idle web app also requires no credential. A real voice
+conversation requires a server-side `OPENAI_API_KEY`; copy `.env.example` to a
+local ignored environment file and provide the value without committing it.
 
 ## How we build
 
