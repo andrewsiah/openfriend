@@ -98,6 +98,8 @@ Use Andrew's installed Claude CLI for an early second opinion on multi-step
 plans and for high-leverage architecture, security, and code reviews when the
 expected value justifies its higher cost.
 
+- Use Fable/high first. If its usage limit is reached, try Opus 5/high. If that
+  usage limit is also reached, proceed with Codex.
 - Prefer a read-only or plan permission mode.
 - Provide the narrowest relevant files and question.
 - Set a reasonable effort and budget for non-interactive calls.
@@ -105,16 +107,17 @@ expected value justifies its higher cost.
 - Treat findings as advisory and verify them against the repository and real
   environment.
 
-If Claude is unauthenticated, unavailable, rate-limited, over its usage limit,
-or times out, note the fallback and proceed with Codex's own review. Claude
-availability must not become a delivery dependency.
+If neither Fable/high nor Opus 5/high is available within its usage limit, note
+the fallback and proceed with Codex's own review. Claude availability must not
+become a delivery dependency.
 
 ## Change workflow
 
 1. Read [docs/README.md](README.md) and the relevant product guidance.
 2. Add or update the accepted story.
-3. Ask Claude for a bounded plan review when practical; fall back without
-   blocking if it is unavailable.
+3. Ask Fable/high for a bounded plan review when practical; try Opus 5/high if
+   Fable's usage limit is reached, then proceed with Codex if both limits are
+   reached.
 4. Write a checked-in plan for multi-step work.
 5. Split independent work into bounded parallel tasks.
 6. Work on an isolated branch or worktree.

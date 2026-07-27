@@ -1,102 +1,69 @@
 # OpenFriend agent guide
 
-OpenFriend is a personal-first, open-source, full-duplex conversational
-companion for Apple Watch and web. The product is the quality and continuity of
-the relationship plus trustworthy action—not a voice command parser.
+OpenFriend is a personal-first, open-source, full-duplex companion for Apple Watch and web. The product is the relationship plus trustworthy action—not a voice command parser.
 
 ## Start here
 
-Read [docs/README.md](docs/README.md) before making changes. It is the map to the
-repository's product, architecture, engineering, testing, security,
-reliability, user-story, and planning guidance.
+Read [docs/README.md](docs/README.md) before changing anything. It maps the repository's product, architecture, engineering, testing, security, reliability, user-story, and planning guidance.
 
 ## Working rules
 
-1. Start every product change from an accepted user story and observable
-   acceptance criteria.
-2. Use test-driven development for behavior: write one focused failing test,
-   make it pass with the smallest implementation, then refactor while green.
+1. Start product changes from an accepted story and observable criteria.
+2. Use TDD for behavior: one focused failing test, the smallest passing
+   implementation, then refactor while green.
 3. Apply YAGNI. Do not add speculative providers, platforms, abstractions, or
    infrastructure.
-4. Keep the live companion responsive; delegate deeper work to the background
-   operator.
-5. Never claim an external action completed until its source system confirms
-   completion.
-6. Keep secrets server-side and out of Git, prompts, logs, browser bundles, and
-   durable Watch storage.
+4. Keep the live companion responsive; delegate deep work to the operator.
+5. Claim external completion only after the source system confirms it.
+6. Keep secrets server-side and out of Git, prompts, logs, browser bundles, and Watch storage.
 7. Follow [docs/TESTING.md](docs/TESTING.md) before claiming completion,
-   including its mandatory browser/voice teardown, and record evidence in `docs/`.
-8. Preserve user work already present in the tree. Keep commits narrow and
-   intentional.
+   including browser/voice teardown, and record evidence in `docs/`.
+8. Preserve existing user work. Keep commits narrow and intentional.
 
 ## Orchestration and delegation
 
-The active interface determines the user-facing coordinator:
+The active interface sets the user-facing coordinator:
 
 - In Codex Desktop, the primary Codex task is the orchestrator.
-- In Claude Code, Claude Fable at high effort is the conversational
-  orchestrator and delegates execution to Codex.
+- In Claude Code, Claude is the conversational orchestrator and delegates
+  execution to Codex.
 
-The role split is constant in both cases:
+For substantial plans and high-leverage reviews, consult Fable/high first. If
+its usage limit is reached, try Opus 5/high. If that limit is also reached, note
+the fallback and proceed with Codex. Codex remains the primary executor and
+owns investigation, implementation, commands, tests, fixes, and verification.
 
-- Fable/high is consulted for first-pass plans and high-leverage architecture,
-  product, and code reviews.
-- Codex is the primary executor and task runner. It owns repository
-  investigation, implementation, command execution, tests, fixes, and
-  verification.
-- The active orchestrator stays in conversation with Andrew, preserves intent,
-  integrates the plan and evidence, and decides what happens next.
+The active orchestrator preserves intent and integrates evidence. Identify
+independent workstreams early. Bound every delegated task by goal, scope,
+safety constraints, verification, return summary, and stop point. Delegation
+never expands authority; treat reports as evidence, inspect repository state,
+and run the integrated gate. Do not create recursive delegation loops or enable
+the automatic Codex review gate unless Andrew asks.
 
-Before substantial multi-step implementation, obtain a bounded Fable/high plan.
-After implementation, use Fable/high for a focused review when the change
-benefits from one. Codex assesses the advice against the repository, implements
-accepted changes, and verifies the final result.
-
-- Identify independent workstreams before executing multi-step work
-  sequentially.
-- Give every delegated task a bounded goal, file or system scope, safety
-  constraints, expected verification, required return summary, and explicit
-  stop point.
-- Delegation never expands authority. External mutations, secrets, destructive
-  actions, and account boundaries remain governed by the original user request.
-- Treat all agent reports and reviews as evidence, not completion. Inspect the
-  actual repository state and run the integrated quality gate.
-- Do not create recursive or unbounded delegation loops, and do not enable the
-  automatic Codex review gate unless Andrew explicitly asks for it.
-
-If Fable or the Codex integration is unavailable, rate-limited, over budget, or
-otherwise blocked, report the constraint and agree on a fallback rather than
-silently changing this role split.
+If Codex itself is blocked, report the constraint and agree on a fallback.
+See [docs/ENGINEERING.md](docs/ENGINEERING.md) and [CLAUDE.md](CLAUDE.md) for
+the full workflow.
 
 ## Public repository and secrets
 
-This is a public repository. Treat every commit, branch, tag, pull request,
-issue, review comment, artifact, and CI log as permanently visible to anyone on
-the internet.
+Treat every commit, branch, PR, issue, artifact, and CI log as permanently public.
 
-- Never commit or paste API keys, access tokens, passwords, session cookies,
-  private keys, certificates, signing material, database credentials, webhook
-  secrets, or populated connection strings.
-- Never commit `.env` files or local provider state. Commit only sanitized
-  examples such as `.env.example`, using placeholder values.
-- Keep credentials in Stripe Projects, the provider's secret store, or an
-  approved local credential store. Reference environment-variable names in the
-  repository, never their values.
-- Do not include real personal data, private conversations, production payloads,
-  or sensitive logs in source, fixtures, screenshots, documentation, issues, or
-  pull requests. Use clearly synthetic examples.
+- Never expose credentials, `.env` files, local provider state, populated
+  connection strings, personal data, private conversations, or production payloads.
+- Store credentials in Stripe Projects, provider secret stores, or an approved
+  local store; commit only variable names, placeholders, and synthetic data.
 - Before staging or pushing, inspect the complete diff and untracked files for
-  sensitive material. Run an available secret scanner when practical.
-- If a secret may have been exposed, stop immediately. Tell Andrew, revoke or
-  rotate the credential first, and then coordinate removal from Git history.
-  Deleting it in a later commit is not sufficient.
+  sensitive material and run an available secret scanner when practical.
+- If exposure is possible, stop, tell Andrew, rotate first, then coordinate
+  history removal; a later deletion is insufficient.
+
+Follow [docs/SECURITY.md](docs/SECURITY.md) for the complete policy.
 
 ## Personal account boundary
 
-This is Andrew's personal project. Use only personal GitHub, Stripe, Vercel,
-Supabase, Apple, and other provider accounts. Never create, link, deploy, or
-store OpenFriend data in Ready Homes or another company account. If ownership
-is ambiguous, stop before changing external state.
+Use only Andrew's personal GitHub, Stripe, Vercel, Supabase, Apple, and other
+provider accounts. Never use Ready Homes or another company account. Ambiguous
+ownership blocks external changes.
 
 <!-- stripe-projects-cli managed:agents-md:start -->
 

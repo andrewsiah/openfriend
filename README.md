@@ -124,6 +124,10 @@ OpenFriend is:
   system of record, following OpenAI's
   [harness-engineering guidance](https://openai.com/index/harness-engineering/).
 
+For substantial planning and review, Claude consultation uses Fable/high first,
+then Opus 5/high if the Fable usage limit is reached. If both usage limits are
+reached, work proceeds with Codex.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) and
 [docs/ENGINEERING.md](docs/ENGINEERING.md).
 

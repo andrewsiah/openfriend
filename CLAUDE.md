@@ -11,9 +11,11 @@ When Andrew chooses Claude Code as the interface, Claude Code is the
 user-facing coordinator. Run that session with Claude Fable at high effort.
 
 If the current session is not using Fable at high effort, switch to Fable/high
-before doing substantial planning, review, or delegation.
+before doing substantial planning, review, or delegation. If the Fable usage
+limit is reached, switch to Opus 5/high. If the Opus 5 usage limit is also
+reached, proceed with Codex.
 
-The primary Fable session:
+The primary Claude session:
 
 - stays in conversation with Andrew and preserves his intent;
 - creates or refines the integrated plan;
@@ -27,8 +29,10 @@ the user.
 
 ## Constant role split
 
-Fable/high is the planner and reviewer. Codex is the primary executor and task
-runner.
+Fable/high is the preferred planner and reviewer, with Opus 5/high as the
+fallback when the Fable usage limit is reached. Codex is the primary executor
+and task runner and proceeds without Claude consultation if both usage limits
+are reached.
 
 Fable may inspect the repository, reason about it, develop plans, review
 changes, and coordinate work. Codex owns repository investigation,
@@ -39,8 +43,8 @@ agent. If Codex is unavailable, report the constraint and agree on a fallback
 with Andrew.
 
 When Andrew instead works from Codex Desktop, the primary Codex task is the
-user-facing orchestrator. It still consults Fable/high for plans and reviews,
-while Codex remains the executor.
+user-facing orchestrator. It uses the same Fable/high, then Opus 5/high
+consultation order for plans and reviews, while Codex remains the executor.
 
 ## Delegating execution to Codex
 
@@ -83,9 +87,10 @@ not consume usage in an open-ended review-and-repair loop.
 ## Cost and attention
 
 Use Fable/high for orchestration, planning, judgment, architecture, and review.
-Reserve expensive parallelism for independent work that materially benefits
-from it. Give every long-running request an explicit stop point, and stop when
-that point is reached.
+If its usage limit is reached, use Opus 5/high; if that limit is also reached,
+proceed with Codex. Reserve expensive parallelism for independent work that
+materially benefits from it. Give every long-running request an explicit stop
+point, and stop when that point is reached.
 
 Use the configured Codex worker defaults unless the task justifies an override.
 Prefer a lower worker effort for bounded mechanical work and higher effort only
