@@ -15,7 +15,7 @@ field means the behavior is not yet proven.
 | Account isolation    | Stripe, Vercel, Supabase, GitHub are personal        | Passing | Stripe Projects status and Vercel scope inspection                             |
 | Deployment           | Web story verified in a real deployed browser        | Passing | [Vercel preview](https://openfriend-8dst6mpnm-andrewsiah-stripe.vercel.app)    |
 | Publication          | Public MIT repository and CI verified                | Passing | [GitHub repository](https://github.com/andrewsiah/openfriend), CI on `1a3696a` |
-| Merge safety         | Current CI and Greptile review required before merge | Pending | Configuration PR and live ruleset verification required                        |
+| Merge safety         | Current CI and Greptile review required before merge | Passing | [PR #2](https://github.com/andrewsiah/openfriend/pull/2), ruleset `19789735`   |
 
 ## Evidence format
 
@@ -132,8 +132,16 @@ Update-trigger finding:
 - the next commit is the live test of the combined repository and dashboard
   trigger configuration.
 
-Still required before changing Merge safety to Passing:
+Final verification:
 
-- confirm an automatic review covers the new head commit and reaches at least
-  `4/5`;
-- confirm GitHub continues to enforce both required checks on that commit.
+- commit `2aaccbe` automatically started `Greptile Review` within seconds after
+  the organization-level update trigger was enabled;
+- the new Greptile review covered that exact commit, completed at `5/5`, and
+  passed;
+- `verify` also passed on the same head;
+- the original P2 review thread was answered with the active ruleset evidence
+  and resolved;
+- GitHub changed the pull request from `BLOCKED` to `CLEAN` only after both
+  required checks passed and the conversation was resolved;
+- the final documentation-only evidence commit remains subject to the same
+  automatic gate before merge.

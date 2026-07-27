@@ -128,12 +128,23 @@ repository rulesets, GitHub Actions, pnpm.
 - The ruleset was read back through both the ruleset endpoint and the effective
   branch-rules endpoint.
 
-### Pending final proof
+### Final live proof
 
-The first evidence update at `576b9d1` made the old checks stale and the ruleset
-kept the PR blocked, but no new Greptile run appeared during the observed
-interval. The matching organization-level `Auto-review on new commits` control
-was enabled and confirmed saved in addition to the repository config. This
-follow-up is the deliberate live test: completion requires it to trigger a
-fresh Greptile review automatically and for both required checks to pass on the
-new head.
+- The first evidence update at `576b9d1` made the old checks stale and the
+  ruleset kept the PR blocked, but no new Greptile run appeared during the
+  observed interval.
+- The matching organization-level `Auto-review on new commits` control was
+  enabled and confirmed saved in addition to the repository config.
+- The next commit, `2aaccbe`, automatically started both `verify` and
+  `Greptile Review` within seconds.
+- Greptile reviewed that exact commit, returned `5/5`, and reported no file
+  needing attention. Its only style note concerned the implementation plan's
+  agent header, which is required by the repository's plan-writing workflow and
+  is intentionally retained.
+- The original P2 thread was answered with the live ruleset evidence and
+  resolved.
+- GitHub reported the PR `CLEAN` only after both required checks passed and the
+  conversation was resolved.
+- The final evidence commit is subject to the same automatic required checks;
+  its terminal results are retained on PR
+  [#2](https://github.com/andrewsiah/openfriend/pull/2).
