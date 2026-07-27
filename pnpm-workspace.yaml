@@ -27,5 +27,12 @@ onlyBuiltDependencies:
 # dependency ships an equivalent or newer safe version.
 overrides:
   "@hono/node-server@<2.0.10": 2.0.12
+  "minimatch@3.1.5>brace-expansion": 5.0.8
   postcss@<=8.5.17: 8.5.23
   sharp@<0.35.0: 0.35.3
+
+# minimatch 3 expects brace-expansion's legacy callable CommonJS export. This
+# adapter accepts the patched v5 named export until the ESLint toolchain moves
+# to a compatible minimatch. Remove the patch and override together.
+patchedDependencies:
+  minimatch@3.1.5: patches/minimatch@3.1.5.patch
