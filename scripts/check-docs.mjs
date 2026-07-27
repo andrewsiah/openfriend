@@ -19,6 +19,12 @@ export const REQUIRED_DOCS = [
   "docs/decisions/README.md",
 ];
 
+export const REQUIRED_PUBLIC_DOCS = [
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "SECURITY.md",
+];
+
 const ROOT_MARKDOWN_FILES = [
   "AGENTS.md",
   "CLAUDE.md",
@@ -27,6 +33,73 @@ const ROOT_MARKDOWN_FILES = [
   "README.md",
   "SECURITY.md",
 ];
+
+const PUBLIC_DOC_REQUIREMENTS = {
+  "CODE_OF_CONDUCT.md": [
+    {
+      description: "Contributor Covenant attribution",
+      pattern: /Contributor Covenant/i,
+    },
+    {
+      description: "a private enforcement email",
+      pattern:
+        /(?:report|enforcement)[\s\S]{0,200}\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+    },
+  ],
+  "CONTRIBUTING.md": [
+    {
+      description: "an accepted user story",
+      pattern: /(?:accepted|concrete) (?:user )?(?:story|journey)/i,
+    },
+    {
+      description: "observable acceptance criteria",
+      pattern: /observable acceptance criteria/i,
+    },
+    {
+      description: "test-driven development",
+      pattern: /test-driven development/i,
+    },
+    { description: "the integrated local gate", pattern: /pnpm verify/ },
+    {
+      description: "the deterministic browser gate",
+      pattern: /pnpm test:browser/,
+    },
+    { description: "automated Greptile review", pattern: /Greptile/ },
+    { description: "synthetic public test data", pattern: /synthetic/i },
+    {
+      description: "the personal account boundary",
+      pattern: /(?:personal|contributor-owned)[\s\S]{0,40}accounts?/i,
+    },
+  ],
+  "SECURITY.md": [
+    {
+      description: "the supported latest main branch",
+      pattern: /latest\s+`?main`?\s+branch/i,
+    },
+    {
+      description: "GitHub private vulnerability reporting",
+      pattern:
+        /https:\/\/github\.com\/andrewsiah\/openfriend\/security\/advisories\/new/,
+    },
+    {
+      description: "a warning against public vulnerability disclosure",
+      pattern: /(?:do not|never)[\s\S]{0,60}public (?:issue|disclosure)/i,
+    },
+    {
+      description: "a credential-pasting warning",
+      pattern:
+        /(?:(?:credential|secret|token)[\s\S]{0,80}(?:do not|never)[\s\S]{0,30}(?:paste|include)|(?:do not|never)[\s\S]{0,30}(?:paste|include)[\s\S]{0,80}(?:credential|secret|token))/i,
+    },
+    {
+      description: "non-guaranteed response expectations",
+      pattern:
+        /(?:cannot|can not|does not|do not) (?:promise|guarantee)[\s\S]{0,50}(?:response|remediation|deadline|timeline)/i,
+    },
+  ],
+};
+
+const PLACEHOLDER_REPORTING_CONTACT =
+  /\[INSERT\b[^\]]*]|YOUR[-_\s]?(?:EMAIL|CONTACT)|<[^>]*(?:EMAIL|CONTACT)[^>]*>|\b[A-Z0-9._%+-]+@(?:example\.(?:com|org|net)|[A-Z0-9.-]+\.(?:test|invalid|localhost|example))\b|https?:\/\/github\.com\/(?:example|owner|your[-_]?[\w-]+)\//i;
 
 async function exists(target) {
   try {
@@ -101,6 +174,32 @@ export async function validateDocumentation(root) {
       (await readFile(absolutePath, "utf8")).trim().length === 0
     ) {
       errors.push(`required document is missing or empty: ${relativePath}`);
+    }
+  }
+
+  for (const relativePath of REQUIRED_PUBLIC_DOCS) {
+    const absolutePath = path.join(root, relativePath);
+
+    if (
+      !(await exists(absolutePath)) ||
+      (await readFile(absolutePath, "utf8")).trim().length === 0
+    ) {
+      errors.push(`required document is missing or empty: ${relativePath}`);
+      continue;
+    }
+
+    const markdown = await readFile(absolutePath, "utf8");
+
+    if (PLACEHOLDER_REPORTING_CONTACT.test(markdown)) {
+      errors.push(`placeholder reporting contact in ${relativePath}`);
+    }
+
+    for (const requirement of PUBLIC_DOC_REQUIREMENTS[relativePath]) {
+      if (!requirement.pattern.test(markdown)) {
+        errors.push(
+          `${relativePath} is missing required guidance: ${requirement.description}`,
+        );
+      }
     }
   }
 

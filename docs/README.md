@@ -42,6 +42,8 @@ document below.
 
 - [../README.md](../README.md) — public project introduction.
 - [../CONTRIBUTING.md](../CONTRIBUTING.md) — contribution workflow.
+- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards and
+  private conduct reporting.
 - [../SECURITY.md](../SECURITY.md) — vulnerability reporting.
 
 Update this map whenever a durable document is added, moved, or retired.

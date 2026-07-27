@@ -347,7 +347,7 @@ export function LiveConversationLab({
       <dl className="latencyReadout" aria-label="Live latency">
         <div>
           <dt>Connection</dt>
-          <dd>
+          <dd aria-label="Connection latency">
             {connectionLatency === null
               ? "Not measured"
               : `${connectionLatency} ms`}
@@ -355,7 +355,7 @@ export function LiveConversationLab({
         </div>
         <div>
           <dt>Voice response start</dt>
-          <dd>
+          <dd aria-label="Voice response start latency">
             {responseStartLatency === null
               ? "Not measured"
               : `${responseStartLatency} ms`}

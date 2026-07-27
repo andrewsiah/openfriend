@@ -8,6 +8,8 @@ scope, acceptance criteria, decisions, and evidence.
 Phase 1 remains active. Its next accepted story is Economy-versus-Quality
 comparison; an implementation plan has not yet been accepted.
 
+- [Public codebase harness](plans/2026-07-26-public-codebase-harness.md)
+
 ## Completed
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
