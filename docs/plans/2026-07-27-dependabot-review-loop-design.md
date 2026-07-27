@@ -30,11 +30,12 @@ checks while four Dependabot pull requests did not. A human
 check while the exclusion remained active.
 
 The narrow fix is to remove only `dependabot[bot]` from the organization-level
-author exclusion and prove the result on a real Dependabot update. The
-`renovate[bot]` exclusion remains because Renovate is not part of this
-repository's dependency workflow. GitHub branch protection remains the
-enforcement layer, and Greptile remains the sole producer of its required
-check.
+author exclusion and explicitly set the repository `includeAuthors` policy to
+`["*"]`. The wildcard removes ambiguity between an omitted/default include list
+and an intentional all-author policy. The `renovate[bot]` dashboard exclusion
+remains because Renovate is not part of this repository's dependency workflow.
+GitHub branch protection remains the enforcement layer, and Greptile remains
+the sole producer of its required check.
 
 The npm Dependabot entry intentionally has no semver-major ignore for
 `typescript` or `eslint`. GitHub documents that Dependabot ignore rules can
@@ -47,8 +48,8 @@ reconsidered when the ecosystem support arrives.
 ## Alternatives rejected
 
 - A `pull_request_target` workflow that posts `@greptileai` adds write authority
-  but cannot repair an organization-level author exclusion. The live manual
-  trigger was a no-op while the filter existed.
+  but cannot repair an author-filter decision. Live manual triggers remained a
+  no-op on the previously filtered pull request after its head was recreated.
 - A workflow that manufactures a successful `Greptile Review` result would
   defeat the required App identity and create false assurance.
 - Removing Greptile from branch protection for dependency updates would create

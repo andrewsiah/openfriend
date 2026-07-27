@@ -36,6 +36,9 @@ Node.js test runner, YAML, pnpm.
    prove persistence.
 5. Retrigger the passing pull request and require the real Greptile App check
    before treating the provider fix as complete.
+6. If the existing pull request remains filtered, make the all-author repository
+   policy explicit with `includeAuthors: ["*"]`, protect it with a configuration
+   test, and repeat the live proof without weakening the required gate.
 
 ### Task 2: Protect security-relevant major visibility with TDD
 
@@ -105,5 +108,10 @@ TypeScript and ESLint ignores were removed.
 - Baseline `pnpm verify` passed from clean `origin/main` commit `349abdd`.
 - Greptile organization settings persisted with `dependabot[bot]` removed and
   `renovate[bot]` retained.
+- PR #6 was recreated twice after the dashboard repair, including from merged
+  main commit `2b6c45b`; `verify` and `Dependency Review` passed but Greptile did
+  not start, including after a fresh human `@greptileai` trigger.
+- Repository policy now explicitly includes every author with
+  `includeAuthors: ["*"]`; its live proof remains required.
 - Live pull-request, protected-merge, and final-main evidence will be appended
   during execution.
