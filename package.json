@@ -4,7 +4,7 @@
   "private": true,
   "description": "A full-duplex personal companion for Apple Watch and the web.",
   "license": "MIT",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=22"
   },

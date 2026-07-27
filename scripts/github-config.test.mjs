@@ -8,6 +8,52 @@ import { parse } from "yaml";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 
+const ALLOWED_ACTIONS = new Set([
+  "actions/checkout",
+  "actions/dependency-review-action",
+  "actions/setup-node",
+  "pnpm/action-setup",
+]);
+
+const FULL_COMMIT_SHA = /^[0-9a-f]{40}$/;
+const SEMVER_COMMENT = /^v\d+\.\d+\.\d+$/;
+
+function actionSourcePolicyViolations(source) {
+  const violations = [];
+
+  for (const line of source.split(/\r?\n/)) {
+    if (!/^\s*(?:-\s+)?uses:/.test(line)) {
+      continue;
+    }
+
+    const match = line.match(
+      /^\s*(?:-\s+)?uses:\s*([^@\s#]+)@([^\s#]+)(?:\s+#\s*(\S+))?\s*$/,
+    );
+
+    if (!match) {
+      violations.push("workflow action line has unsupported syntax");
+      continue;
+    }
+
+    const [, action, revision, versionComment] = match;
+
+    if (!ALLOWED_ACTIONS.has(action)) {
+      violations.push(`action ${action} is not in the approved allowlist`);
+    }
+
+    if (
+      !FULL_COMMIT_SHA.test(revision) ||
+      !SEMVER_COMMENT.test(versionComment ?? "")
+    ) {
+      violations.push(
+        `action ${action} must use a full 40-character lowercase commit SHA with a same-line semver comment`,
+      );
+    }
+  }
+
+  return violations;
+}
+
 async function readRepositoryFile(relativePath) {
   try {
     return await readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -41,6 +87,35 @@ function actionReferences(workflow) {
       typeof step.uses === "string" ? [step.uses] : [],
     ),
   );
+}
+
+function actionName(reference) {
+  return reference.slice(0, reference.lastIndexOf("@"));
+}
+
+function assertPinnedAllowedActions(source, workflow) {
+  assert.deepEqual(actionSourcePolicyViolations(source), []);
+
+  const references = actionReferences(workflow);
+  assert.ok(references.length > 0, "workflow must use at least one action");
+
+  for (const reference of references) {
+    const separator = reference.lastIndexOf("@");
+    const action = reference.slice(0, separator);
+    const revision = reference.slice(separator + 1);
+
+    assert.ok(
+      ALLOWED_ACTIONS.has(action),
+      `${action} is not in the approved action allowlist`,
+    );
+    assert.match(
+      revision,
+      FULL_COMMIT_SHA,
+      `${action} must use a full immutable commit SHA`,
+    );
+  }
+
+  return references.map(actionName);
 }
 
 function dependencyUpdate(config, ecosystem) {
@@ -99,6 +174,19 @@ updates:
   assert.throws(() => parseConfiguration(malformed));
 });
 
+test("action source policy rejects mutable version tags", () => {
+  const workflow = `
+jobs:
+  verify:
+    steps:
+      - uses: actions/checkout@v1.2.3 # v1.2.3
+`;
+
+  assert.deepEqual(actionSourcePolicyViolations(workflow), [
+    "action actions/checkout must use a full 40-character lowercase commit SHA with a same-line semver comment",
+  ]);
+});
+
 test("Dependabot groups weekly GitHub Actions updates with a cooldown", async () => {
   const config = parseConfiguration(
     await readRepositoryFile(".github/dependabot.yml"),
@@ -110,13 +198,17 @@ test("Dependabot groups weekly GitHub Actions updates with a cooldown", async ()
 });
 
 test("dependency review is a deterministic pull-request-only read-only check", async () => {
-  const workflow = parseConfiguration(
-    await readRepositoryFile(".github/workflows/dependency-review.yml"),
+  const source = await readRepositoryFile(
+    ".github/workflows/dependency-review.yml",
   );
+  const workflow = parseConfiguration(source);
   const job = workflow.jobs?.["dependency-review"];
   const dependencyReviewStep = job?.steps?.find(
-    (step) => step.uses === "actions/dependency-review-action@v5.0.0",
+    (step) =>
+      typeof step.uses === "string" &&
+      actionName(step.uses) === "actions/dependency-review-action",
   );
+  const actions = assertPinnedAllowedActions(source, workflow);
 
   assert.deepEqual(Object.keys(workflow.on ?? {}), ["pull_request"]);
   assert.deepEqual(workflow.permissions, { contents: "read" });
@@ -126,21 +218,31 @@ test("dependency review is a deterministic pull-request-only read-only check", a
     "the job check name must remain stable for branch protection",
   );
   assert.ok(
-    actionReferences(workflow).includes(
-      "actions/dependency-review-action@v5.0.0",
-    ),
-    "dependency review must use the current Node 24-compatible action",
+    actions.includes("actions/dependency-review-action"),
+    "dependency review must use the approved review action",
   );
   assert.equal(dependencyReviewStep?.with?.["fail-on-severity"], "moderate");
 });
 
-test("CI uses current Node 24-compatible action releases", async () => {
-  const workflow = parseConfiguration(
-    await readRepositoryFile(".github/workflows/ci.yml"),
+test("CI uses immutable allowlisted actions and supported repository pnpm", async () => {
+  const source = await readRepositoryFile(".github/workflows/ci.yml");
+  const workflow = parseConfiguration(source);
+  const actions = assertPinnedAllowedActions(source, workflow);
+  const packageJson = JSON.parse(await readRepositoryFile("package.json"));
+  const packageManager = packageJson.packageManager?.match(
+    /^pnpm@(10\.\d+\.\d+)$/,
   );
-  const references = actionReferences(workflow);
+  const pnpmStep = Object.values(workflow.jobs ?? {})
+    .flatMap((job) => job.steps ?? [])
+    .find(
+      (step) =>
+        typeof step.uses === "string" &&
+        actionName(step.uses) === "pnpm/action-setup",
+    );
 
-  assert.ok(references.includes("actions/checkout@v7.0.1"));
-  assert.ok(references.includes("pnpm/action-setup@v6.0.9"));
-  assert.ok(references.includes("actions/setup-node@v7.0.0"));
+  assert.ok(packageManager, "packageManager must declare a stable pnpm 10");
+  assert.equal(String(pnpmStep?.with?.version), packageManager[1]);
+  assert.ok(actions.includes("actions/checkout"));
+  assert.ok(actions.includes("pnpm/action-setup"));
+  assert.ok(actions.includes("actions/setup-node"));
 });

@@ -51,11 +51,16 @@ and spend changes require explicit human intent.
 Repository configuration schedules weekly grouped pnpm and GitHub Actions
 updates, with a cooldown for routine releases. Pull requests that change the
 dependency graph run a read-only dependency review and fail when they introduce
-a known vulnerability of moderate or greater severity.
+a known vulnerability of moderate or greater severity. The repository declares
+pnpm 10, which is within GitHub Dependabot's documented pnpm support range as
+verified on 2026-07-26. Workflow actions are pinned to the verified commits
+behind their documented release tags.
 
-Provider-side controls are separate from repository configuration. Dependabot
-alerts are enabled: the repository vulnerability-alerts endpoint returned HTTP 204. Dependabot security updates and private vulnerability reporting are also
-enabled in the personal `andrewsiah/openfriend` repository.
+Provider-side controls are separate from repository configuration. On
+2026-07-26, `gh api` verification through the GitHub REST API confirmed that the
+personal `andrewsiah/openfriend` repository's vulnerability-alerts endpoint
+returned HTTP 204, Dependabot security updates were enabled, and private
+vulnerability reporting was enabled.
 
 CodeQL default setup is configured. Validation run
 [`30238344037`](https://github.com/andrewsiah/openfriend/actions/runs/30238344037)

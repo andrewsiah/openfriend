@@ -92,7 +92,7 @@ for the rationale.
 Prerequisites:
 
 - Node.js 22 or newer
-- pnpm 11
+- pnpm 10
 
 ```bash
 pnpm install
