@@ -2,6 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { builtinModules } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const SOURCE_EXTENSIONS = new Set([
   ".cjs",
@@ -45,20 +46,31 @@ function relativePath(root, absolutePath) {
   return path.relative(root, absolutePath).split(path.sep).join("/");
 }
 
-function importSpecifiers(source) {
+function importSpecifiers(sourceFile) {
   const specifiers = [];
-  const patterns = [
-    /\b(?:import|export)\s+(?:[^"'()]*?\s+from\s+)?["']([^"']+)["']/g,
-    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
-    /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
-  ];
 
-  for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) {
-      specifiers.push(match[1]);
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      specifiers.push(node.moduleSpecifier.text);
+    } else if (
+      ts.isCallExpression(node) &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0]) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) &&
+          node.expression.text === "require"))
+    ) {
+      specifiers.push(node.arguments[0].text);
     }
+
+    ts.forEachChild(node, visit);
   }
 
+  visit(sourceFile);
   return specifiers;
 }
 
@@ -72,7 +84,14 @@ function resolvesIntoDirectory(root, importer, specifier, directory) {
   return specifier === directory || specifier.startsWith(`${directory}/`);
 }
 
-function contractsForbiddenReason(root, importer, specifier) {
+function referencesAppPackage(specifier, appPackageNames) {
+  return [...appPackageNames].some(
+    (packageName) =>
+      specifier === packageName || specifier.startsWith(`${packageName}/`),
+  );
+}
+
+function contractsForbiddenReason(root, importer, specifier, appPackageNames) {
   if (specifier === "react" || specifier.startsWith("react/")) {
     return "React framework import";
   }
@@ -87,6 +106,7 @@ function contractsForbiddenReason(root, importer, specifier) {
 
   if (
     resolvesIntoDirectory(root, importer, specifier, "apps") ||
+    referencesAppPackage(specifier, appPackageNames) ||
     (specifier.startsWith("@openfriend/") &&
       specifier !== "@openfriend/contracts")
   ) {
@@ -96,9 +116,19 @@ function contractsForbiddenReason(root, importer, specifier) {
   return undefined;
 }
 
-function isBrowserModule(file, source) {
+function hasUseClientDirective(sourceFile) {
+  const firstStatement = sourceFile.statements[0];
   return (
-    /^\s*["']use client["'];/.test(source) ||
+    firstStatement !== undefined &&
+    ts.isExpressionStatement(firstStatement) &&
+    ts.isStringLiteral(firstStatement.expression) &&
+    firstStatement.expression.text === "use client"
+  );
+}
+
+function isBrowserModule(file, sourceFile) {
+  return (
+    hasUseClientDirective(sourceFile) ||
     /^apps\/[^/]+\/components\//.test(file) ||
     /\.client\.[cm]?[jt]sx?$/.test(file)
   );
@@ -163,12 +193,51 @@ async function listArchitectureFiles(root) {
   return files;
 }
 
+async function appWorkspacePackageNames(root) {
+  const names = new Set();
+  let entries;
+
+  try {
+    entries = await readdir(path.join(root, "apps"), { withFileTypes: true });
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return names;
+    }
+    throw error;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    try {
+      const manifest = JSON.parse(
+        await readFile(
+          path.join(root, "apps", entry.name, "package.json"),
+          "utf8",
+        ),
+      );
+      if (typeof manifest.name === "string" && manifest.name.length > 0) {
+        names.add(manifest.name);
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+    }
+  }
+
+  return names;
+}
+
 function diagnostic(file, rule, message, remediation) {
   return `${file} [${rule}] ${message} Remediation: ${remediation}`;
 }
 
 export async function checkArchitecture(root) {
   const errors = [];
+  const appPackageNames = await appWorkspacePackageNames(root);
 
   for (const absolutePath of await listArchitectureFiles(root)) {
     const file = relativePath(root, absolutePath);
@@ -192,13 +261,25 @@ export async function checkArchitecture(root) {
       );
     }
 
+    if (!SOURCE_EXTENSIONS.has(path.extname(absolutePath))) {
+      continue;
+    }
+
+    const sourceFile = ts.createSourceFile(
+      file,
+      source,
+      ts.ScriptTarget.Latest,
+      false,
+    );
+
     if (file.startsWith("packages/")) {
-      for (const specifier of importSpecifiers(source)) {
+      for (const specifier of importSpecifiers(sourceFile)) {
         if (file.startsWith("packages/contracts/")) {
           const reason = contractsForbiddenReason(
             root,
             absolutePath,
             specifier,
+            appPackageNames,
           );
           if (reason) {
             errors.push(
@@ -213,7 +294,10 @@ export async function checkArchitecture(root) {
           continue;
         }
 
-        if (resolvesIntoDirectory(root, absolutePath, specifier, "apps")) {
+        if (
+          resolvesIntoDirectory(root, absolutePath, specifier, "apps") ||
+          referencesAppPackage(specifier, appPackageNames)
+        ) {
           errors.push(
             diagnostic(
               file,
@@ -226,8 +310,8 @@ export async function checkArchitecture(root) {
       }
     }
 
-    if (isBrowserModule(file, source)) {
-      for (const specifier of importSpecifiers(source)) {
+    if (isBrowserModule(file, sourceFile)) {
+      for (const specifier of importSpecifiers(sourceFile)) {
         if (!isExplicitServerImport(root, absolutePath, specifier)) {
           continue;
         }

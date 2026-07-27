@@ -59,6 +59,24 @@ test("packages cannot import application implementation", async () => {
   );
 });
 
+test("packages cannot import application implementation through its workspace name", async () => {
+  const root = await createRepository({
+    "apps/web/package.json": '{"name":"@openfriend/web"}\n',
+    "apps/web/app/page.tsx":
+      "export default function Page() { return null; }\n",
+    "packages/operator/src/index.ts":
+      'import Page from "@openfriend/web/app/page";\nexport { Page };\n',
+  });
+
+  const result = runChecker(root);
+
+  assertActionableFailure(
+    result,
+    "packages/operator/src/index.ts",
+    "packages-no-app-imports",
+  );
+});
+
 test("contracts reject framework, runtime, and application imports", async () => {
   const root = await createRepository({
     "apps/web/lib/session.ts": "export const session = {};\n",
@@ -126,6 +144,39 @@ test("use-client modules reject named server secrets", async () => {
     "client-server-boundary",
   );
   assert.match(result.stderr, /OPENAI_API_KEY/);
+});
+
+test("semicolonless use-client modules reject server-only imports", async () => {
+  const root = await createRepository({
+    "apps/web/lib/credentials.server.ts": "export const credential = {};\n",
+    "apps/web/features/conversation.ts": [
+      '"use client"',
+      'import { credential } from "../lib/credentials.server";',
+      "export { credential };",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assertActionableFailure(
+    result,
+    "apps/web/features/conversation.ts",
+    "client-server-boundary",
+  );
+});
+
+test("commented-out imports do not create architecture violations", async () => {
+  const root = await createRepository({
+    "packages/operator/src/index.ts": [
+      '// import { page } from "../../../apps/web/app/page";',
+      "export const active = true;",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Architecture check passed/);
 });
 
 test("production code and configuration reject the deprecated live model", async () => {
