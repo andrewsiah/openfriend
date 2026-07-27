@@ -54,11 +54,16 @@ dependency graph run a read-only dependency review and fail when they introduce
 a known vulnerability of moderate or greater severity.
 
 Provider-side controls are separate from repository configuration. Dependabot
-alerts, Dependabot security updates, CodeQL default setup, and private
-vulnerability reporting must be enabled and verified in the personal
-`andrewsiah/openfriend` GitHub repository before they are recorded as active.
-The dependency-review status check must not become a required merge check until
-its exact successful context has been observed on a pull request.
+alerts are enabled: the repository vulnerability-alerts endpoint returned HTTP 204. Dependabot security updates and private vulnerability reporting are also
+enabled in the personal `andrewsiah/openfriend` repository.
+
+CodeQL default setup is configured. Validation run
+[`30238344037`](https://github.com/andrewsiah/openfriend/actions/runs/30238344037)
+has successful Actions and JavaScript/TypeScript analyses, while its Swift
+analysis is still pending. Do not record the validation run as complete until
+GitHub reports a successful terminal result. The dependency-review status check
+must not become a required merge check until its exact successful context has
+been observed on a pull request.
 
 ## Realtime client-secret boundary
 

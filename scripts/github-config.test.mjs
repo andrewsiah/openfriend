@@ -4,6 +4,8 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { parse } from "yaml";
+
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 
 async function readRepositoryFile(relativePath) {
@@ -20,76 +22,107 @@ async function readRepositoryFile(relativePath) {
   }
 }
 
+function parseConfiguration(source) {
+  const configuration = parse(source);
+
+  assert.ok(
+    configuration &&
+      typeof configuration === "object" &&
+      !Array.isArray(configuration),
+    "configuration must be a YAML mapping",
+  );
+
+  return configuration;
+}
+
 function actionReferences(workflow) {
-  return Array.from(
-    workflow.matchAll(/^\s*uses:\s*([^\s#]+)\s*$/gm),
-    (match) => match[1],
+  return Object.values(workflow.jobs ?? {}).flatMap((job) =>
+    (job.steps ?? []).flatMap((step) =>
+      typeof step.uses === "string" ? [step.uses] : [],
+    ),
   );
 }
 
-function topLevelBlock(workflow, key) {
-  const match = workflow.match(
-    new RegExp(`^${key}:\\s*\\n((?:^[ \\t].*(?:\\n|$)|^\\s*$\\n)*)`, "m"),
+function dependencyUpdate(config, ecosystem) {
+  assert.ok(Array.isArray(config.updates), "Dependabot updates must be a list");
+  const update = config.updates.find(
+    (candidate) => candidate["package-ecosystem"] === ecosystem,
   );
 
-  assert.ok(match, `${key} must be a top-level workflow mapping`);
-  return match[1];
+  assert.ok(update, `Dependabot must configure the ${ecosystem} ecosystem`);
+  return update;
 }
 
-function dependencyUpdateBlock(config, ecosystem) {
-  const blocks = config.split(/\n(?=\s{2}- package-ecosystem:)/);
-  const block = blocks.find((candidate) =>
-    candidate.includes(`package-ecosystem: "${ecosystem}"`),
+function assertWeeklyGroupedUpdates(update, label) {
+  assert.equal(update.schedule?.interval, "weekly");
+  assert.ok(
+    Number.isInteger(update.cooldown?.["default-days"]) &&
+      update.cooldown["default-days"] > 0,
+    `${label} updates must use a positive cooldown`,
   );
 
-  assert.ok(block, `Dependabot must configure the ${ecosystem} ecosystem`);
-  return block;
-}
-
-function assertWeeklyGroupedUpdates(block, label) {
-  assert.match(block, /schedule:\s*\n\s+interval: "weekly"/);
-  assert.match(
-    block,
-    /cooldown:\s*\n(?:\s+.*\n)*?\s+default-days: \d+/,
-    `${label} updates must use a cooldown`,
-  );
-  assert.match(
-    block,
-    /groups:\s*\n(?:\s+.*\n)*?\s+patterns:\s*\n\s+- "\*"/,
-    `${label} updates must be grouped`,
+  const groups = Object.values(update.groups ?? {});
+  assert.ok(
+    groups.some((group) => group.patterns?.includes("*")),
+    `${label} updates must include a catch-all group`,
   );
 }
 
 test("Dependabot groups weekly pnpm dependency updates with a cooldown", async () => {
-  const config = await readRepositoryFile(".github/dependabot.yml");
-  const npmUpdates = dependencyUpdateBlock(config, "npm");
+  const config = parseConfiguration(
+    await readRepositoryFile(".github/dependabot.yml"),
+  );
+  const npmUpdates = dependencyUpdate(config, "npm");
 
-  assert.match(npmUpdates, /directory: "\/"/);
+  assert.equal(config.version, 2);
+  assert.equal(npmUpdates.directory, "/");
   assertWeeklyGroupedUpdates(npmUpdates, "pnpm");
 });
 
-test("Dependabot groups weekly GitHub Actions updates with a cooldown", async () => {
-  const config = await readRepositoryFile(".github/dependabot.yml");
-  const actionsUpdates = dependencyUpdateBlock(config, "github-actions");
+test("configuration validation rejects malformed YAML", () => {
+  const malformed = `
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      routine:
+        patterns:
+          - "*"
+    broken: [
+`;
 
-  assert.match(actionsUpdates, /directory: "\/"/);
+  assert.throws(() => parseConfiguration(malformed));
+});
+
+test("Dependabot groups weekly GitHub Actions updates with a cooldown", async () => {
+  const config = parseConfiguration(
+    await readRepositoryFile(".github/dependabot.yml"),
+  );
+  const actionsUpdates = dependencyUpdate(config, "github-actions");
+
+  assert.equal(actionsUpdates.directory, "/");
   assertWeeklyGroupedUpdates(actionsUpdates, "GitHub Actions");
 });
 
 test("dependency review is a deterministic pull-request-only read-only check", async () => {
-  const workflow = await readRepositoryFile(
-    ".github/workflows/dependency-review.yml",
+  const workflow = parseConfiguration(
+    await readRepositoryFile(".github/workflows/dependency-review.yml"),
   );
-  const triggers = topLevelBlock(workflow, "on");
-  const permissions = topLevelBlock(workflow, "permissions");
+  const job = workflow.jobs?.["dependency-review"];
+  const dependencyReviewStep = job?.steps?.find(
+    (step) => step.uses === "actions/dependency-review-action@v5.0.0",
+  );
 
-  assert.match(triggers, /^\s{2}pull_request:\s*$/m);
-  assert.doesNotMatch(triggers, /^\s{2}(push|schedule|workflow_dispatch):/m);
-  assert.match(permissions, /^\s{2}contents: read\s*$/m);
-  assert.doesNotMatch(permissions, /^\s{2}(?!contents:)[\w-]+:/m);
-  assert.match(
-    workflow,
-    /^\s{4}name: Dependency Review\s*$/m,
+  assert.deepEqual(Object.keys(workflow.on ?? {}), ["pull_request"]);
+  assert.deepEqual(workflow.permissions, { contents: "read" });
+  assert.equal(
+    job?.name,
+    "Dependency Review",
     "the job check name must remain stable for branch protection",
   );
   assert.ok(
@@ -98,11 +131,13 @@ test("dependency review is a deterministic pull-request-only read-only check", a
     ),
     "dependency review must use the current Node 24-compatible action",
   );
-  assert.match(workflow, /fail-on-severity: moderate/);
+  assert.equal(dependencyReviewStep?.with?.["fail-on-severity"], "moderate");
 });
 
 test("CI uses current Node 24-compatible action releases", async () => {
-  const workflow = await readRepositoryFile(".github/workflows/ci.yml");
+  const workflow = parseConfiguration(
+    await readRepositoryFile(".github/workflows/ci.yml"),
+  );
   const references = actionReferences(workflow);
 
   assert.ok(references.includes("actions/checkout@v7.0.1"));
