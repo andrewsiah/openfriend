@@ -120,10 +120,20 @@ Enforcement:
 - activating the ruleset before the evidence update resolved Greptile's timing
   concern about the contributor guidance.
 
+Update-trigger finding:
+
+- commit `576b9d1` made the prior check stale and the ruleset kept the pull
+  request blocked while `Greptile Review` was absent;
+- the repository-local `triggerOnUpdates` setting did not schedule a new run
+  during the observed interval even though Greptile had recognized it in the
+  initial review;
+- Greptile's matching organization-level `Auto-review on new commits` setting
+  was therefore enabled and confirmed saved;
+- the next commit is the live test of the combined repository and dashboard
+  trigger configuration.
+
 Still required before changing Merge safety to Passing:
 
-- push this evidence update and observe the previous Greptile result become
-  stale;
-- confirm a second automatic review covers the new head commit and reaches at
-  least `4/5`;
+- confirm an automatic review covers the new head commit and reaches at least
+  `4/5`;
 - confirm GitHub continues to enforce both required checks on that commit.

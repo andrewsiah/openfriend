@@ -130,6 +130,10 @@ repository rulesets, GitHub Actions, pnpm.
 
 ### Pending final proof
 
-This evidence update is the deliberate follow-up commit. Completion requires it
-to trigger a fresh Greptile review automatically and for both required checks
-to pass on the new head.
+The first evidence update at `576b9d1` made the old checks stale and the ruleset
+kept the PR blocked, but no new Greptile run appeared during the observed
+interval. The matching organization-level `Auto-review on new commits` control
+was enabled and confirmed saved in addition to the repository config. This
+follow-up is the deliberate live test: completion requires it to trigger a
+fresh Greptile review automatically and for both required checks to pass on the
+new head.

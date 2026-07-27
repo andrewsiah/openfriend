@@ -31,12 +31,13 @@ ready to avoid spending review credits on work that cannot merge. Pull requests
 over 100 changed files fail closed because the required check remains absent;
 they must be split or explicitly reviewed with `@greptileai`.
 
-The Greptile organization setting supplies the `4/5` passing threshold. GitHub
-supplies enforcement through an active repository ruleset for the default
-branch. The ruleset requires a pull request, current `verify` and Greptile
-checks, and resolved review conversations. It also prevents deletion and
-non-fast-forward updates. No bypass actor is configured, including the
-repository administrator.
+The Greptile organization settings supply the `4/5` passing threshold and
+enable review on new commits. The repository config repeats the update trigger
+so the intended behavior remains reviewable in Git. GitHub supplies enforcement
+through an active repository ruleset for the default branch. The ruleset
+requires a pull request, current `verify` and Greptile checks, and resolved
+review conversations. It also prevents deletion and non-fast-forward updates.
+No bypass actor is configured, including the repository administrator.
 
 Enforcement is activated only after a configuration pull request produces a
 real Greptile check. This avoids guessing the check context and accidentally
