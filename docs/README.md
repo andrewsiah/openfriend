@@ -41,6 +41,8 @@ document below.
   — implementation and live-verification record for the Greptile gate.
 - [plans/2026-07-26-public-codebase-harness.md](plans/2026-07-26-public-codebase-harness.md)
   — implemented deterministic browser, architecture, and maintenance checks.
+- [plans/2026-07-27-dependabot-review-loop-design.md](plans/2026-07-27-dependabot-review-loop-design.md)
+  — accepted Dependabot, Greptile, and security-visible major-update policy.
 - [plans/2026-07-27-phase-2-watch-conversation-design.md](plans/2026-07-27-phase-2-watch-conversation-design.md)
   — recommended direct WebSocket design for the phone-free Watch slice.
 - [plans/2026-07-27-phase-2-watch-conversation.md](plans/2026-07-27-phase-2-watch-conversation.md)

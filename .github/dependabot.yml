@@ -10,6 +10,7 @@ updates:
       timezone: "America/Los_Angeles"
     cooldown:
       default-days: 7
+    # Keep majors visible: Dependabot ignore rules also affect security updates.
     groups:
       routine-pnpm-updates:
         patterns:

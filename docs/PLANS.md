@@ -17,6 +17,8 @@ on Andrew's physical Apple Watch.
 Signing authority, the physical cellular Watch, authenticated-route rate
 limiting, and the complete hardware matrix remain unresolved prerequisites.
 
+- [Dependabot review loop](plans/2026-07-27-dependabot-review-loop.md)
+
 ## Completed
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
@@ -31,6 +33,7 @@ limiting, and the complete hardware matrix remain unresolved prerequisites.
 - [OpenFriend foundation design](plans/2026-07-26-openfriend-foundation-design.md)
 - [Synthetic paired voice design](plans/2026-07-26-synthetic-paired-voice-design.md)
 - [Greptile merge-gate design](plans/2026-07-26-greptile-merge-gate-design.md)
+- [Dependabot review-loop design](plans/2026-07-27-dependabot-review-loop-design.md)
 
 ## Plan lifecycle
 
