@@ -117,8 +117,15 @@ Add a dated checklist to this plan containing only non-sensitive facts:
 
 **Step 5: Stop on any unresolved ownership**
 
-Expected: no code or provider mutation begins while a prerequisite is
-ambiguous.
+Expected: no provider mutation begins while ownership or authority is
+ambiguous. Tasks 1–2 may proceed only as local, synthetic, server-only
+prerequisites; they do not require signing, a connected Watch, deployment,
+public route exposure, provider mutation, or live Apple/OpenAI calls.
+
+Stop before Task 2A until the exact personal Watch model, watchOS version,
+active cellular-plan status, and working personal signing readiness are
+confirmed. The Task 2A signing, deployment, WAF, preview-protection, and live
+endpoint gates remain unchanged.
 
 **Step 6: Commit the non-sensitive acceptance record**
 
@@ -238,12 +245,12 @@ git commit -m "feat: verify watch identity tokens"
 
 **Step 1: Preserve the browser route with characterization tests**
 
-Add assertions to the existing route test for:
+Add or confirm assertions for the existing green behavior:
 
 - the exact Economy/Quality model match;
 - the 600-second expiry request;
 - the three-field response;
-- sanitized failure and no-store behavior.
+- sanitized failures.
 
 Run:
 
@@ -252,6 +259,15 @@ pnpm --filter @openfriend/web test -- app/api/realtime/client-secret/route.test.
 ```
 
 Expected: PASS before refactoring.
+
+Then add one focused hardening test proving representative success, invalid
+request, missing server configuration, and upstream-failure responses all set
+`Cache-Control: no-store`.
+
+Run the same focused command and confirm RED because the Phase 1 route does not
+yet set the header. Add the smallest shared JSON response helper inside the
+browser route, route every JSON response through it, and rerun the focused
+suite to GREEN before extracting the provider helper.
 
 **Step 2: Write a failing test for a server-only mint helper**
 
