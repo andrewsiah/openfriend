@@ -19,10 +19,16 @@ pnpm typecheck
 pnpm lint
 pnpm format:check
 pnpm docs:check
+pnpm architecture:check
 pnpm build
 ```
 
 No completion claim may rely on an earlier run after code changed.
+
+`pnpm architecture:check` reports each violation with its repository-relative
+path, stable rule name, and a concrete remediation. Its focused synthetic-tree
+tests run through `pnpm test` and cover both rejected and representative allowed
+imports without depending on the current repository layout alone.
 
 ## Test layers
 

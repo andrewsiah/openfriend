@@ -18,7 +18,8 @@
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
     "docs:check": "node scripts/check-docs.mjs",
-    "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm build"
+    "architecture:check": "node scripts/check-architecture.mjs",
+    "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm architecture:check && pnpm build"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
