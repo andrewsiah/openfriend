@@ -64,11 +64,11 @@ vulnerability reporting was enabled.
 
 CodeQL default setup is configured. Validation run
 [`30238344037`](https://github.com/andrewsiah/openfriend/actions/runs/30238344037)
-has successful Actions and JavaScript/TypeScript analyses, while its Swift
-analysis is still pending. Do not record the validation run as complete until
-GitHub reports a successful terminal result. The dependency-review status check
-must not become a required merge check until its exact successful context has
-been observed on a pull request.
+completed successfully: Actions, JavaScript/TypeScript, and Swift analyses all
+reported success, while Adjust Configuration was skipped. Dependency Review has
+not yet run on a pull request or been added to the repository ruleset. Its
+status check must not become a required merge check until its exact successful
+context has been observed on a pull request.
 
 ## Realtime client-secret boundary
 
