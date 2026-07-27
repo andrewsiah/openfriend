@@ -99,6 +99,86 @@ git add docs/plans/2026-07-27-phase-2-watch-conversation.md
 git commit -m "docs: accept phase 2 watch prerequisites"
 ```
 
+## Task 0A: Prove signed audio-plus-WebSocket feasibility first
+
+This spike is a hard gate. Run it immediately after Task 0 and before Tasks
+1–8. Do not defer the transport proof to the integrated physical test in Task 9.
+
+**Files:**
+
+- Create after personal-team confirmation:
+  `apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements`
+- Create:
+  `apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift`
+- Modify: `apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj`
+- Modify: `apps/watch/README.md`
+- Modify:
+  `docs/plans/2026-07-27-phase-2-watch-conversation.md`
+- Modify: `docs/QUALITY_SCORE.md`
+
+**Step 1: Configure only the minimum signed diagnostic**
+
+After the Task 0 authority checks pass, configure personal signing, microphone
+usage, and only the audio-streaming capability required for this diagnostic.
+Keep the target watch-only. Do not add Sign in with Apple or production
+authentication code in this spike.
+
+**Step 2: Obtain one short-lived test credential safely**
+
+For this time-bounded development diagnostic only, fetch an Economy credential
+from the existing protected Phase 1 preview route. Inject the preview origin at
+launch; do not commit it into the Watch target. Never paste a permanent OpenAI
+key, client secret, bearer token, or provider identifier into source, scheme
+files, logs, screenshots, or public evidence.
+
+**Step 3: Build the smallest physical probe**
+
+The development-only probe:
+
+1. confirms `supportsAudioStreaming`;
+2. requests microphone permission;
+3. activates a play-and-record `AVAudioSession`;
+4. starts real capture and playback engines;
+5. opens `URLSessionWebSocketTask` only after audio becomes active;
+6. sends one current, official Realtime session configuration;
+7. streams bounded microphone PCM and plays one bounded response;
+8. closes the socket and deactivates audio.
+
+Record only event categories and monotonic timings. Do not implement the
+production protocol model, reconnect controller, authentication UI, or full
+conversation UI here.
+
+**Step 4: Prove the negative ordering**
+
+On the same physical Watch, attempt the development socket without an active
+audio stream.
+
+Expected: the connection is unavailable or rejected consistently with Apple's
+documented low-level-networking boundary, and cleanup completes.
+
+**Step 5: Prove the accepted ordering**
+
+Repeat with audio active before the socket opens.
+
+Expected: the signed Watch connects, sends live microphone audio, receives and
+plays response audio, and tears both resources down. Record the Watch model,
+watchOS version, date, expected result, actual sanitized result, and cleanup
+state.
+
+**Step 6: Stop if feasibility fails**
+
+If active audio does not unlock the direct WebSocket or simultaneous capture
+and playback is unusable, do not implement Tasks 1–8. Record the actual failure
+and request a new transport decision. Do not add a relay or third-party WebRTC
+dependency without a new accepted design.
+
+**Step 7: Commit the bounded spike**
+
+```bash
+git add apps/watch/OpenFriendWatch/OpenFriendWatch.entitlements apps/watch/OpenFriendWatch/App/WatchTransportFeasibilityProbe.swift apps/watch/OpenFriendWatch.xcodeproj/project.pbxproj apps/watch/README.md docs/QUALITY_SCORE.md docs/plans/2026-07-27-phase-2-watch-conversation.md
+git commit -m "test: prove direct watch realtime transport"
+```
+
 ## Task 1: Verify a nonce-bound Apple identity server-side
 
 **Files:**
@@ -549,6 +629,10 @@ Use an injected render clock and synthetic PCM. Prove:
 - scheduled audio is not counted as played;
 - samples actually rendered convert to floor milliseconds;
 - queued unplayed audio is bounded to 500 ms;
+- a delta that would overflow the queue stops playback, emits
+  `response.cancel`, and truncates at the rendered duration;
+- an overflow that cannot send cancellation and truncation terminates the
+  session instead of dropping unreconciled audio;
 - late deltas for a cancelled generation are ignored;
 - stop clears scheduled audio exactly once.
 
@@ -591,7 +675,11 @@ Expected: FAIL because playback and truncation types do not exist.
 
 Use `AVAudioPlayerNode` and a hardware-format `AVAudioConverter`. Keep an
 actor-owned queue and an injected render clock. Never infer played duration
-from bytes received or buffers scheduled.
+from bytes received or buffers scheduled. If a delta would exceed 500 ms of
+queued, unplayed audio, invoke the shared interruption primitive with response
+cancellation. If the transport cannot send both cancellation and truncation,
+fail the session; never silently discard audio while leaving the remote
+conversation item intact.
 
 **Step 5: Implement the shared interruption primitive**
 
@@ -940,7 +1028,7 @@ git add apps/watch/OpenFriendWatch/App apps/watch/OpenFriendWatch/Tests apps/wat
 git commit -m "feat: present watch live conversation"
 ```
 
-## Task 9: Configure signing and run the physical feasibility gate
+## Task 9: Configure production signing and run the integrated physical gate
 
 **Files:**
 
@@ -957,6 +1045,7 @@ git commit -m "feat: present watch live conversation"
 Read-only verify:
 
 - current Xcode signing settings;
+- the signed feasibility evidence from Task 0A;
 - selected personal team;
 - App ID ownership;
 - Sign in with Apple availability;
@@ -973,7 +1062,7 @@ for explicit authorization before changing Apple provider state.
 
 After authorization:
 
-- personal automatic or approved manual signing;
+- reuse the personal automatic or approved manual signing proven in Task 0A;
 - microphone usage description;
 - Sign in with Apple entitlement;
 - Audio background mode only for the real streaming-audio story;
@@ -1199,6 +1288,7 @@ Only mark the Phase 2 conversation Passing if:
 - full duplex and both interruption paths passed;
 - one reconnect and terminal second loss passed;
 - route/device loss and teardown passed;
+- connection and current conversation status are glanceable on the Watch;
 - current local, CI, and deployed-source checks passed.
 
 Otherwise keep each missing row Pending and state the exact next gate.

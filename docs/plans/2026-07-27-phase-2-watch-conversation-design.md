@@ -178,10 +178,14 @@ Successful response:
 ```json
 {
   "clientSecret": "<short-lived value>",
-  "expiresAt": 0,
+  "expiresAt": 1900000000,
   "model": "gpt-realtime-2.1-mini"
 }
 ```
+
+The `expiresAt` number above is illustrative Unix-seconds data only. Production
+returns the actual upstream expiry and the Watch rejects a value that is not in
+the future.
 
 The endpoint:
 
@@ -248,8 +252,12 @@ The output pipeline:
 - converts 24 kHz PCM to the active hardware output format;
 - schedules bounded buffers on `AVAudioPlayerNode`;
 - tracks samples actually rendered, not merely received or scheduled;
-- caps queued, unplayed response audio at 500 ms and enters a degraded state
-  instead of allowing unbounded growth;
+- caps queued, unplayed response audio at 500 ms;
+- if a new delta would exceed that cap, stops local playback, sends
+  `response.cancel`, and truncates the item at the duration actually rendered;
+- terminates the session if cancellation and truncation cannot be sent, rather
+  than silently dropping audio that the conversation would still treat as
+  heard;
 - ignores late deltas after that response generation has been cancelled or
   truncated.
 
