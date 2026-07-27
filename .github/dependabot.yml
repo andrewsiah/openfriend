@@ -1,0 +1,36 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    cooldown:
+      default-days: 7
+    groups:
+      routine-pnpm-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "America/Los_Angeles"
+    cooldown:
+      default-days: 7
+    groups:
+      routine-action-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

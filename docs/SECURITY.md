@@ -46,6 +46,20 @@ or another company organization. Verify owner and environment before any
 provider mutation. Development is the default; production access, paid plans,
 and spend changes require explicit human intent.
 
+## Repository supply-chain controls
+
+Repository configuration schedules weekly grouped pnpm and GitHub Actions
+updates, with a cooldown for routine releases. Pull requests that change the
+dependency graph run a read-only dependency review and fail when they introduce
+a known vulnerability of moderate or greater severity.
+
+Provider-side controls are separate from repository configuration. Dependabot
+alerts, Dependabot security updates, CodeQL default setup, and private
+vulnerability reporting must be enabled and verified in the personal
+`andrewsiah/openfriend` GitHub repository before they are recorded as active.
+The dependency-review status check must not become a required merge check until
+its exact successful context has been observed on a pull request.
+
 ## Realtime client-secret boundary
 
 The Phase 1 client-secret route intentionally has no application authentication
