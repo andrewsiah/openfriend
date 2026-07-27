@@ -119,14 +119,8 @@ test("reports framework test controls in case-insensitive test directories", asy
     report,
     /WatchConnectionStateTests\.swift:1` — skipped test \(XCTSkip\)/,
   );
-  assert.match(
-    report,
-    /browser\.test\.ts:1` — skipped test \(test\.fixme\)/,
-  );
-  assert.match(
-    report,
-    /browser\.test\.ts:2` — skipped test \(test\.todo\)/,
-  );
+  assert.match(report, /browser\.test\.ts:1` — skipped test \(test\.fixme\)/);
+  assert.match(report, /browser\.test\.ts:2` — skipped test \(test\.todo\)/);
   assert.match(
     report,
     /browser\.test\.ts:3` — focused test \(test\.concurrent\.only\)/,
@@ -370,18 +364,12 @@ test("reports malformed baseline metadata and line counts", async (t) => {
 
   const report = await generateMaintenanceReport(root);
 
-  assert.match(
-    report,
-    /baseline generatedOn must be a valid YYYY-MM-DD date/,
-  );
+  assert.match(report, /baseline generatedOn must be a valid YYYY-MM-DD date/);
   assert.match(
     report,
     /invalid baseline line count for tests\/a\.test\.ts: 400/,
   );
-  assert.match(
-    report,
-    /invalid baseline line count for tests\/b\.test\.ts: 0/,
-  );
+  assert.match(report, /invalid baseline line count for tests\/b\.test\.ts: 0/);
   assert.match(report, /Rapid growth \| 2/);
 });
 
