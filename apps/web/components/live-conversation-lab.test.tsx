@@ -1004,6 +1004,9 @@ describe("LiveConversationLab", () => {
     expect(endButton).toBeEnabled();
     await user.click(endButton);
     expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+    expect(
+      screen.queryByRole("button", { name: /save economy result/i }),
+    ).not.toBeInTheDocument();
 
     await act(async () => {
       resolveSecretRequest?.(
@@ -1060,6 +1063,9 @@ describe("LiveConversationLab", () => {
       screen.getByRole("button", { name: /end live conversation/i }),
     );
     expect(screen.getByRole("status")).toHaveTextContent(/ended/i);
+    expect(
+      screen.getByRole("button", { name: /save economy result/i }),
+    ).toBeDisabled();
 
     await act(async () => {
       resolveReconnectSecret?.(

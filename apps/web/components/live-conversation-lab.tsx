@@ -145,6 +145,8 @@ export function LiveConversationLab({
     [],
   );
   const [qualityScore, setQualityScore] = useState<number | null>(null);
+  const [hasConnectedInCurrentRun, setHasConnectedInCurrentRun] =
+    useState(false);
   const [savedEvaluations, setSavedEvaluations] = useState<
     Partial<Record<LiveModelProfileId, SavedProfileEvaluation>>
   >({});
@@ -212,6 +214,7 @@ export function LiveConversationLab({
     setResponseStartSamples([]);
     setUsageUpdates([]);
     setQualityScore(null);
+    setHasConnectedInCurrentRun(false);
     connectionStartedAt.current = null;
     latestUserSpeechStoppedAt.current = null;
     if (
@@ -226,7 +229,11 @@ export function LiveConversationLab({
   }
 
   function saveEvaluation(): void {
-    if (sessionStateRef.current.status !== "ended" || qualityScore === null) {
+    if (
+      sessionStateRef.current.status !== "ended" ||
+      !hasConnectedInCurrentRun ||
+      qualityScore === null
+    ) {
       return;
     }
 
@@ -332,6 +339,7 @@ export function LiveConversationLab({
 
             if (status === "connected") {
               clearConnectionTimeout();
+              setHasConnectedInCurrentRun(true);
               if (connectionStartedAt.current !== null) {
                 setConnectionLatency(
                   Math.max(0, Math.round(now() - connectionStartedAt.current)),
@@ -448,6 +456,7 @@ export function LiveConversationLab({
   }
 
   function startConversation(): void {
+    setHasConnectedInCurrentRun(false);
     transition({ type: "start" });
     statusElement.current?.focus();
     void connectWithFreshSecret();
@@ -591,6 +600,7 @@ export function LiveConversationLab({
       </div>
 
       {sessionState.status === "ended" &&
+      hasConnectedInCurrentRun &&
       savedEvaluations[selectedProfileId] === undefined ? (
         <section
           className="evaluationCapture"
