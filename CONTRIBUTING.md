@@ -45,6 +45,17 @@ Include:
 - security, privacy, cost, and Watch implications;
 - known limitations.
 
+Pull requests targeting `main` must pass the current `verify` and Greptile
+status checks. Greptile re-reviews after every pushed commit and must report at
+least `4/5` confidence. Resolve each actionable review comment or reply with the
+verified reason it is not actionable; automated review is evidence, not a
+substitute for judgment.
+
+Pull requests over 100 changed files do not receive an automatic Greptile
+review. Split them into reviewable changes or explicitly request a complete
+review by commenting `@greptileai`; the missing required check blocks merge
+until that review finishes.
+
 Do not include secrets, personal conversation data, or company resources.
 OpenFriend development must use personal or isolated contributor-owned
 accounts.

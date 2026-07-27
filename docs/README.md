@@ -31,6 +31,10 @@ document below.
 - [PLANS.md](PLANS.md) — active and completed execution plans.
 - [plans/2026-07-26-openfriend-foundation-design.md](plans/2026-07-26-openfriend-foundation-design.md)
   — accepted foundation design.
+- [plans/2026-07-26-greptile-merge-gate-design.md](plans/2026-07-26-greptile-merge-gate-design.md)
+  — accepted automated-review merge-gate design.
+- [plans/2026-07-26-greptile-merge-gate.md](plans/2026-07-26-greptile-merge-gate.md)
+  — implementation and live-verification record for the Greptile gate.
 - [decisions/README.md](decisions/README.md) — architectural decision record
   policy.
 

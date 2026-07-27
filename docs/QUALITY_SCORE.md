@@ -15,6 +15,7 @@ field means the behavior is not yet proven.
 | Account isolation    | Stripe, Vercel, Supabase, GitHub are personal        | Passing | Stripe Projects status and Vercel scope inspection                             |
 | Deployment           | Web story verified in a real deployed browser        | Passing | [Vercel preview](https://openfriend-8dst6mpnm-andrewsiah-stripe.vercel.app)    |
 | Publication          | Public MIT repository and CI verified                | Passing | [GitHub repository](https://github.com/andrewsiah/openfriend), CI on `1a3696a` |
+| Merge safety         | Current CI and Greptile review required before merge | Pending | Configuration PR and live ruleset verification required                        |
 
 ## Evidence format
 
