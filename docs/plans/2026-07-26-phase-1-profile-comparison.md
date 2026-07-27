@@ -205,3 +205,24 @@ cached_text_tokens` and uncached audio as
 
 Stop after one real paired Economy/Quality experiment and all documented gates
 pass. Do not start the Watch field test inside this plan.
+
+## Current implementation evidence
+
+On 2026-07-26:
+
+- Claude Fable/high reviewed the design and plan against the accepted story,
+  installed Agents SDK types, privacy boundary, and teardown lifecycle;
+- its cached-token finding was applied: nested cached modality counts are
+  runtime-guarded and subtracted from total modality counts before pricing;
+- the official 2026-07-26 model pages confirm the plan's `$24` per-million
+  Quality text-output rate, superseding the reviewer's comparison with the
+  older `gpt-realtime` model;
+- focused RED then GREEN runs cover evaluation arithmetic, zero and unknown
+  usage, median latency, sanitized SDK usage, exact listener removal, the fixed
+  guide, required rating, saved summary, explicit other-profile preparation,
+  and reset during a live second session;
+- 68 web tests pass together with focused typecheck, lint, and formatting;
+- Claude Fable/high returned a structured `APPROVED` final verdict with no
+  actionable P0/P1 runtime or regression-test finding;
+- real paired-microphone, deployed-browser, and integrated-gate evidence remain
+  pending.

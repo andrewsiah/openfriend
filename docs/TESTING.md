@@ -82,6 +82,27 @@ Evaluate product behavior, not just transcripts:
 Keep repeatable prompts and scored observations in version control when Phase 1
 begins.
 
+The Phase 1 paired experiment uses this exact guide for both profiles:
+
+1. “I've had a long day. Help me reset in one minute.”
+2. “Help me choose between a quiet evening and seeing friends. Ask me one
+   question before advising.”
+3. While OpenFriend answers, redirect it: “Actually, make that practical: give
+   me one next step.”
+
+End and rate the first profile before preparing the other one. Preparing must
+close the old session, return the lab to idle, clear the live transcript, and
+leave the microphone off until Start. A completed pair records profile,
+connection latency, median voice-response start, provider usage, estimated
+cost, and a 1–5 human quality score without retaining transcript text.
+
+Cost is an estimate based on provider-reported Realtime response usage and the
+published model rates dated in the UI. Provider cached counts are subsets of
+input modality totals and must be subtracted before uncached pricing.
+Separately billed transcription, a response still in flight when End is
+pressed, and future provider charges can be absent. Missing or zero-only usage
+is unavailable, never free.
+
 ### Physical Watch
 
 The simulator is useful but insufficient. Phase 2 requires Andrew's physical

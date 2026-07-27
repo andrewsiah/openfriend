@@ -22,7 +22,7 @@ Acceptance:
 - local checks, personal infrastructure ownership, deployment, and public repo
   state are verified.
 
-## Next: Phase 1 web voice lab
+## In progress: Phase 1 web voice lab
 
 ### Start a live conversation
 
@@ -51,6 +51,10 @@ Acceptance:
 - switching ends the old session and creates a new one;
 - evaluation records profile, latency, qualitative score, and estimated cost;
 - missing capabilities are disclosed.
+
+Implementation status: the guided, session-only comparison and its automated
+quality gates pass. Real paired-microphone and deployed-browser acceptance are
+still required before this story moves to accepted.
 
 ## Then: Phase 2 Watch field test
 

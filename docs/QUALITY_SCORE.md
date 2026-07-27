@@ -49,6 +49,23 @@ The next Phase 1 story adds quality, latency, and cost comparison between
 otherwise equivalent Economy and Quality sessions. Phase 2 then adds the
 physical Watch network matrix from [TESTING.md](TESTING.md).
 
+## Phase 1 profile-comparison score
+
+| Dimension           | Target                                                      | Status  | Evidence                                           |
+| ------------------- | ----------------------------------------------------------- | ------- | -------------------------------------------------- |
+| Equivalent guide    | Both profiles use the same visible three-step conversation  | Passing | `live-conversation-lab.test.tsx`                   |
+| Fresh session       | Preparing a profile closes media and never auto-starts mic  | Passing | Component lifecycle tests                          |
+| Usage accounting    | Cached tokens are not double-counted                        | Passing | Adapter and pure evaluation tests                  |
+| Cost truthfulness   | Dated estimate discloses missing and separate charges       | Passing | Evaluation tests and visible disclosure            |
+| Privacy boundary    | Summaries omit transcript and remain mounted-memory-only    | Passing | Component tests and architecture inspection        |
+| Paired conversation | Real Economy and Quality microphone runs use the same guide | Pending | —                                                  |
+| Human quality       | Andrew records a 1–5 score for each real run                | Pending | —                                                  |
+| Deployment          | Paired workflow passes deployed browser acceptance          | Pending | —                                                  |
+| Final review        | Claude Fable/high finds no actionable P0/P1 issue           | Passing | Structured `APPROVED` verdict on runtime and tests |
+
+The automated rows prove behavior and boundaries, not comparative model
+quality. The pending rows require real sessions and deployed-browser evidence.
+
 ## 2026-07-26 deployed foundation evidence
 
 Environment:
