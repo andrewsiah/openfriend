@@ -38,7 +38,6 @@ export function createMockLiveSession(
   return {
     async connect(clientSecret) {
       callbacks.onConnectionChange("connecting");
-      options.onConnect?.(clientSecret);
 
       if (options.failConnect) {
         options.onEvent?.("connect-failed");
@@ -48,6 +47,7 @@ export function createMockLiveSession(
       options.onEvent?.("connect");
       options.advanceClock?.(12);
       callbacks.onConnectionChange("connected");
+      options.onConnect?.(clientSecret);
       history = [USER_TURN];
       callbacks.onHistoryChange(history);
       callbacks.onUserSpeechStopped();

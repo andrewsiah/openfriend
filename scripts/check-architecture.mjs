@@ -58,11 +58,12 @@ function importSpecifiers(sourceFile) {
       specifiers.push(node.moduleSpecifier.text);
     } else if (
       ts.isCallExpression(node) &&
-      node.arguments.length === 1 &&
+      node.arguments.length >= 1 &&
       ts.isStringLiteral(node.arguments[0]) &&
       (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
         (ts.isIdentifier(node.expression) &&
-          node.expression.text === "require"))
+          node.expression.text === "require" &&
+          node.arguments.length === 1))
     ) {
       specifiers.push(node.arguments[0].text);
     }

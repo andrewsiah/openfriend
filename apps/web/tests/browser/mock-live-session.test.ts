@@ -95,8 +95,10 @@ describe("deterministic mock LiveSession", () => {
   it("fails deterministically without publishing conversation history", async () => {
     const harness = createCallbackHarness();
     const events: string[] = [];
+    const onConnect = vi.fn();
     const session = createMockLiveSession(harness.callbacks, {
       failConnect: true,
+      onConnect,
       onEvent: (event) => events.push(event),
     });
 
@@ -110,6 +112,7 @@ describe("deterministic mock LiveSession", () => {
       "connection:connecting",
       "connection:disconnected",
     ]);
+    expect(onConnect).not.toHaveBeenCalled();
     expect(events).toEqual(["connect-failed", "close"]);
   });
 });

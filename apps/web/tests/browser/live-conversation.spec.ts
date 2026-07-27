@@ -203,6 +203,23 @@ test("deterministic connection failure reaches an honest failed state and closes
   await expect(page.getByTestId("harness-events")).toContainText("close:1");
 });
 
+test("harness unmount explicitly closes every tracked session", async ({
+  page,
+}) => {
+  await page.goto("/harness.html");
+  await page.getByRole("button", { name: /start live conversation/i }).click();
+  await expect(page.locator("[data-status]")).toHaveAttribute(
+    "data-status",
+    "live",
+  );
+
+  const trackedSessionCount = await page.evaluate(() => {
+    return window.__openfriendBrowserHarness?.unmount();
+  });
+
+  expect(trackedSessionCount).toBe(1);
+});
+
 test("an attempted external WebSocket is blocked and recorded without network access", async ({
   page,
 }) => {
@@ -231,7 +248,7 @@ declare global {
         code: number;
         reason: string;
       }>;
-      unmount(): void;
+      unmount(): number;
     };
   }
 }

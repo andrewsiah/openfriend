@@ -7,6 +7,7 @@ import {
   LiveConversationLab,
   type LiveSessionFactory,
 } from "../../components/live-conversation-lab";
+import type { LiveSession } from "../../lib/live-session";
 import { createMockLiveSession } from "./mock-live-session";
 
 type EventCounts = Record<string, number>;
@@ -16,6 +17,7 @@ type Diagnostics = Readonly<{
 }>;
 
 let clock = 1_000;
+const trackedSessions = new Set<LiveSession>();
 
 function HarnessPage() {
   const [eventCounts, setEventCounts] = useState<EventCounts>({});
@@ -38,7 +40,7 @@ function HarnessPage() {
         factoryModels: [...current.factoryModels, model],
       }));
 
-      return createMockLiveSession(callbacks, {
+      const session = createMockLiveSession(callbacks, {
         advanceClock(milliseconds) {
           clock += milliseconds;
         },
@@ -51,6 +53,8 @@ function HarnessPage() {
         },
         onEvent: recordEvent,
       });
+      trackedSessions.add(session);
+      return session;
     },
     [failConnect, recordEvent],
   );
@@ -91,6 +95,17 @@ if (!(container instanceof HTMLElement)) {
 const root = createRoot(container);
 let unmounted = false;
 
+function closeTrackedSessions(): number {
+  const sessions = [...trackedSessions];
+  trackedSessions.clear();
+
+  for (const session of sessions) {
+    session.close();
+  }
+
+  return sessions.length;
+}
+
 root.render(<HarnessPage />);
 window.__openfriendBrowserHarness = {
   attemptExternalWebSocket() {
@@ -107,11 +122,17 @@ window.__openfriendBrowserHarness = {
   },
   unmount() {
     if (unmounted) {
-      return;
+      return 0;
     }
 
     unmounted = true;
-    root.unmount();
+    let trackedSessionCount = 0;
+    try {
+      root.unmount();
+    } finally {
+      trackedSessionCount = closeTrackedSessions();
+    }
+    return trackedSessionCount;
   },
 };
 
@@ -122,7 +143,7 @@ declare global {
         code: number;
         reason: string;
       }>;
-      unmount(): void;
+      unmount(): number;
     };
   }
 }

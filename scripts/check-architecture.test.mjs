@@ -65,6 +65,27 @@ test("packages cannot import application implementation", async () => {
   );
 });
 
+test("packages cannot import application implementation with import attributes", async () => {
+  const root = await createRepository({
+    "apps/web/config/runtime.json": '{"enabled":true}\n',
+    "packages/operator/src/index.ts": [
+      "export async function loadRuntime() {",
+      '  return import("../../../apps/web/config/runtime.json", {',
+      '    with: { type: "json" },',
+      "  });",
+      "}",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assertActionableFailure(
+    result,
+    "packages/operator/src/index.ts",
+    "packages-no-app-imports",
+  );
+});
+
 test("packages cannot import application implementation through its workspace name", async () => {
   const root = await createRepository({
     "apps/web/package.json": '{"name":"@openfriend/web"}\n',
