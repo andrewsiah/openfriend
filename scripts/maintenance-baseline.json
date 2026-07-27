@@ -24,7 +24,7 @@
     "scripts/check-architecture.mjs": 496,
     "scripts/check-architecture.test.mjs": 340,
     "scripts/github-config.test.mjs": 352,
-    "scripts/maintenance-report.mjs": 740,
-    "scripts/maintenance-report.test.mjs": 399
+    "scripts/maintenance-report.mjs": 745,
+    "scripts/maintenance-report.test.mjs": 482
   }
 }

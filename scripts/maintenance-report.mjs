@@ -79,7 +79,7 @@ async function listRepositoryFiles(root) {
 function findTaskMarkers(relativePath, source) {
   const findings = [];
   const markerPattern = new RegExp(
-    `(?:\\/\\/|#|\\/\\*+|<!--)\\s*(${"TO" + "DO"}|${"FIX" + "ME"})\\b`,
+    `(?:\\/\\/|#|\\/\\*+|<!--|^\\s*\\*)\\s*(${"TO" + "DO"}|${"FIX" + "ME"})\\b`,
     "g",
   );
 
@@ -97,8 +97,8 @@ function findTaskMarkers(relativePath, source) {
 
 function isTestFile(relativePath) {
   return (
-    /(?:^|\/)(?:__tests__|tests?)(?:\/|$)/.test(relativePath) ||
-    /\.(?:spec|test)\.[^.]+$/.test(relativePath)
+    /(?:^|\/)(?:__tests__|tests?)(?:\/|$)/i.test(relativePath) ||
+    /\.(?:spec|test)\.[^.]+$/i.test(relativePath)
   );
 }
 
@@ -109,15 +109,13 @@ function findTestControlMarkers(relativePath, source) {
 
   const findings = [];
   const controlPattern =
-    /\b(test|it|describe|suite)\.(skip|only)\s*\(|\b(fdescribe|fit|xdescribe|xit|xtest)\s*\(|\b(XCTSkip(?:If|Unless)?)\s*\(/g;
+    /\b((?:test|it|describe|suite)(?:\.(?:concurrent|describe))?\.(?:skip|only|fixme|todo))\s*\(|\b(fdescribe|fit|xdescribe|xit|xtest)\s*\(|\b(XCTSkip(?:If|Unless)?)\s*\(/g;
 
   source.split(/\r?\n/).forEach((line, index) => {
     for (const match of line.matchAll(controlPattern)) {
-      const marker = match[1]
-        ? `${match[1]}.${match[2]}`
-        : (match[3] ?? match[4]);
+      const marker = match[1] ?? match[2] ?? match[3];
       const kind =
-        match[2] === "only" || /^(?:fdescribe|fit)$/.test(marker)
+        marker.endsWith(".only") || /^(?:fdescribe|fit)$/.test(marker)
           ? "focused test"
           : "skipped test";
 
@@ -290,6 +288,9 @@ async function loadMaintenanceBaseline(root, repositoryFileSet) {
     const findings = [];
 
     try {
+      if (typeof baseline.generatedOn !== "string") {
+        throw new Error("missing generatedOn");
+      }
       parseExplicitDate(baseline.generatedOn);
     } catch {
       findings.push({
@@ -412,6 +413,10 @@ function findRapidGrowth(baseline, currentLineCounts) {
 
   for (const [relativePath, baselineCount] of baselineEntries) {
     if (!Number.isInteger(baselineCount) || baselineCount < 1) {
+      findings.push({
+        issue: `invalid baseline line count for ${relativePath}: ${String(baselineCount)}`,
+        path: MAINTENANCE_BASELINE,
+      });
       continue;
     }
 

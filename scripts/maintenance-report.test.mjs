@@ -60,6 +60,23 @@ test("does not treat prose about TODO and FIXME markers as work markers", async 
   assert.doesNotMatch(report, /`src\/message\.ts:1`/);
 });
 
+test("reports TODO markers on decorated block-comment lines", async (t) => {
+  const root = await createRepository({
+    "src/block.ts": [
+      "/*",
+      ` * ${"TO" + "DO"}: remove the compatibility path`,
+      " */",
+      "",
+    ].join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(report, /`src\/block\.ts:2` — TODO/);
+  assert.match(report, /TODO\/FIXME markers \| 1/);
+});
+
 test("reports skipped and focused test markers", async (t) => {
   const skipped = `test.${"skip"}("later", () => {});\n`;
   const focused = `describe.${"only"}("focused", () => {});\n`;
@@ -80,6 +97,41 @@ test("reports skipped and focused test markers", async (t) => {
     /`tests\/session\.test\.ts:2` — focused test \(describe\.only\)/,
   );
   assert.match(report, /Skipped\/focused tests \| 2/);
+});
+
+test("reports framework test controls in case-insensitive test directories", async (t) => {
+  const swiftSkip = `throw ${"XCT" + "Skip"}("hardware only")\n`;
+  const root = await createRepository({
+    "apps/watch/OpenFriendWatch/Tests/WatchConnectionStateTests.swift":
+      swiftSkip,
+    "tests/browser.test.ts": [
+      `test.${"fixme"}("blocked", () => {});`,
+      `test.${"todo"}("later");`,
+      `test.concurrent.${"only"}("focused", () => {});`,
+      "",
+    ].join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(
+    report,
+    /WatchConnectionStateTests\.swift:1` — skipped test \(XCTSkip\)/,
+  );
+  assert.match(
+    report,
+    /browser\.test\.ts:1` — skipped test \(test\.fixme\)/,
+  );
+  assert.match(
+    report,
+    /browser\.test\.ts:2` — skipped test \(test\.todo\)/,
+  );
+  assert.match(
+    report,
+    /browser\.test\.ts:3` — focused test \(test\.concurrent\.only\)/,
+  );
+  assert.match(report, /Skipped\/focused tests \| 4/);
 });
 
 test("warns above documented production and test file line thresholds", async (t) => {
@@ -300,6 +352,37 @@ test("reports substantial tracked source or test files missing from the baseline
     /`src\/substantial\.ts` — missing baseline line count for 200-line substantial file/,
   );
   assert.doesNotMatch(report, /src\/small\.ts.*baseline/);
+});
+
+test("reports malformed baseline metadata and line counts", async (t) => {
+  const root = await createRepository({
+    "scripts/maintenance-baseline.json": JSON.stringify({
+      coreDocs: {},
+      lineCounts: {
+        "tests/a.test.ts": "400",
+        "tests/b.test.ts": 0,
+      },
+    }),
+    "tests/a.test.ts": Array.from({ length: 501 }, () => "line").join("\n"),
+    "tests/b.test.ts": Array.from({ length: 200 }, () => "line").join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(
+    report,
+    /baseline generatedOn must be a valid YYYY-MM-DD date/,
+  );
+  assert.match(
+    report,
+    /invalid baseline line count for tests\/a\.test\.ts: 400/,
+  );
+  assert.match(
+    report,
+    /invalid baseline line count for tests\/b\.test\.ts: 0/,
+  );
+  assert.match(report, /Rapid growth \| 2/);
 });
 
 test("reports missing or unsupported dependency-health foundations", async (t) => {
