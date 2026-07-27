@@ -30,8 +30,10 @@ Do not convert a pending row to passing from code inspection alone when the
 target names a build, deployment, account, browser, conversation, or physical
 device.
 
-Phase 1 adds conversation naturalness, interruption, latency, and cost. Phase 2
-adds the physical Watch network matrix from [TESTING.md](TESTING.md).
+Phase 1 adds conversation naturalness, interruption, latency, cost, and
+responsive phone-browser evidence. Phase 2 adds canonical-Friend identity and
+permissioned-memory evidence. Phase 3 adds the physical Watch network matrix
+from [TESTING.md](TESTING.md).
 
 ## 2026-07-26 deployed foundation evidence
 
@@ -51,6 +53,11 @@ Verified in a real browser:
 - Watch Field Test remains visible at the narrow breakpoint;
 - no horizontal overflow occurs at 390 px or the 320 px supported minimum;
 - no application-sourced console warning or error was recorded.
+
+The roadmap labels in this historical Phase 0 shell predate the accepted
+[voice-first product focus](plans/2026-07-26-voice-first-product-focus-design.md).
+They remain valid evidence of the deployed foundation, not the current phase
+sequence.
 
 The first remote build correctly failed because an app-only upload omitted the
 monorepo workspace package. Vercel's project root was set to `apps/web`, the

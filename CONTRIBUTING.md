@@ -7,9 +7,10 @@ trust are welcome.
 ## Before coding
 
 1. Read [AGENTS.md](AGENTS.md) and [docs/README.md](docs/README.md).
-2. Choose or propose a concrete story in
+2. Choose or propose a concrete story ID in
    [docs/USER_STORIES.md](docs/USER_STORIES.md).
-3. Agree on observable acceptance criteria before a broad implementation.
+3. Confirm the story is Accepted and agree on observable acceptance criteria
+   before implementation.
 4. Write a checked-in plan for multi-step work.
 
 Please open an issue before a large connector, provider, platform, or
@@ -38,7 +39,7 @@ decision changes.
 
 Include:
 
-- the user story;
+- the stable user story ID;
 - acceptance criteria;
 - red/green and final verification evidence;
 - screenshots or recordings when interface behavior changes;

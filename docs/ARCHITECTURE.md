@@ -2,45 +2,71 @@
 
 ## System shape
 
-OpenFriend separates the latency-sensitive conversation from slower or
-consequential work.
+OpenFriend separates the latency-sensitive conversation and durable
+relationship from slower or consequential work.
 
 ```mermaid
 flowchart TD
-    Clients["Web and independent Watch clients"] --> API["OpenFriend service"]
-    API --> Live["Live companion"]
+    Clients["Responsive web and independent Watch"] --> API["OpenFriend service"]
+    API --> Friend["Canonical Friend"]
+    Friend <--> Memory["Permissioned relationship memory"]
+    Friend --> Live["Live conversation"]
     Live -->|"short answer"| Clients
-    Live -->|"structured delegation"| Operator["Background operator"]
-    Operator --> Store["Durable state"]
-    Operator --> Inbox["Visual action inbox"]
-    Inbox -->|"approved request"| Executor["Connector executor"]
-    Executor -->|"confirmed result"| Store
-    Store --> Live
+    Friend -->|"bounded task and context"| Gateway["Delegation gateway"]
+    Gateway --> Operator["User-selected operator"]
+    Operator -->|"proposal or status"| Inbox["Visual action inbox"]
+    Inbox -->|"approved request"| Operator
+    Operator -->|"confirmed result"| Friend
 ```
+
+### Canonical Friend
+
+Owns the durable identity of the relationship, the conversational style,
+permissioned memory, continuity across surfaces, and the decision to answer,
+remember, or delegate. OpenFriend begins with one canonical Friend. A live-model
+profile is replaceable configuration and must not become the Friend's identity.
 
 ### Live companion
 
 Owns audio transport, full-duplex timing, interruptions, listening, speaking,
-short conversational responses, and the decision to delegate. It must remain
-responsive while delegated work is pending.
+and short conversational responses. It must remain responsive while delegated
+work is pending.
 
 Phase 1 uses the OpenAI Realtime API through the official Agents SDK in the
-browser. The boundary may later host GPT-Live or another live provider, but
-Phase 0 defines only the two model profiles needed now.
+responsive web app. The boundary may later host GPT-Live or another live
+provider, but the application defines only profiles required by accepted
+stories.
 
-### Background operator
+### Delegation gateway and operator
 
-Owns deeper reasoning, persistent jobs, integrations, and action execution. It
-accepts structured work, emits durable status, and returns a result to the live
-companion or dashboard. A Pi-backed implementation is a later bounded
-evaluation, not a Phase 0 dependency.
+OpenFriend owns a small gateway that sends bounded work to a user-selected
+operator, receives durable status, mediates approvals, and returns confirmed
+results to the Friend. The external operator owns deeper reasoning, its runtime
+and sandbox, tools, connectors, and action execution.
+
+The first operator story supports one adapter. It does not create a universal
+agent framework. Candidate operator surfaces include supported programmatic
+interfaces from Codex, Claude Code, Hermes, or an agent-to-agent protocol. An
+OpenFriend-provided default may be evaluated for users without an operator, but
+is not required by the first bring-your-own-agent story.
+
+Delegated context follows least disclosure. Friend memory is not wholesale
+operator context; a task receives only the user-approved information needed for
+that task.
+
+### Specialist friends
+
+Specialist friends are later identities with separate memory by default. Shared
+user context and shared-room memories are explicit scopes. A shared friend
+blueprint can eventually contain public identity and behavior, but never
+inherits its creator's private history, credentials, or operator connections.
 
 ## Repository shape
 
 ```text
 apps/
-  web/                  Next.js voice lab and dashboard
-  watch/                Independent SwiftUI readiness shell; voice in Phase 2
+  web/                  Responsive Next.js voice app and visual review
+  watch/                Independent SwiftUI readiness shell; voice in Phase 3
 packages/
   contracts/            Framework-independent TypeScript contracts
 docs/                   Versioned knowledge system and plans
@@ -77,10 +103,12 @@ Supabase will provide Postgres, Auth, and Storage when a story first needs
 durable data. Even for the personal-first product, durable rows carry explicit
 user ownership.
 
-Expected early domains are conversations, transcript items, journal entries,
-memory candidates, accepted memories, tasks, delegated jobs, proposed actions,
-approval decisions, execution attempts, and session evaluation metrics. These
-are a direction, not permission to create Phase 0 tables.
+Expected early domains are friends, conversations, transcript items, journal
+entries, memory candidates, accepted memories, memory provenance, delegated
+jobs, proposed actions, approval decisions, execution attempts, and session
+evaluation metrics. Memory scopes distinguish user-owned shared context,
+friend-private context, and later room-specific context. These are a direction,
+not permission to create tables without an accepted story.
 
 ## Action lifecycle
 

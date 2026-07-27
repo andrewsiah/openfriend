@@ -1,6 +1,6 @@
 # OpenFriend
 
-**A full-duplex personal companion for Apple Watch and the web.**
+**A voice-first personal companion for responsive web and Apple Watch.**
 
 OpenFriend is an open-source attempt to make the experience of Samantha from
 _Her_ practical: a conversational presence that can listen and speak naturally,
@@ -13,27 +13,27 @@ experience is a continuous, interruptible conversation. A live companion owns
 the timing of listening and speaking while a separate background operator can
 handle deeper work without freezing the conversation.
 
-## Why Watch and web?
+## Why responsive web and Watch?
 
-The Apple Watch is the priority surface. The defining experience is leaving the
-phone behind and still being able to talk with an intelligent, useful
-companion. The web comes first as the fastest place to test conversational
-quality and as the visual dashboard for information that voice handles poorly:
-reviewing several tasks, comparing a calendar, editing structured data, or
-approving consequential actions.
+The responsive web app is the primary early surface. It makes the same
+voice-first Friend usable from phone and desktop browsers and provides visual
+controls for memory, review, privacy, and diagnostics. The Apple Watch is the
+strongest phone-free field demonstration: leaving the phone behind and still
+being able to talk with the same intelligent, continuous companion.
 
 The delivery sequence is deliberately narrow:
 
 1. **Foundation** — public repo, tests, docs, deployable shell.
-2. **Web Voice Lab** — the smallest fluid Realtime conversation.
-3. **Watch Field Test** — an independent watchOS vertical slice, tested over
-   Wi-Fi and cellular without the phone.
-4. **The Friend** — identity, journaling, and permissioned memory.
-5. **The Operator** — delegation, visual review, approvals, and execution.
-6. **Connectors** — calendar first; other integrations only when a user story
-   earns them.
-7. **GPT-Live** — adopt the API when available and expand provider choice based
-   on real demand.
+2. **Interaction Lab** — fluid voice on responsive phone and desktop web.
+3. **The Canonical Friend** — stable identity, continuity, and permissioned
+   memory.
+4. **Watch Field Test** — the same Friend on an independent physical Watch
+   without the phone.
+5. **Bring Your Own Agent** — bounded delegation to an operator the user
+   already trusts.
+6. **Specialist Friends** — optional roles with explicit memory boundaries.
+7. **Sharing and Network** — safe public blueprints only after the core
+   relationship proves valuable.
 
 See [the product guide](docs/PRODUCT.md) for the accepted scope.
 
@@ -47,7 +47,7 @@ actions.
 An unsigned, Watch-only SwiftUI simulator skeleton is also available under
 `apps/watch`. It proves the independent target and truthful idle state build on
 the current watchOS simulator; it has no audio, networking, authentication,
-signing, or physical-device behavior and does not claim Phase 2.
+signing, or physical-device behavior and does not claim Phase 3.
 
 The initial voice profiles are configuration rather than separate code paths:
 
@@ -64,10 +64,11 @@ conversation to delegate hard work to a stronger agent.
 
 ```mermaid
 flowchart LR
-    Watch["Apple Watch\nindependent SwiftUI app"] --> Service["OpenFriend service"]
-    Web["Web voice lab\nand visual dashboard"] --> Service
-    Service --> Live["Live companion\nfull-duplex conversation"]
-    Live --> Operator["Background operator\ndeep work and tools"]
+    Watch["Apple Watch\nphone-free field surface"] --> Service["OpenFriend service"]
+    Web["Responsive web\nphone and desktop"] --> Service
+    Service --> Friend["Canonical Friend\nidentity and memory"]
+    Friend --> Live["Live companion\nfull-duplex conversation"]
+    Friend --> Operator["User-selected operator\ndeep work and tools"]
     Operator --> Review["Visual review\napprove, edit, reject"]
     Review --> Actions["Confirmed external actions"]
 ```
@@ -79,7 +80,9 @@ are preferred over custom platform work.
 
 Read [the architecture guide](docs/ARCHITECTURE.md) for boundaries and
 [the foundation design](docs/plans/2026-07-26-openfriend-foundation-design.md)
-for the rationale.
+for the initial rationale, and
+[the voice-first product focus](docs/plans/2026-07-26-voice-first-product-focus-design.md)
+for the current product boundary and story sequence.
 
 ## Local development
 

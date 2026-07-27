@@ -52,7 +52,7 @@ xcodebuild build \
 
 ## Explicit product gate
 
-This skeleton is Phase 0 development readiness, not the Phase 2 Watch
+This skeleton is Phase 0 development readiness, not the Phase 3 Watch
 experience. Voice, networking, short-lived authentication, signing, physical
 device deployment, and field-test acceptance remain blocked until the browser
 Realtime session contract is stable and Andrew confirms a personal Apple

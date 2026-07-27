@@ -2,10 +2,12 @@
 
 ## Promise
 
-OpenFriend is a personal companion that remains conversational while helping
-with real life. It aims for the ease, attentiveness, initiative, and continuity
-associated with Samantha from _Her_, while making consent, uncertainty, and
-external actions visible.
+OpenFriend is a voice-first personal companion that remains conversational
+while helping with real life. One canonical Friend is available through a
+responsive web app on phone and desktop browsers and, later, an independent
+Apple Watch app. It aims for the ease, attentiveness, initiative, and continuity
+associated with Samantha from _Her_, while making consent, uncertainty, memory,
+and external actions visible.
 
 The first user is Andrew. Designing for one known person keeps early choices
 honest. Explicit ownership fields and service boundaries preserve a path to
@@ -22,6 +24,10 @@ record-then-submit audio does not satisfy this principle.
 GPT-Live is the product north star. Until its API is available, the web lab
 uses the current Realtime API behind the smallest replaceable live-session
 boundary.
+
+The live model is not the Friend's identity. A provider or profile may change
+without replacing the canonical relationship, its permissioned memories, or its
+history.
 
 ### Voice proposes; visual interfaces confirm
 
@@ -40,10 +46,16 @@ The intended loop is:
 
 ### HCI is the innovation
 
-OpenFriend is an application and distribution project. Prefer official SDKs,
-popular supported libraries, and managed services. Custom model infrastructure,
-databases, auth, deployment, and generic agent harnesses are out of scope unless
-measured experience demands them.
+OpenFriend is a relationship, interaction, and distribution project. Prefer
+official SDKs, popular supported libraries, managed services, and agents the
+user already trusts. Custom model infrastructure, databases, auth, deployment,
+generic agent harnesses, sandboxes, and connector catalogs are out of scope
+unless a measured experience requires them.
+
+OpenFriend owns the Friend, memory, voice interaction, delegation contract,
+approval experience, and truthful result reporting. A connected operator such
+as Codex, Claude Code, Hermes, or a later compatible agent owns its execution
+runtime, tools, and connectors.
 
 ### Trust is observable
 
@@ -53,51 +65,58 @@ review, and deletion.
 
 ## Surfaces
 
-### Web
+### Responsive web
 
-The web app is the voice-development lab and visual command center. It will
-eventually contain live sessions, profile selection, transcripts, tasks,
-journals, memory, pending actions, calendar views, integrations, privacy
-controls, and development diagnostics.
+The responsive web app is the primary early product surface. The same
+voice-first experience must be usable in supported phone and desktop browsers
+without requiring a native phone application. It is also the interaction lab
+and the visual surface for live sessions, transcripts, permissioned memory,
+pending actions, privacy controls, and development diagnostics.
 
 ### Apple Watch
 
-The Watch is the priority field surface. It is an independent SwiftUI app that
-connects over Wi-Fi or cellular without relying on a paired iPhone as its
-primary data path. Its first slice starts and ends a conversation, streams
-audio, plays responses, communicates connectivity, shows short results, and
-hands detailed review to the web.
+The Watch is the strongest phone-free field demonstration of the same canonical
+Friend. It is an independent SwiftUI app that connects over Wi-Fi or cellular
+without relying on a paired iPhone as its primary data path. Its first slice
+starts and ends a conversation, streams audio, plays responses, communicates
+connectivity, and uses the same owned identity and permissioned memory as the
+web.
 
 ### Later
 
-iPhone and Mac companions may follow after the web-to-Watch loop proves useful.
-They are not part of the first accepted experience.
+Native iPhone and Mac companions may follow after the responsive web and Watch
+loop proves useful. They are not part of the first accepted experience.
 
-## Initial life-admin scope
+## Initial relationship scope
 
 - continuous voice conversation;
+- one canonical Friend across supported surfaces;
 - persistent conversational identity and permissioned memory;
 - journaling;
-- OpenFriend-native tasks;
+- transparent recall, correction, and forgetting;
+- later delegation to a user-selected external agent;
 - a visual action inbox with explicit confirmation;
-- Google Calendar after the Watch experience is validated.
 
-Email, messaging, travel, and broad connector work are intentionally deferred.
+OpenFriend does not initially build email, messaging, travel, calendar, coding,
+or other broad connector implementations. Those capabilities normally belong
+to a connected operator. A native integration must be earned by an accepted
+interaction story.
 
 ## Delivery phases
 
-| Phase               | Outcome                                                      |
-| ------------------- | ------------------------------------------------------------ |
-| 0. Foundation       | Public repo, agent-first docs, tests, deployable web shell   |
-| 1. Web Voice Lab    | Repeatably fluid Realtime conversation and diagnostics       |
-| 2. Watch Field Test | Useful phone-free conversation on a physical Watch           |
-| 3. The Friend       | Identity, journaling, continuity, permissioned memory        |
-| 4. The Operator     | Delegation, task drafts, review, approval, execution         |
-| 5. Connectors       | Google Calendar first; others story by story                 |
-| 6. GPT-Live         | Adopt the API and evaluate additional live/operator profiles |
+| Phase                   | Outcome                                                          |
+| ----------------------- | ---------------------------------------------------------------- |
+| 0. Foundation           | Public repo, agent-first docs, tests, deployable web shell       |
+| 1. Interaction Lab      | Fluid voice on responsive phone and desktop web                  |
+| 2. The Canonical Friend | Stable identity, continuity, and permissioned memory on web      |
+| 3. Watch Field Test     | The same Friend in a phone-free physical-Watch conversation      |
+| 4. Bring Your Own Agent | Delegation to one supported operator with truthful status        |
+| 5. Specialist Friends   | Optional roles with explicit memory boundaries                   |
+| 6. Sharing and Network  | Portable public blueprints only after the core relationship wins |
 
-The Watch follows the first working browser voice loop; connectors do not block
-it.
+GPT-Live and other live-model upgrades are provider changes, not product phases.
+Each phase is a direction; implementation proceeds one accepted story from
+[USER_STORIES.md](USER_STORIES.md) at a time.
 
 ## Explicit non-goals
 
@@ -105,5 +124,12 @@ it.
 - emotional dependency as an engagement strategy;
 - hidden recording or ambient surveillance;
 - autonomous consequential action without clear permission;
+- building a universal agent runtime, sandbox, or connector marketplace;
+- supporting every agent or provider in the first operator story;
+- multiple equal-status friends before the canonical Friend works;
+- a friend discovery feed or autonomous agent social network before sustained
+  one-to-one value;
+- presenting a specialist as a licensed therapist without deliberately entering
+  the clinical product and safety domain;
 - a universal assistant platform before Andrew's core loop works;
 - cloning the story, characters, dialogue, or visual identity of _Her_.

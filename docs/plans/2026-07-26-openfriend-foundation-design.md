@@ -6,6 +6,12 @@
 
 **Audience:** Contributors and coding agents
 
+> **Current product focus:** The later product boundary and phase sequence were
+> refined in the
+> [voice-first product focus design](2026-07-26-voice-first-product-focus-design.md).
+> This document remains as provenance for Phase 0. Use the newer design and
+> [user-story registry](../USER_STORIES.md) for current product planning.
+
 ## Summary
 
 OpenFriend is a personal-first, open-source life assistant inspired by the ease,

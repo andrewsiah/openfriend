@@ -41,7 +41,9 @@ resources and must not touch company accounts.
 
 Use for microphone/session controls, profile switching, live state,
 interruptions, transcripts, review and approval, reconnection, keyboard access,
-responsive layout, browser errors, and request failures.
+responsive layout, browser errors, and request failures. Phase 1 evidence covers
+supported desktop and phone viewport sizes, keyboard and touch input, and the
+browser engines named by the accepted story.
 
 ## Voice and browser teardown
 
@@ -75,11 +77,12 @@ Evaluate product behavior, not just transcripts:
 - resistance to emotional overreliance and accidental disclosure.
 
 Keep repeatable prompts and scored observations in version control when Phase 1
-begins.
+begins. Conversation evaluations and deterministic tests should cite the stable
+story ID from [USER_STORIES.md](USER_STORIES.md).
 
 ### Physical Watch
 
-The simulator is useful but insufficient. Phase 2 requires Andrew's physical
+The simulator is useful but insufficient. Phase 3 requires Andrew's physical
 Watch across:
 
 | Condition           | Evidence                                              |
@@ -92,12 +95,26 @@ Watch across:
 | Brief network loss  | State is explicit and reconnect avoids duplicate work |
 
 The defining acceptance test is a useful continuous conversation during a walk
-without the phone.
+without the phone with the same canonical Friend used on the web.
 
 The Phase 0 simulator-readiness shell has its own unsigned test and build
 commands in [../apps/watch/README.md](../apps/watch/README.md). Passing them
 proves only that the independent target and idle-state contract compile; it does
 not satisfy any physical Watch or live-conversation acceptance criterion.
+
+## Story traceability
+
+Every implementation plan names one or more accepted story IDs. Focused tests,
+conversation evaluations, and manual evidence cite the same IDs so a reviewer
+can trace:
+
+```text
+story -> acceptance criterion -> test or scenario -> current evidence
+```
+
+A phase heading, feature name, or architecture direction is not enough to
+authorize implementation. When an acceptance criterion changes materially,
+update the story first and record the decision in the relevant plan.
 
 ## TDD evidence
 

@@ -10,6 +10,7 @@ scope, acceptance criteria, decisions, and evidence.
 ## Accepted design
 
 - [OpenFriend foundation design](plans/2026-07-26-openfriend-foundation-design.md)
+- [Voice-first product focus](plans/2026-07-26-voice-first-product-focus-design.md)
 
 ## Plan lifecycle
 

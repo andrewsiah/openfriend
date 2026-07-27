@@ -50,7 +50,9 @@ and spend changes require explicit human intent.
 
 Phase 0 protects repository and account boundaries. Phase 1 adds ephemeral
 Realtime-session protection and browser permission handling. Phase 2 adds
+permissioned relationship-memory isolation and deletion behavior. Phase 3 adds
 short-lived Watch authentication, device loss behavior, and transport review.
-Memory and connectors require their own threat model before implementation.
+External operator delegation and later multi-friend memory sharing require
+their own threat models before implementation.
 
 Public vulnerability reporting lives in [../SECURITY.md](../SECURITY.md).
