@@ -221,7 +221,7 @@ On 2026-07-26:
   usage, median latency, sanitized SDK usage, exact listener removal, the fixed
   guide, required rating, saved summary, explicit other-profile preparation,
   and reset during a live second session;
-- the complete `pnpm verify` gate passes with 68 web tests, 6 contract tests,
+- the complete `pnpm verify` gate passes with 70 web tests, 6 contract tests,
   typecheck, lint, formatting, docs validation, and the production build;
 - real-browser checks against the
   [Vercel branch preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app)
@@ -229,11 +229,29 @@ On 2026-07-26:
   profile controls visible, and produce no application-sourced console warning
   or error;
 - the complete public branch diff has zero credential-shaped matches;
-- Claude Fable/high returned a structured `APPROVED` final verdict with no
-  actionable P0/P1 runtime or regression-test finding;
+- Claude Fable/high returned a structured `APPROVED` verdict on the original
+  comparison runtime and regression tests with no actionable P0/P1 finding;
 - a physical-microphone attempt established permission and an Economy
   connection, but was stopped immediately when unrelated room speech reached
   the microphone; the session was ended and the mounted transcript state was
   reset without treating the attempt as comparative evidence;
-- the quiet-room paired-microphone run and its deployed two-session acceptance
-  remain pending.
+- a later physical-microphone run reproduced multiple false finalized turns
+  from one requested utterance; test-first adapter changes now request mono
+  browser speech processing, near-field Realtime input noise reduction, and
+  low-eagerness semantic turn detection;
+- the audio fix is published as commit `d362d55`; its focused tests, complete
+  local gate, GitHub CI, and personal-scope Vercel deployment pass, and the
+  complete public diff has zero credential-shaped matches;
+- two local quiet-room gates remained live without creating a false user or
+  assistant turn, but no human speech reached the microphone during the latest
+  bounded cue window, so the session was closed and reset without counting it
+  as spoken-turn evidence;
+- the Vercel deployment is `READY` under the personal `andrewsiah-stripe`
+  project, while its branch URL currently requires Vercel authentication in the
+  physical-microphone Chrome profile; protection settings were not weakened and
+  no automation-bypass credential was created;
+- Andrew explicitly deferred the new Fable/high review after the Claude CLI
+  reached its Fable usage limit;
+- a complete spoken turn, the quiet-room paired-microphone run, deployed
+  two-session browser acceptance, and the deferred audio-fix review remain
+  pending.
