@@ -102,8 +102,8 @@ Add a dated checklist to this plan containing only non-sensitive facts:
       Apple account and team for OpenFriend.
 - [x] Watch App ID/capability changes authorized — Andrew authorizes Watch App
       ID and capability work.
-- [ ] Physical cellular Watch identified — the exact Watch model, watchOS
-      version, and active cellular-plan status remain unconfirmed.
+- [x] Physical cellular Watch identified — Apple Watch Series 11 GPS + Cellular,
+      watchOS 26.5, and an active cellular plan; confirmed 2026-07-27.
 - [x] Personal Vercel/OpenAI development scopes confirmed — both are Andrew's
       personal accounts.
 - [x] Authenticated-route rate limit accepted — exact-path WAF keyed by source
