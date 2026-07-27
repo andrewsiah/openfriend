@@ -245,12 +245,12 @@ git commit -m "feat: verify watch identity tokens"
 
 **Step 1: Preserve the browser route with characterization tests**
 
-Add assertions to the existing route test for:
+Add or confirm assertions for the existing green behavior:
 
 - the exact Economy/Quality model match;
 - the 600-second expiry request;
 - the three-field response;
-- sanitized failure and no-store behavior.
+- sanitized failures.
 
 Run:
 
@@ -259,6 +259,15 @@ pnpm --filter @openfriend/web test -- app/api/realtime/client-secret/route.test.
 ```
 
 Expected: PASS before refactoring.
+
+Then add one focused hardening test proving representative success, invalid
+request, missing server configuration, and upstream-failure responses all set
+`Cache-Control: no-store`.
+
+Run the same focused command and confirm RED because the Phase 1 route does not
+yet set the header. Add the smallest shared JSON response helper inside the
+browser route, route every JSON response through it, and rerun the focused
+suite to GREEN before extracting the provider helper.
 
 **Step 2: Write a failing test for a server-only mint helper**
 

@@ -8,6 +8,71 @@ describe("POST /api/realtime/client-secret", () => {
     vi.unstubAllGlobals();
   });
 
+  it("marks every response category as no-store", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-server-credential");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          value: "synthetic-client-secret",
+          expires_at: 1_800_000_000,
+          session: {
+            model: "gpt-realtime-2.1-mini",
+          },
+        }),
+      ),
+    );
+    const success = await POST(
+      new Request("http://localhost/api/realtime/client-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: "economy" }),
+      }),
+    );
+    const invalidRequest = await POST(
+      new Request("http://localhost/api/realtime/client-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }),
+    );
+
+    vi.stubEnv("OPENAI_API_KEY", "");
+    const missingConfiguration = await POST(
+      new Request("http://localhost/api/realtime/client-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: "economy" }),
+      }),
+    );
+
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-server-credential");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response("synthetic upstream failure", { status: 503 }),
+        ),
+    );
+    const upstreamFailure = await POST(
+      new Request("http://localhost/api/realtime/client-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: "economy" }),
+      }),
+    );
+
+    for (const response of [
+      success,
+      invalidRequest,
+      missingConfiguration,
+      upstreamFailure,
+    ]) {
+      expect(response.headers.get("Cache-Control")).toBe("no-store");
+    }
+  });
+
   it("mints an Economy client secret with the server credential", async () => {
     vi.stubEnv("OPENAI_API_KEY", "test-server-key");
     const fetchMock = vi.fn().mockResolvedValue(
@@ -63,6 +128,47 @@ describe("POST /api/realtime/client-secret", () => {
         type: "realtime",
         model: "gpt-realtime-2.1-mini",
         instructions: expect.any(String),
+      },
+    });
+  });
+
+  it("mints a Quality client secret with the exact profile model", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "synthetic-server-credential");
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        value: "synthetic-client-secret",
+        expires_at: 1_800_000_000,
+        session: {
+          model: "gpt-realtime-2.1",
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("http://localhost/api/realtime/client-secret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: "quality" }),
+      }),
+    );
+
+    expect(await response.json()).toEqual({
+      clientSecret: "synthetic-client-secret",
+      expiresAt: 1_800_000_000,
+      model: "gpt-realtime-2.1",
+    });
+    expect(
+      JSON.parse(
+        String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body),
+      ),
+    ).toMatchObject({
+      expires_after: {
+        anchor: "created_at",
+        seconds: 600,
+      },
+      session: {
+        model: "gpt-realtime-2.1",
       },
     });
   });

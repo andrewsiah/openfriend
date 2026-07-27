@@ -90,6 +90,21 @@ stripe projects variables set openai --env-key OPENAI_API_KEY
 
 Do not put the value on the command line, in `.env.example`, or in Git.
 
+### Watch authentication
+
+The authenticated Watch credential route reads these server-only names:
+
+- `OPENFRIEND_WATCH_APPLE_AUDIENCE`
+- `OPENFRIEND_WATCH_ALLOWED_APPLE_SUBJECT`
+- `OPENFRIEND_WATCH_SAFETY_HMAC_KEY`
+- `OPENAI_API_KEY`
+
+Store populated values only in approved personal secret stores. The Apple
+subject and keyed-hash material must never appear in Git, documentation, logs,
+client bundles, or Watch storage. The local route implementation and tests do
+not authorize deployment, public route exposure, WAF changes, preview
+protection changes, or live Apple/OpenAI calls.
+
 ## Deployment
 
 Stripe Projects created the personal Vercel project. Its project root is
