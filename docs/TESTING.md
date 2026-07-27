@@ -47,6 +47,14 @@ For Phase 1, interpret `Voice response start` as the client-observed interval
 from server-detected speech stop to the first output-audio buffer. It excludes
 the VAD silence window and is not derived from transcript-finalization timing.
 
+The production browser capture path requests a mono microphone track with echo
+cancellation, noise suppression, and automatic gain control. The Realtime
+session also uses near-field input noise reduction and low-eagerness semantic
+turn detection. Before running the paired guide on a physical microphone, keep
+the room quiet for at least five seconds after the session becomes live: no
+user or assistant turn should appear. This silence gate catches false turn
+starts but does not replace a complete spoken-turn check.
+
 When macOS hardware capture is unavailable, the local-only synthetic Realtime
 harness can verify the remaining browser transport without adding a production
 route:

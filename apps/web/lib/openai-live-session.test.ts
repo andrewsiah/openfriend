@@ -1,6 +1,38 @@
 import type { RealtimeItem } from "@openai/agents/realtime";
 import type { Usage } from "@openai/agents";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const sdkConstructors = vi.hoisted(() => ({
+  agent: vi.fn(),
+  sessionInstance: {} as Record<string, unknown>,
+  session: vi.fn(),
+  webRtc: vi.fn(),
+}));
+
+vi.mock("@openai/agents/realtime", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@openai/agents/realtime")>();
+
+  return {
+    ...actual,
+    OpenAIRealtimeWebRTC: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.webRtc(...args);
+      }
+    },
+    RealtimeAgent: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.agent(...args);
+      }
+    },
+    RealtimeSession: class {
+      constructor(...args: unknown[]) {
+        sdkConstructors.session(...args);
+        Object.assign(this, sdkConstructors.sessionInstance);
+      }
+    },
+  };
+});
 
 import {
   OpenAILiveSession,
@@ -237,6 +269,108 @@ function createLiveSession(
 }
 
 describe("OpenAILiveSession", () => {
+  beforeEach(() => {
+    sdkConstructors.agent.mockReset();
+    sdkConstructors.sessionInstance = {};
+    sdkConstructors.session.mockReset();
+    sdkConstructors.webRtc.mockReset();
+  });
+
+  it("uses near-field noise reduction and conservative semantic turn detection", () => {
+    const { sdkSession } = createSdkSessionHarness();
+    sdkConstructors.sessionInstance = sdkSession as unknown as Record<
+      string,
+      unknown
+    >;
+
+    new OpenAILiveSession({
+      agent: {
+        name: "OpenFriend",
+        instructions: "Be a thoughtful conversational companion.",
+      },
+      model: "gpt-realtime-2.1-mini",
+      callbacks: {
+        onConnectionChange: vi.fn(),
+        onHistoryChange: vi.fn(),
+        onResponseStart: vi.fn(),
+        onUsageUpdate: vi.fn(),
+        onUserSpeechStopped: vi.fn(),
+      },
+    });
+
+    expect(sdkConstructors.session).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        config: {
+          audio: {
+            input: {
+              noiseReduction: { type: "near_field" },
+              turnDetection: {
+                createResponse: true,
+                eagerness: "low",
+                interruptResponse: true,
+                type: "semantic_vad",
+              },
+            },
+          },
+        },
+        transport: expect.anything(),
+      }),
+    );
+  });
+
+  it("enables browser speech processing before creating the WebRTC offer", async () => {
+    const { sdkSession } = createSdkSessionHarness();
+    sdkConstructors.sessionInstance = sdkSession as unknown as Record<
+      string,
+      unknown
+    >;
+
+    new OpenAILiveSession({
+      agent: {
+        name: "OpenFriend",
+        instructions: "Be a thoughtful conversational companion.",
+      },
+      model: "gpt-realtime-2.1-mini",
+      callbacks: {
+        onConnectionChange: vi.fn(),
+        onHistoryChange: vi.fn(),
+        onResponseStart: vi.fn(),
+        onUsageUpdate: vi.fn(),
+        onUserSpeechStopped: vi.fn(),
+      },
+    });
+
+    const options = sdkConstructors.webRtc.mock.calls[0]?.[0] as
+      | {
+          changePeerConnection?: (
+            peerConnection: RTCPeerConnection,
+          ) => Promise<RTCPeerConnection>;
+        }
+      | undefined;
+    const applyConstraints = vi.fn().mockResolvedValue(undefined);
+    const peerConnection = {
+      getSenders: () => [
+        {
+          track: {
+            applyConstraints,
+            kind: "audio",
+          },
+        },
+      ],
+    } as unknown as RTCPeerConnection;
+
+    await expect(options?.changePeerConnection?.(peerConnection)).resolves.toBe(
+      peerConnection,
+    );
+    expect(applyConstraints).toHaveBeenCalledWith({
+      autoGainControl: true,
+      channelCount: 1,
+      echoCancellation: true,
+      noiseSuppression: true,
+    });
+  });
+
   it("connects the SDK session with the ephemeral client secret", async () => {
     const { sdkSession } = createSdkSessionHarness();
     const { createSdkSession, liveSession } = createLiveSession(sdkSession);

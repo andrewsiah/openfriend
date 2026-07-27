@@ -1,4 +1,5 @@
 import {
+  OpenAIRealtimeWebRTC,
   RealtimeAgent,
   RealtimeSession,
   type RealtimeItem,
@@ -23,6 +24,13 @@ type ConnectionListener = (status: LiveConnectionStatus) => void;
 type ResponseStartListener = () => void;
 type UsageListener = (usage: Usage) => void;
 type UserSpeechStoppedListener = () => void;
+
+const LIVE_AUDIO_CAPTURE_CONSTRAINTS = {
+  autoGainControl: true,
+  channelCount: 1,
+  echoCancellation: true,
+  noiseSuppression: true,
+} as const satisfies MediaTrackConstraints;
 
 export interface OpenAISdkSession {
   connect(options: { apiKey: string }): Promise<void>;
@@ -101,7 +109,38 @@ function createOpenAISdkSession(
   model: string,
 ): OpenAISdkSession {
   const agent = new RealtimeAgent(agentConfig);
-  return new RealtimeSession(agent, { model });
+  const transport = new OpenAIRealtimeWebRTC({
+    async changePeerConnection(peerConnection) {
+      const audioTrack = peerConnection
+        .getSenders()
+        .find((sender) => sender.track?.kind === "audio")?.track;
+
+      if (!audioTrack) {
+        throw new Error("Realtime microphone track is unavailable");
+      }
+
+      await audioTrack.applyConstraints(LIVE_AUDIO_CAPTURE_CONSTRAINTS);
+      return peerConnection;
+    },
+  });
+
+  return new RealtimeSession(agent, {
+    config: {
+      audio: {
+        input: {
+          noiseReduction: { type: "near_field" },
+          turnDetection: {
+            createResponse: true,
+            eagerness: "low",
+            interruptResponse: true,
+            type: "semantic_vad",
+          },
+        },
+      },
+    },
+    model,
+    transport,
+  });
 }
 
 function count(value: unknown): number {
