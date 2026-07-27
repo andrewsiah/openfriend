@@ -27,10 +27,13 @@ describe("OpenFriend foundation page", () => {
     );
   });
 
-  it("truthfully marks voice as not connected", () => {
+  it("renders the idle browser voice lab instead of a disabled Phase 0 control", () => {
     render(<HomePage />);
 
-    expect(screen.getByText(/Foundation ready/i)).toBeInTheDocument();
-    expect(screen.getByText(/Voice not connected/i)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/idle/i);
+    expect(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    ).toBeEnabled();
+    expect(screen.queryByText(/arrives in phase 1/i)).not.toBeInTheDocument();
   });
 });

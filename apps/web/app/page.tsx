@@ -1,6 +1,6 @@
 import { listLiveModelProfiles } from "@openfriend/contracts";
 
-import { LiveProfileSelector } from "../components/live-profile-selector";
+import { LiveConversationLab } from "../components/live-conversation-lab";
 
 const deliveryPhases = [
   {
@@ -72,19 +72,23 @@ export default function HomePage() {
           <div className="presenceStatus">
             <span className="statusDot" aria-hidden="true" />
             <p>
-              <strong>Foundation ready</strong>
-              <span>Voice not connected</span>
+              <strong>Voice lab ready</strong>
+              <span>Session starts only when you ask</span>
             </p>
           </div>
 
-          <button className="voiceButton" type="button" disabled>
-            <span>Begin a voice test</span>
-            <small>Arrives in Phase 1</small>
-          </button>
+          <a className="voiceButton voiceButtonLink" href="#voice-lab">
+            <span>Open the voice lab</span>
+            <small>Microphone stays off until Start</small>
+          </a>
         </aside>
       </section>
 
-      <section className="profileSection" aria-labelledby="profile-heading">
+      <section
+        className="profileSection"
+        id="voice-lab"
+        aria-labelledby="profile-heading"
+      >
         <div className="sectionIntro">
           <p className="eyebrow">The live voice layer</p>
           <h2 id="profile-heading">
@@ -97,7 +101,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <LiveProfileSelector profiles={profiles} />
+        <LiveConversationLab profiles={profiles} />
       </section>
 
       <section
@@ -127,7 +131,7 @@ export default function HomePage() {
       </section>
 
       <footer>
-        <p>OpenFriend · Phase 0</p>
+        <p>OpenFriend · Phase 1</p>
         <p>Conversation first. Actions only when confirmed.</p>
       </footer>
     </main>

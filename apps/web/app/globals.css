@@ -323,14 +323,30 @@ footer {
   width: 100%;
   min-height: 70px;
   padding: 14px 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  color: var(--ink-muted);
+  border: 1px solid var(--line-strong);
+  background: rgba(95, 67, 35, 0.28);
+  color: var(--ink);
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  cursor: not-allowed;
+  cursor: pointer;
   text-align: left;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.voiceButton:hover:not(:disabled) {
+  border-color: rgba(255, 211, 155, 0.72);
+  background: rgba(121, 81, 40, 0.36);
+}
+
+.voiceButton:disabled {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--ink-faint);
+  cursor: not-allowed;
 }
 
 .voiceButton span {
@@ -343,6 +359,11 @@ footer {
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.voiceButtonLink {
+  color: var(--ink);
+  text-decoration: none;
 }
 
 .profileSection,
@@ -409,6 +430,15 @@ footer {
 .profileOption:hover .profileCard {
   border-color: rgba(239, 173, 91, 0.28);
   transform: translateY(-2px);
+}
+
+.profileOption:hover input:disabled + .profileCard {
+  border-color: var(--line);
+  transform: none;
+}
+
+.profileOption input:disabled + .profileCard {
+  opacity: 0.52;
 }
 
 .profileOption input:checked + .profileCard {
@@ -492,7 +522,163 @@ footer {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.72rem;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
   text-transform: none;
+}
+
+.liveConversationLab {
+  min-width: 0;
+}
+
+.liveConversationLab > .presenceStatus {
+  padding-top: 0;
+}
+
+.liveConversationLab > .presenceStatus:focus-visible {
+  outline: 2px solid var(--amber-bright);
+  outline-offset: 4px;
+}
+
+.liveConversationLab .presenceStatus[data-status="connecting"] .statusDot,
+.liveConversationLab .presenceStatus[data-status="reconnecting"] .statusDot {
+  background: var(--amber);
+  animation: listeningPulse 1.4s ease-in-out infinite;
+}
+
+.liveConversationLab .presenceStatus[data-status="live"] .statusDot {
+  background: var(--amber-bright);
+  box-shadow: 0 0 18px rgba(255, 211, 155, 0.72);
+}
+
+.liveConversationLab .presenceStatus[data-status="ended"] .statusDot,
+.liveConversationLab .presenceStatus[data-status="failed"] .statusDot {
+  background: var(--ink-faint);
+  box-shadow: none;
+}
+
+.liveConversationLab .presenceStatus p {
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.conversationTranscript {
+  min-height: 210px;
+  max-height: 360px;
+  padding: 24px 2px;
+  margin-top: 28px;
+  overflow-y: auto;
+  border-block: 1px solid var(--line);
+  scrollbar-color: rgba(239, 173, 91, 0.36) transparent;
+}
+
+.transcriptEmpty {
+  max-width: 390px;
+  margin: 34px 0;
+  color: var(--ink-faint);
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.55;
+}
+
+.transcriptEntry {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.transcriptEntry + .transcriptEntry {
+  margin-top: 22px;
+}
+
+.transcriptEntry > span {
+  padding-top: 4px;
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.transcriptEntry[data-role="assistant"] > span {
+  color: var(--amber);
+}
+
+.transcriptEntry p {
+  min-width: 0;
+  margin: 0;
+  color: #d9ded8;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.latencyReadout {
+  display: flex;
+  gap: clamp(24px, 5vw, 56px);
+  margin: 0;
+  padding: 18px 2px;
+  border-bottom: 1px solid var(--line);
+}
+
+.latencyReadout div {
+  display: grid;
+  gap: 3px;
+}
+
+.latencyReadout dt {
+  color: var(--ink-faint);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.latencyReadout dd {
+  margin: 0;
+  color: var(--ink-muted);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.73rem;
+}
+
+.sessionControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.sessionButton {
+  min-height: 70px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.sessionButton:hover:not(:disabled) {
+  border-color: rgba(239, 173, 91, 0.28);
+  color: var(--ink);
+}
+
+.sessionButton:disabled {
+  color: var(--ink-faint);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@keyframes listeningPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(239, 173, 91, 0.28);
+    opacity: 0.72;
+  }
+
+  50% {
+    box-shadow: 0 0 18px rgba(239, 173, 91, 0.68);
+    opacity: 1;
+  }
 }
 
 .deliverySection {
@@ -673,6 +859,29 @@ footer p {
     gap: 6px;
   }
 
+  .transcriptEntry {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .latencyReadout {
+    gap: 22px;
+    justify-content: space-between;
+  }
+
+  .sessionControls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .sessionControls .voiceButton {
+    grid-column: 1 / -1;
+  }
+
+  .sessionButton {
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
   .deliverySequence li {
     min-height: 220px;
   }
@@ -699,5 +908,9 @@ footer p {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .liveConversationLab .statusDot {
+    animation: none !important;
   }
 }

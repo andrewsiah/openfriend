@@ -43,6 +43,29 @@ Use for microphone/session controls, profile switching, live state,
 interruptions, transcripts, review and approval, reconnection, keyboard access,
 responsive layout, browser errors, and request failures.
 
+For Phase 1, interpret `Voice response start` as the client-observed interval
+from server-detected speech stop to the first output-audio buffer. It excludes
+the VAD silence window and is not derived from transcript-finalization timing.
+
+When macOS hardware capture is unavailable, the local-only synthetic Realtime
+harness can verify the remaining browser transport without adding a production
+route:
+
+```bash
+# Run the web app with OPENAI_API_KEY on port 3010 first.
+pnpm --filter @openfriend/web test:synthetic-voice
+```
+
+Open `http://127.0.0.1:4173/` and run the synthetic conversation. The harness
+generates clearly synthetic speech with macOS `say`, obtains a short-lived
+credential through a local proxy to the real development API route, and
+exercises the Agents SDK, WebRTC, transcription, model response, manual
+interruption, latency, and clean close. The result reports when an explicit
+input-buffer commit was needed instead of server VAD. It does not prove
+production route protection, hardware capture, echo cancellation, automatic
+gain control, device switching, or natural barge-in; those browser acceptance
+checks remain open.
+
 ### Conversation evaluations
 
 Evaluate product behavior, not just transcripts:

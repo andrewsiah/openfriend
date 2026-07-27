@@ -28,6 +28,13 @@ Phase 1 uses the OpenAI Realtime API through the official Agents SDK in the
 browser. The boundary may later host GPT-Live or another live provider, but
 Phase 0 defines only the two model profiles needed now.
 
+The browser reports two coarse, client-observed diagnostics. Connection latency
+runs from the user's Start intent through the transport's connected event.
+Voice-response latency runs from the server VAD
+`input_audio_buffer.speech_stopped` event through
+`output_audio_buffer.started`, the first audible response boundary. Transcript
+finalization is asynchronous and is not used as a latency clock.
+
 ### Background operator
 
 Owns deeper reasoning, persistent jobs, integrations, and action execution. It

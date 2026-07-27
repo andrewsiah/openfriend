@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
-
 import type {
   LiveModelProfile,
   LiveModelProfileId,
 } from "@openfriend/contracts";
 
 interface LiveProfileSelectorProps {
+  disabled?: boolean;
+  onSelectedIdChange: (profileId: LiveModelProfileId) => void;
   profiles: readonly LiveModelProfile[];
+  selectedId: LiveModelProfileId;
 }
 
-export function LiveProfileSelector({ profiles }: LiveProfileSelectorProps) {
-  const [selectedId, setSelectedId] = useState<LiveModelProfileId>("economy");
+export function LiveProfileSelector({
+  disabled = false,
+  onSelectedIdChange,
+  profiles,
+  selectedId,
+}: LiveProfileSelectorProps) {
   const selectedProfile =
     profiles.find((profile) => profile.id === selectedId) ?? profiles[0];
 
@@ -33,7 +38,8 @@ export function LiveProfileSelector({ profiles }: LiveProfileSelectorProps) {
                 name="live-profile"
                 value={profile.id}
                 checked={selectedId === profile.id}
-                onChange={() => setSelectedId(profile.id)}
+                disabled={disabled}
+                onChange={() => onSelectedIdChange(profile.id)}
               />
               <span className="profileCard">
                 <span className="profileCardTopline">
