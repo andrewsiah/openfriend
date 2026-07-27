@@ -30,6 +30,12 @@ function runChecker(root) {
   });
 }
 
+function runCheckerArguments(arguments_) {
+  return spawnSync(process.execPath, [checkerPath, ...arguments_], {
+    encoding: "utf8",
+  });
+}
+
 function assertActionableFailure(result, expectedPath, expectedRule) {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, new RegExp(expectedPath.replaceAll("/", "\\/")));
@@ -66,6 +72,30 @@ test("packages cannot import application implementation through its workspace na
       "export default function Page() { return null; }\n",
     "packages/operator/src/index.ts":
       'import Page from "@openfriend/web/app/page";\nexport { Page };\n',
+  });
+
+  const result = runChecker(root);
+
+  assertActionableFailure(
+    result,
+    "packages/operator/src/index.ts",
+    "packages-no-app-imports",
+  );
+});
+
+test("packages cannot import apps through a tsconfig path alias", async () => {
+  const root = await createRepository({
+    "apps/web/lib/session.ts": "export const session = {};\n",
+    "packages/operator/tsconfig.json": JSON.stringify({
+      compilerOptions: {
+        baseUrl: ".",
+        paths: {
+          "@web/*": ["../../apps/web/*"],
+        },
+      },
+    }),
+    "packages/operator/src/index.ts":
+      'import { session } from "@web/lib/session";\nexport { session };\n',
   });
 
   const result = runChecker(root);
@@ -165,6 +195,26 @@ test("semicolonless use-client modules reject server-only imports", async () => 
   );
 });
 
+test("use-client is recognized anywhere in the directive prologue", async () => {
+  const root = await createRepository({
+    "apps/web/lib/credentials.server.ts": "export const credential = {};\n",
+    "apps/web/features/conversation.ts": [
+      '"use strict";',
+      '"use client";',
+      'import { credential } from "../lib/credentials.server";',
+      "export { credential };",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assertActionableFailure(
+    result,
+    "apps/web/features/conversation.ts",
+    "client-server-boundary",
+  );
+});
+
 test("commented-out imports do not create architecture violations", async () => {
   const root = await createRepository({
     "packages/operator/src/index.ts": [
@@ -177,6 +227,67 @@ test("commented-out imports do not create architecture violations", async () => 
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Architecture check passed/);
+});
+
+test("comments and user-facing strings may name a server secret", async () => {
+  const root = await createRepository({
+    "apps/web/components/help.tsx": [
+      "// OPENAI_API_KEY is configured on the server.",
+      'const help = "Ask an administrator to configure OPENAI_API_KEY.";',
+      "export function Help() {",
+      "  return <p>{help}</p>;",
+      "}",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Architecture check passed/);
+});
+
+test("browser identifiers and computed environment access still expose secrets", async () => {
+  const root = await createRepository({
+    "apps/web/components/direct.tsx":
+      "export const credential = OPENAI_API_KEY;\n",
+    "apps/web/features/computed.ts": [
+      '"use client";',
+      'export const credential = process.env["OPENAI_API_KEY"];',
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+  const matches = result.stderr.match(/\[client-server-boundary\]/g);
+
+  assertActionableFailure(
+    result,
+    "apps/web/components/direct.tsx",
+    "client-server-boundary",
+  );
+  assert.match(result.stderr, /apps\/web\/features\/computed\.ts/);
+  assert.equal(matches?.length, 2);
+});
+
+test("browser imports with server in a package name are allowed", async () => {
+  const root = await createRepository({
+    "apps/web/components/flight.tsx": [
+      'import { createFromFetch } from "react-server-dom-webpack/client";',
+      "export { createFromFetch };",
+    ].join("\n"),
+  });
+
+  const result = runChecker(root);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Architecture check passed/);
+});
+
+test("--root requires a path argument", () => {
+  const result = runCheckerArguments(["--root"]);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Usage:/);
+  assert.match(result.stderr, /--root <path>/);
 });
 
 test("production code and configuration reject the deprecated live model", async () => {

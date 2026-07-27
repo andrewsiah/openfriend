@@ -84,6 +84,15 @@ function resolvesIntoDirectory(root, importer, specifier, directory) {
   return specifier === directory || specifier.startsWith(`${directory}/`);
 }
 
+function resolvedPathIsInDirectory(root, resolvedPath, directory) {
+  if (!resolvedPath) {
+    return false;
+  }
+
+  const relative = relativePath(root, resolvedPath);
+  return relative === directory || relative.startsWith(`${directory}/`);
+}
+
 function referencesAppPackage(specifier, appPackageNames) {
   return [...appPackageNames].some(
     (packageName) =>
@@ -117,13 +126,20 @@ function contractsForbiddenReason(root, importer, specifier, appPackageNames) {
 }
 
 function hasUseClientDirective(sourceFile) {
-  const firstStatement = sourceFile.statements[0];
-  return (
-    firstStatement !== undefined &&
-    ts.isExpressionStatement(firstStatement) &&
-    ts.isStringLiteral(firstStatement.expression) &&
-    firstStatement.expression.text === "use client"
-  );
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isExpressionStatement(statement) ||
+      !ts.isStringLiteral(statement.expression)
+    ) {
+      return false;
+    }
+
+    if (statement.expression.text === "use client") {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isBrowserModule(file, sourceFile) {
@@ -145,8 +161,37 @@ function isExplicitServerImport(root, importer, specifier) {
 
   return (
     /(?:^|\/)app\/api(?:\/|$)/.test(target) ||
-    /(?:^|[./-])server(?:[./-]|$)/.test(target)
+    /(?:^|\/)server(?:\/|$)/.test(target) ||
+    /(?:^|\/)[^/]+\.server(?:\.[^/]+)?$/.test(target)
   );
+}
+
+function referencedServerSecrets(sourceFile) {
+  const secrets = new Set();
+
+  function visit(node) {
+    if (ts.isIdentifier(node) && SERVER_SECRET_NAMES.includes(node.text)) {
+      secrets.add(node.text);
+    }
+
+    if (
+      ts.isElementAccessExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      ts.isIdentifier(node.expression.expression) &&
+      node.expression.expression.text === "process" &&
+      node.expression.name.text === "env" &&
+      node.argumentExpression &&
+      ts.isStringLiteral(node.argumentExpression) &&
+      SERVER_SECRET_NAMES.includes(node.argumentExpression.text)
+    ) {
+      secrets.add(node.argumentExpression.text);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return secrets;
 }
 
 function isTestArtifact(file) {
@@ -231,6 +276,63 @@ async function appWorkspacePackageNames(root) {
   return names;
 }
 
+function createModuleResolver(root) {
+  const configByPath = new Map();
+  const configPathByDirectory = new Map();
+
+  function compilerConfig(importer) {
+    const directory = path.dirname(importer);
+    let configPath = configPathByDirectory.get(directory);
+
+    if (configPath === undefined) {
+      configPath =
+        ts.findConfigFile(directory, ts.sys.fileExists, "tsconfig.json") ??
+        null;
+      configPathByDirectory.set(directory, configPath);
+    }
+
+    if (configByPath.has(configPath)) {
+      return configByPath.get(configPath);
+    }
+
+    let options = {};
+    if (configPath) {
+      const readResult = ts.readConfigFile(configPath, ts.sys.readFile);
+      if (!readResult.error) {
+        options = ts.parseJsonConfigFileContent(
+          readResult.config,
+          ts.sys,
+          path.dirname(configPath),
+          undefined,
+          configPath,
+        ).options;
+      }
+    }
+
+    const config = {
+      options,
+      cache: ts.createModuleResolutionCache(
+        root,
+        (fileName) => fileName,
+        options,
+      ),
+    };
+    configByPath.set(configPath, config);
+    return config;
+  }
+
+  return (specifier, importer) => {
+    const config = compilerConfig(importer);
+    return ts.resolveModuleName(
+      specifier,
+      importer,
+      config.options,
+      ts.sys,
+      config.cache,
+    ).resolvedModule?.resolvedFileName;
+  };
+}
+
 function diagnostic(file, rule, message, remediation) {
   return `${file} [${rule}] ${message} Remediation: ${remediation}`;
 }
@@ -238,6 +340,7 @@ function diagnostic(file, rule, message, remediation) {
 export async function checkArchitecture(root) {
   const errors = [];
   const appPackageNames = await appWorkspacePackageNames(root);
+  const resolveModule = createModuleResolver(root);
 
   for (const absolutePath of await listArchitectureFiles(root)) {
     const file = relativePath(root, absolutePath);
@@ -274,13 +377,18 @@ export async function checkArchitecture(root) {
 
     if (file.startsWith("packages/")) {
       for (const specifier of importSpecifiers(sourceFile)) {
+        const resolvedImport = resolveModule(specifier, absolutePath);
         if (file.startsWith("packages/contracts/")) {
-          const reason = contractsForbiddenReason(
-            root,
-            absolutePath,
-            specifier,
-            appPackageNames,
-          );
+          const reason =
+            contractsForbiddenReason(
+              root,
+              absolutePath,
+              specifier,
+              appPackageNames,
+            ) ??
+            (resolvedPathIsInDirectory(root, resolvedImport, "apps")
+              ? "application implementation import"
+              : undefined);
           if (reason) {
             errors.push(
               diagnostic(
@@ -296,6 +404,7 @@ export async function checkArchitecture(root) {
 
         if (
           resolvesIntoDirectory(root, absolutePath, specifier, "apps") ||
+          resolvedPathIsInDirectory(root, resolvedImport, "apps") ||
           referencesAppPackage(specifier, appPackageNames)
         ) {
           errors.push(
@@ -326,11 +435,7 @@ export async function checkArchitecture(root) {
         );
       }
 
-      for (const secretName of SERVER_SECRET_NAMES) {
-        if (!new RegExp(`\\b${secretName}\\b`).test(source)) {
-          continue;
-        }
-
+      for (const secretName of referencedServerSecrets(sourceFile)) {
         errors.push(
           diagnostic(
             file,
@@ -348,15 +453,31 @@ export async function checkArchitecture(root) {
 
 function parseRootArgument(arguments_) {
   const rootIndex = arguments_.indexOf("--root");
+  if (
+    rootIndex !== -1 &&
+    (!arguments_[rootIndex + 1] || arguments_[rootIndex + 1].startsWith("--"))
+  ) {
+    throw new Error(
+      "Usage: node scripts/check-architecture.mjs [--root <path>]",
+    );
+  }
+
   return rootIndex === -1
     ? process.cwd()
-    : path.resolve(arguments_[rootIndex + 1] ?? "");
+    : path.resolve(arguments_[rootIndex + 1]);
 }
 
 async function main() {
-  const errors = await checkArchitecture(
-    parseRootArgument(process.argv.slice(2)),
-  );
+  let root;
+  try {
+    root = parseRootArgument(process.argv.slice(2));
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 2;
+    return;
+  }
+
+  const errors = await checkArchitecture(root);
 
   if (errors.length > 0) {
     console.error("Architecture check failed:");
