@@ -39,21 +39,9 @@ if (process.platform !== "darwin") {
   );
 }
 
-generateFixture(
-  "reset",
-  SYNTHETIC_PAIRED_SPEECH[0],
-  205,
-);
-generateFixture(
-  "decision",
-  SYNTHETIC_PAIRED_SPEECH[1],
-  205,
-);
-generateFixture(
-  "redirect",
-  SYNTHETIC_PAIRED_SPEECH[2],
-  215,
-);
+generateFixture("reset", SYNTHETIC_PAIRED_SPEECH[0], 205);
+generateFixture("decision", SYNTHETIC_PAIRED_SPEECH[1], 205);
+generateFixture("redirect", SYNTHETIC_PAIRED_SPEECH[2], 215);
 
 const server = await createServer({
   clearScreen: false,

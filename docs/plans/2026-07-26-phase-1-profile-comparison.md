@@ -252,6 +252,17 @@ On 2026-07-26:
   no automation-bypass credential was created;
 - Andrew explicitly deferred the new Fable/high review after the Claude CLI
   reached its Fable usage limit;
-- a complete spoken turn, the quiet-room paired-microphone run, deployed
-  two-session browser acceptance, and the deferred audio-fix review remain
-  pending.
+- a local unattended acceptance harness now runs the same three-step guide
+  through fresh real Economy and Quality Realtime WebRTC sessions in sequence;
+- the first harness reproduction showed that punctuation-generated internal
+  pauses split a synthetic prompt, while a punctuation-free retry showed that
+  an ended Web Audio source did not provide enough trailing frames for VAD;
+  focused RED/GREEN regressions now keep the accepted guide as the single
+  source, omit only spoken punctuation, and append `1.5` seconds of silent
+  frames after each fixture;
+- the resulting pair passed with three finalized user turns, natural
+  interruption, nonzero usage, latency samples, non-empty response recordings,
+  and clean close for each profile;
+- a complete physical-microphone spoken turn, the quiet-room paired-microphone
+  run, deployed two-session browser acceptance, Andrew's 1–5 ratings, and the
+  deferred audio-fix review remain pending.

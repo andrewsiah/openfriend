@@ -2,10 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { LiveTokenUsage } from "../../lib/live-session-evaluation";
 import type { SyntheticProfileEvidence } from "./result";
-import {
-  runSyntheticProfilePair,
-  SYNTHETIC_PAIRED_GUIDE,
-} from "./paired-run";
+import { runSyntheticProfilePair, SYNTHETIC_PAIRED_GUIDE } from "./paired-run";
 
 const usage: LiveTokenUsage = {
   cachedInputAudioTokens: 0,
@@ -19,9 +16,7 @@ const usage: LiveTokenUsage = {
   uncachedInputUnknownTokens: 0,
 };
 
-function evidence(
-  profile: "economy" | "quality",
-): SyntheticProfileEvidence {
+function evidence(profile: "economy" | "quality"): SyntheticProfileEvidence {
   return {
     assistantTranscript: "Synthetic assistant response.",
     audioStarted: true,
@@ -63,8 +58,7 @@ describe("runSyntheticProfilePair", () => {
 
   it("does not begin Quality before Economy resolves", async () => {
     let resolveEconomy:
-      | ((profileEvidence: SyntheticProfileEvidence) => void)
-      | undefined;
+      ((profileEvidence: SyntheticProfileEvidence) => void) | undefined;
     const economyResult = new Promise<SyntheticProfileEvidence>((resolve) => {
       resolveEconomy = resolve;
     });

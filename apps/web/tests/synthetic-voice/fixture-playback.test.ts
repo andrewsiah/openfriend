@@ -26,11 +26,7 @@ describe("playSyntheticFixture", () => {
       sampleRate: 48_000,
     } as unknown as AudioContext;
 
-    const playback = playSyntheticFixture(
-      audioContext,
-      destination,
-      fixture,
-    );
+    const playback = playSyntheticFixture(audioContext, destination, fixture);
 
     expect(audioContext.createBuffer).toHaveBeenCalledWith(
       1,

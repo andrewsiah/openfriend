@@ -201,3 +201,24 @@ Stop after a real synthetic paired run passes and both recordings are available
 for Andrew. Do not claim perceived quality or begin Watch implementation until
 the recordings are rated and the deferred review is resolved or explicitly
 waived.
+
+## Implementation evidence
+
+On 2026-07-26:
+
+- focused RED/GREEN tests define exact profile ordering, shared immutable guide,
+  complete evidence requirements, and fresh sequential sessions;
+- the real browser harness exposed two fixture-boundary failures before passing:
+  punctuation made macOS `say` insert a turn-length internal pause, and ending a
+  Web Audio source stopped the trailing silent frames needed by server VAD;
+- focused playback regressions now preserve the accepted guide words, omit only
+  punctuation in the spoken rendering, and append `1.5` seconds of silent audio
+  after each generated fixture;
+- a real Economy-then-Quality pair passed with three finalized user turns,
+  natural interruption, nonzero usage, at least three response-start samples,
+  non-empty remote-stream recordings, and clean close for each session;
+- the Economy recording is `737,395` bytes and the Quality recording is
+  `1,080,790` bytes; both were downloaded as local artifacts for later rating;
+- physical microphone and browser speech-processing coverage remain separate,
+  perceived-quality scores are not claimed, and the bounded Fable/high review
+  remains explicitly deferred.

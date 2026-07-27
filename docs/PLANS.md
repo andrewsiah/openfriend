@@ -14,10 +14,12 @@ comparison:
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
 - [Phase 1 live conversation](plans/2026-07-26-phase-1-live-conversation.md)
+- [Synthetic paired voice acceptance](plans/2026-07-26-synthetic-paired-voice.md)
 
 ## Accepted design
 
 - [OpenFriend foundation design](plans/2026-07-26-openfriend-foundation-design.md)
+- [Synthetic paired voice design](plans/2026-07-26-synthetic-paired-voice-design.md)
 
 ## Plan lifecycle
 

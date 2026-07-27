@@ -53,8 +53,12 @@ Acceptance:
 - missing capabilities are disclosed.
 
 Implementation status: the guided, session-only comparison and its automated
-quality gates pass. Real paired-microphone and deployed-browser acceptance are
-still required before this story moves to accepted.
+quality gates pass. A local unattended pair has also passed against real
+Economy and Quality Realtime WebRTC sessions, including three transcribed turns
+per profile, natural interruption, usage, latency, recordings, and cleanup.
+Andrew's human 1–5 ratings, real paired-microphone acceptance, deployed-browser
+acceptance, and the deferred Fable/high review are still required before this
+story moves to accepted.
 
 ## Then: Phase 2 Watch field test
 

@@ -67,12 +67,21 @@ pnpm --filter @openfriend/web test:synthetic-voice
 Open `http://127.0.0.1:4173/` and run the synthetic conversation. The harness
 generates clearly synthetic speech with macOS `say`, obtains a short-lived
 credential through a local proxy to the real development API route, and
-exercises the Agents SDK, WebRTC, transcription, model response, manual
-interruption, latency, and clean close. The result reports when an explicit
-input-buffer commit was needed instead of server VAD. It does not prove
-production route protection, hardware capture, echo cancellation, automatic
-gain control, device switching, or natural barge-in; those browser acceptance
-checks remain open.
+exercises the Agents SDK, WebRTC, automatic semantic-VAD turn commits,
+transcription, model response, natural interruption, usage, response-start
+latency, remote-stream recording, and clean close. It runs the accepted guide
+through Economy and then Quality with fresh sequential sessions.
+
+The spoken fixtures keep the accepted words but omit sentence punctuation that
+causes macOS `say` to insert turn-length internal pauses. The Web Audio playback
+then appends explicit silent frames so server VAD can finalize each complete
+turn without a manual input-buffer commit. The result leaves labeled in-memory
+recordings that can be downloaded before the harness reloads.
+
+This local harness does not prove production route protection, physical
+microphone capture, browser echo cancellation, noise suppression, automatic
+gain control, or device switching. Those browser acceptance checks remain
+separate.
 
 ### Conversation evaluations
 
