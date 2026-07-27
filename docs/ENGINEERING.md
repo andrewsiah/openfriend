@@ -125,6 +125,28 @@ availability must not become a delivery dependency.
 11. Review the diff for secrets, unrelated user changes, and false claims.
 12. Commit narrow units and publish through the personal GitHub account.
 
+## Dependency update review path
+
+Dependabot updates use the same protected merge contract as human changes:
+`verify`, `Dependency Review`, and the real `Greptile Review` App check must
+pass. Never synthesize that check, weaken the ruleset, or use an administrator
+bypass.
+
+Greptile does not currently start reliably on native Dependabot pull requests
+for this repository. When a bot pull request has passed its available checks
+but lacks Greptile:
+
+1. create a human-owned branch from current `main`;
+2. cherry-pick the exact Dependabot commit, preserving its authorship;
+3. open a ready pull request and require every normal protected check;
+4. address and resolve real review findings, then merge through the ruleset;
+5. close the original bot pull request as superseded only after the protected
+   merge is confirmed.
+
+Keep incompatible majors visible and close them with reproducible compatibility
+evidence. Do not add Dependabot ignore rules for those majors because ignore
+rules can also hide security updates.
+
 ## Definition of done
 
 A change is done when the accepted experience works repeatedly, its tests and
