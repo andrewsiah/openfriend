@@ -12,6 +12,7 @@
     "dev": "pnpm --filter @openfriend/web dev",
     "build": "pnpm -r --if-present build",
     "test": "node --test scripts/*.test.mjs && pnpm -r --if-present test",
+    "test:browser": "pnpm --filter @openfriend/web test:browser",
     "test:watch": "pnpm -r --parallel --if-present test:watch",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",

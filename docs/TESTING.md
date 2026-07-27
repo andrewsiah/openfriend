@@ -49,6 +49,29 @@ Use for microphone/session controls, profile switching, live state,
 interruptions, transcripts, review and approval, reconnection, keyboard access,
 responsive layout, browser errors, and request failures.
 
+The deterministic browser story mounts the real `LiveConversationLab` in a
+test-only Vite page and supplies its existing `createSession` and `now`
+injections. It never adds a production route, requests microphone access,
+requires an API key, or reaches an external service:
+
+```bash
+pnpm test:browser
+```
+
+The runner binds Vite to loopback on an operating-system-assigned port, uses one
+Chromium worker with zero retries, blocks external network access, and closes
+the server in `finally`. Playwright owns page, context, and browser teardown;
+the harness root is explicitly unmounted after every story. Every run writes
+server, browser, console, and network logs below ignored `test-results/browser/`
+paths. Failures additionally retain a trace and screenshot, and CI uploads
+those artifacts for three days.
+
+The browser stories select the Quality profile and exercise the real component
+through live status, transcript updates, response-start latency, interruption,
+end, reset, and idempotent close. A separate deterministic connection failure
+proves that the component reaches its honest failed state and closes the
+session.
+
 ## Voice and browser teardown
 
 Every test or manual check that opens a browser, microphone, audio stream, or
@@ -71,9 +94,10 @@ For Phase 1, interpret `Voice response start` as the client-observed interval
 from server-detected speech stop to the first output-audio buffer. It excludes
 the VAD silence window and is not derived from transcript-finalization timing.
 
-When macOS hardware capture is unavailable, the local-only synthetic Realtime
-harness can verify the remaining browser transport without adding a production
-route:
+The deterministic browser story is the default pull-request gate. When macOS
+hardware capture is unavailable, the separate local-only synthetic Realtime
+harness can verify the remaining real browser transport without adding a
+production route:
 
 ```bash
 # Run the web app with OPENAI_API_KEY on port 3010 first.
@@ -88,7 +112,8 @@ interruption, latency, and clean close. The result reports when an explicit
 input-buffer commit was needed instead of server VAD. It does not prove
 production route protection, hardware capture, echo cancellation, automatic
 gain control, device switching, or natural barge-in; those browser acceptance
-checks remain open.
+checks remain open. This command is manual, requires a real development API
+key, and is billable; it must not run in routine CI.
 
 ### Conversation evaluations
 

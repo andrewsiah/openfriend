@@ -12,6 +12,7 @@ const ALLOWED_ACTIONS = new Set([
   "actions/checkout",
   "actions/dependency-review-action",
   "actions/setup-node",
+  "actions/upload-artifact",
   "pnpm/action-setup",
 ]);
 
@@ -232,17 +233,57 @@ test("CI uses immutable allowlisted actions and supported repository pnpm", asyn
   const packageManager = packageJson.packageManager?.match(
     /^pnpm@(10\.\d+\.\d+)$/,
   );
-  const pnpmStep = Object.values(workflow.jobs ?? {})
-    .flatMap((job) => job.steps ?? [])
-    .find(
-      (step) =>
-        typeof step.uses === "string" &&
-        actionName(step.uses) === "pnpm/action-setup",
-    );
+  const verifySteps = workflow.jobs?.verify?.steps ?? [];
+  const pnpmStep = verifySteps.find(
+    (step) =>
+      typeof step.uses === "string" &&
+      actionName(step.uses) === "pnpm/action-setup",
+  );
 
   assert.ok(packageManager, "packageManager must declare a stable pnpm 10");
   assert.equal(String(pnpmStep?.with?.version), packageManager[1]);
   assert.ok(actions.includes("actions/checkout"));
   assert.ok(actions.includes("pnpm/action-setup"));
   assert.ok(actions.includes("actions/setup-node"));
+});
+
+test("CI runs the isolated browser story after verify and retains only failure evidence", async () => {
+  const source = await readRepositoryFile(".github/workflows/ci.yml");
+  const workflow = parseConfiguration(source);
+  const steps = workflow.jobs?.verify?.steps ?? [];
+  const verifyIndex = steps.findIndex((step) => step.run === "pnpm verify");
+  const installIndex = steps.findIndex((step) =>
+    step.run?.includes("playwright install --with-deps chromium"),
+  );
+  const browserIndex = steps.findIndex(
+    (step) => step.run === "pnpm test:browser",
+  );
+  const uploadIndex = steps.findIndex(
+    (step) =>
+      typeof step.uses === "string" &&
+      actionName(step.uses) === "actions/upload-artifact",
+  );
+  const uploadStep = steps[uploadIndex];
+
+  assert.ok(verifyIndex >= 0, "CI must retain the repository verify gate");
+  assert.ok(
+    installIndex > verifyIndex,
+    "Chromium installation must follow the fast repository gate",
+  );
+  assert.ok(
+    browserIndex > installIndex,
+    "the browser story must follow Chromium installation",
+  );
+  assert.ok(
+    uploadIndex > browserIndex,
+    "failure artifact upload must follow the browser story",
+  );
+  assert.equal(uploadStep?.if, "failure()");
+  assert.equal(uploadStep?.with?.path, "test-results/browser");
+  assert.ok(
+    Number.isInteger(uploadStep?.with?.["retention-days"]) &&
+      uploadStep.with["retention-days"] <= 3,
+    "browser failure artifacts must use short retention",
+  );
+  assertPinnedAllowedActions(source, workflow);
 });

@@ -7,6 +7,7 @@
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
+    "test:browser": "node ./tests/browser/run.mjs",
     "test:synthetic-voice": "node ./tests/synthetic-voice/run.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -21,6 +22,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
