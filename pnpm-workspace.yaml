@@ -22,3 +22,10 @@ minimumReleaseAgeExclude:
 
 onlyBuiltDependencies:
   - sharp
+
+# Temporary transitive security floors. Remove an override when its parent
+# dependency ships an equivalent or newer safe version.
+overrides:
+  "@hono/node-server@<2.0.10": 2.0.12
+  postcss@<=8.5.17: 8.5.23
+  sharp@<0.35.0: 0.35.3

@@ -65,10 +65,28 @@ vulnerability reporting was enabled.
 CodeQL default setup is configured. Validation run
 [`30238344037`](https://github.com/andrewsiah/openfriend/actions/runs/30238344037)
 completed successfully: Actions, JavaScript/TypeScript, and Swift analyses all
-reported success, while Adjust Configuration was skipped. Dependency Review has
-not yet run on a pull request or been added to the repository ruleset. Its
-status check must not become a required merge check until its exact successful
-context has been observed on a pull request.
+reported success, while Adjust Configuration was skipped.
+
+Dependency Review first passed on
+[PR #4](https://github.com/andrewsiah/openfriend/pull/4) at commit `80aab33`.
+GitHub identified the exact `Dependency Review` context as GitHub Actions App ID
+`15368`. Active ruleset `19789735` now requires that context alongside `verify`
+and `Greptile Review`, without a bypass actor and with strict latest-`main`
+checks and resolved review conversations.
+
+On 2026-07-27, the first public-harness push exposed six advisories inherited
+from `main`. Explicit transitive floors move Hono's Node adapter, PostCSS, and
+Sharp to patched releases. The frozen install, full local gate, deterministic
+browser stories, production build, and a native Sharp transform pass with those
+versions.
+
+One high-severity `brace-expansion` advisory remains visible through the
+development-only ESLint chain. The patched major is not a compatible drop-in
+for `minimatch` 3, and forcing current `minimatch` breaks a callable API used by
+the installed React lint plugin. OpenFriend does not pass remote or
+user-controlled glob patterns into this local lint path. The alert is not
+dismissed: keep it visible and replace the exception when the upstream lint
+chain publishes a compatible resolution.
 
 ## Realtime client-secret boundary
 
