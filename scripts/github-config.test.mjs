@@ -160,11 +160,8 @@ test("Dependabot suppresses only known-incompatible TypeScript and ESLint majors
     await readRepositoryFile(".github/dependabot.yml"),
   );
   const npmUpdates = dependencyUpdate(config, "npm");
-  const incompatibleMajorPolicy = (npmUpdates.ignore ?? []).filter((rule) =>
-    ["typescript", "eslint"].includes(rule["dependency-name"]),
-  );
 
-  assert.deepEqual(incompatibleMajorPolicy, [
+  assert.deepEqual(npmUpdates.ignore ?? [], [
     {
       "dependency-name": "typescript",
       "update-types": ["version-update:semver-major"],
