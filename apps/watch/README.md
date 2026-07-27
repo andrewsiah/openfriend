@@ -53,10 +53,17 @@ xcodebuild build \
 ## Explicit product gate
 
 This skeleton is Phase 0 development readiness, not the Phase 2 Watch
-experience. Voice, networking, short-lived authentication, signing, physical
-device deployment, and field-test acceptance remain blocked until the browser
-Realtime session contract is stable and Andrew confirms a personal Apple
-Developer team.
+experience. The browser Realtime contract is now stable and the
+[Phase 2 design](../../docs/plans/2026-07-27-phase-2-watch-conversation-design.md)
+plus
+[TDD implementation plan](../../docs/plans/2026-07-27-phase-2-watch-conversation.md)
+are written. Voice, networking, short-lived authentication, signing, physical
+device deployment, and field-test acceptance remain unimplemented.
+
+The recommended design is conditional on a signed physical Watch proving that
+an active play-and-record audio session permits a direct
+`URLSessionWebSocketTask` and useful simultaneous capture/playback over Wi-Fi
+and Watch cellular without the phone.
 
 Do not register bundle identifiers, create provisioning profiles, select a
-company team, or add credentials while working on this skeleton.
+company team, add credentials, or claim Phase 2 from simulator evidence.

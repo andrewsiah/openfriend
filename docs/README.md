@@ -43,6 +43,11 @@ document below.
   — implemented deterministic browser, architecture, and maintenance checks.
 - [plans/2026-07-27-dependabot-review-loop-design.md](plans/2026-07-27-dependabot-review-loop-design.md)
   — accepted Dependabot, Greptile, and security-visible major-update policy.
+- [plans/2026-07-27-phase-2-watch-conversation-design.md](plans/2026-07-27-phase-2-watch-conversation-design.md)
+  — recommended direct WebSocket design for the phone-free Watch slice.
+- [plans/2026-07-27-phase-2-watch-conversation.md](plans/2026-07-27-phase-2-watch-conversation.md)
+  — bite-sized TDD plan for authentication, PCM audio, interruption, signing,
+  and physical field evidence.
 - [decisions/README.md](decisions/README.md) — architectural decision record
   policy.
 

@@ -246,17 +246,30 @@ is unavailable, never free.
 The simulator is useful but insufficient. Phase 2 requires Andrew's physical
 Watch across:
 
-| Condition           | Evidence                                              |
-| ------------------- | ----------------------------------------------------- |
-| iPhone nearby       | Conversation starts, interrupts, and ends             |
-| iPhone disconnected | Watch remains independently useful                    |
-| Wi-Fi               | Audio and status survive normal movement              |
-| Watch cellular      | Phone-free conversation works outdoors                |
-| Background noise    | Speech remains usable while walking                   |
-| Brief network loss  | State is explicit and reconnect avoids duplicate work |
+| Condition                    | Evidence                                                              |
+| ---------------------------- | --------------------------------------------------------------------- |
+| iPhone nearby                | Start, natural/manual interruption, and End use no Watch Connectivity |
+| iPhone disconnected          | Wi-Fi and Bluetooth disabled in iPhone Settings; Watch remains useful |
+| Wi-Fi                        | Full-duplex audio and truthful status survive normal movement         |
+| Watch cellular               | A useful outdoor conversation works with the phone absent             |
+| Wrist lowered                | Active audio continues legitimately or suspension is explicit         |
+| Background noise and silence | Speech remains usable and empty noise creates no assistant response   |
+| Brief network loss           | One fresh empty session; no audio/event replay or duplicate work      |
+| Second network loss          | Session fails and all audio/network resources close                   |
+| Bluetooth route loss         | Playback stops and does not switch private audio silently to speaker  |
+| Audio interruption           | Both directions pause and resume only when the system permits         |
+| Watch locked or removed      | Capture ends and no bearer credential remains in durable storage      |
 
 The defining acceptance test is a useful continuous conversation during a walk
 without the phone.
+
+Before this matrix, a signed physical feasibility gate must prove that
+play-and-record audio is active before `URLSessionWebSocketTask`, simultaneous
+capture/playback works, and WebSocket interruption truncates at the audio
+duration actually rendered. The simulator cannot prove Apple's low-level
+networking allowance. See the
+[Phase 2 design](plans/2026-07-27-phase-2-watch-conversation-design.md) and
+[implementation plan](plans/2026-07-27-phase-2-watch-conversation.md).
 
 The Phase 0 simulator-readiness shell has its own unsigned test and build
 commands in [../apps/watch/README.md](../apps/watch/README.md). Passing them

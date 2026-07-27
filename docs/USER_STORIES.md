@@ -92,8 +92,17 @@ Acceptance:
 
 - independent Watch authentication uses a short-lived credential;
 - live audio works without the paired iPhone data path;
-- connection and delegated-work status are glanceable;
+- connection and current conversation status are glanceable;
 - Wi-Fi, cellular, noise, and reconnection scenarios pass on the physical Watch.
+
+Delegated-work status belongs to the later background-operator story. It is not
+an acceptance criterion for this foreground Phase 2 conversation slice.
+
+Planning status: the dated Phase 2 design recommends an authenticated,
+ephemeral-token `URLSessionWebSocketTask` path after an active Watch audio
+session, with a persistent relay and native Watch WebRTC deferred. The detailed
+TDD plan is written, but production Watch code, signing, authentication,
+physical feasibility, and the Wi-Fi/cellular/no-phone matrix have not begun.
 
 ### Hand detailed review to the web
 

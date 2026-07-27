@@ -34,6 +34,19 @@ Preserve enough server-side session state to reconnect without duplicating
 delegated work. Do not claim continuous audio when watchOS or network policy has
 suspended it.
 
+The first Watch slice has no server-side conversation or delegated-work state.
+Its one allowed reconnect obtains a fresh client secret, creates a new empty
+Realtime session, replays no audio or events, and discloses that conversational
+continuity may be lost. A failed reconnect or second loss ends and cleans up the
+session.
+
+Watch input and unplayed output buffers are bounded. Natural or manual
+interruption stops local playback immediately and truncates the assistant item
+at audio actually rendered, not audio merely received. Audio-route loss ends
+the session rather than silently moving an intimate conversation to the
+speaker. Audio interruption, wrist-down suspension, device lock, and network
+loss must always change the visible state truthfully.
+
 ## Degraded behavior
 
 When a dependency is unavailable:

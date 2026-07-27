@@ -35,6 +35,44 @@ Voice-response latency runs from the server VAD
 `output_audio_buffer.started`, the first audible response boundary. Transcript
 finalization is asynchronous and is not used as a latency clock.
 
+### Phase 2 Watch transport candidate
+
+Phase 2 uses the existing independent watch-only target and a thin authenticated
+gateway. The recommended implementation candidate is:
+
+```mermaid
+flowchart LR
+    Watch["Signed independent Watch app"] -->|"authenticated HTTPS"| Gateway["OpenFriend gateway"]
+    Gateway -->|"server API key"| Mint["OpenAI client secrets"]
+    Mint -->|"short-lived client secret"| Watch
+    Watch -->|"active-audio URLSessionWebSocketTask"| Realtime["OpenAI Realtime"]
+```
+
+The Watch first authenticates with a nonce-bound Sign in with Apple identity
+token. The gateway verifies the single accepted user, derives a
+privacy-preserving safety identifier, chooses Economy server-side, and returns
+only the model-bound Realtime client secret, expiry, and model. Permanent keys
+and identity allowlists remain server-side.
+
+After the Watch activates a play-and-record audio session, it opens a direct
+Realtime WebSocket, converts device audio to bounded 24 kHz mono PCM16 frames,
+plays incremental PCM output, and owns WebSocket interruption truncation based
+on audio actually rendered. One reconnect may obtain a new credential and
+create a new empty session; there is no replay or continuity claim.
+
+This is a design candidate, not implemented behavior. Apple restricts Watch
+WebSockets to supported low-level-networking use cases and the simulator does
+not enforce the hardware rule. Signing, simultaneous capture/playback, Wi-Fi,
+cellular without the phone, wrist-down runtime, route loss, and device loss
+must pass on a physical Watch before Phase 2 is accepted. See the
+[dated design](plans/2026-07-27-phase-2-watch-conversation-design.md).
+
+A persistent relay adds latency, audio exposure, stateful infrastructure, and a
+second failure domain without removing the Watch-side audio-streaming rule.
+Native Watch WebRTC lacks an established public watchOS framework and official
+OpenAI Swift/watchOS SDK. Both remain deferred unless physical evidence proves
+the direct path cannot satisfy the accepted story.
+
 ### Background operator
 
 Owns deeper reasoning, persistent jobs, integrations, and action execution. It
