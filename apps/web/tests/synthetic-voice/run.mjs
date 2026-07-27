@@ -38,13 +38,18 @@ if (process.platform !== "darwin") {
 }
 
 generateFixture(
-  "first",
-  "Hello Open Friend please tell me one cheerful sentence about today",
+  "reset",
+  "I've had a long day. Help me reset in one minute.",
   205,
 );
 generateFixture(
-  "interrupt",
-  "Please stop. What color is a clear daytime sky?",
+  "decision",
+  "Help me choose between a quiet evening and seeing friends. Ask me one question before advising.",
+  205,
+);
+generateFixture(
+  "redirect",
+  "Actually, make that practical. Give me one next step.",
   215,
 );
 
