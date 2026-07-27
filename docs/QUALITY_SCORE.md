@@ -63,7 +63,7 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 | Synthetic pair       | Real Economy and Quality WebRTC sessions complete unattended | Passing | Local pair: three finalized turns, natural interruption, usage, recording, and clean close for each profile              |
 | Audio turn stability | Silence does not create false user or assistant turns        | Passing | 12-second physical-microphone silence gate; empty audio produced no assistant response; spoken fixture still responded   |
 | Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Passing | Prerecorded guide played through Mac speakers into the physical microphone; three clean turns each and live interruption |
-| Human quality        | Andrew records a 1–5 score for each real run                 | Pending | Economy: `5 / 5` from Andrew's local physical-microphone run on 2026-07-27; Quality pending                              |
+| Human quality        | Andrew records a 1–5 score for each real run                 | Passing | Economy: `5 / 5`; Quality: `5 / 5`; direct local physical-microphone sessions on 2026-07-27                              |
 | Deployment           | Paired workflow passes deployed browser acceptance           | Pending | Preview shell passes at 320 px and 1440 px; paired microphone run remains                                                |
 | Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Pending | Earlier comparison review passed; audio-fix review deferred after Fable usage limit                                      |
 
@@ -89,10 +89,12 @@ second response was visibly truncated by the third-turn redirect. This proves
 the physical browser capture and interruption path without requiring Andrew to
 repeat the script, but it does not supply a human quality rating.
 
-Andrew then completed a direct local Economy session on 2026-07-27 and rated
-it `5 / 5`. That session connected in `4,658 ms`, had a `1,502 ms` median
-voice-response interval, reported `2,180` provider tokens, and estimated
-`$0.0242` in usage. The Quality rating remains pending.
+Andrew then completed direct local sessions for both profiles on 2026-07-27
+and rated each `5 / 5`. Economy connected in `4,658 ms`, had a `1,502 ms`
+median voice-response interval, reported `2,180` provider tokens, and estimated
+`$0.0242` in usage. Quality connected in `1,578 ms`, had a `1,704 ms` median
+voice-response interval, reported `1,772` provider tokens, and estimated
+`$0.0777` in usage.
 
 The final unattended local pair used the real development client-secret route,
 Agents SDK, WebRTC transport, the same server-VAD and transcript-gated response
@@ -103,8 +105,7 @@ Quality connected in `770 ms`, recorded `1,070,907` bytes, had a `1,038 ms`
 median interval, and an estimated `$0.0896368` usage cost. Both sessions
 finalized three user turns, naturally cleared output on the redirect, produced
 nonzero provider usage, and closed cleanly. The recordings are local test
-artifacts, not repository content. Perceived quality remains pending until
-Andrew records actual 1–5 scores. Andrew explicitly deferred the new
+artifacts, not repository content. Andrew explicitly deferred the new
 Fable/high review after Claude reported its usage limit.
 
 ## 2026-07-26 deployed foundation evidence
