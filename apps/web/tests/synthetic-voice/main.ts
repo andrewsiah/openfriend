@@ -88,7 +88,7 @@ function delay(milliseconds: number): Promise<void> {
 async function waitFor(
   description: string,
   predicate: () => boolean,
-  timeoutMs = 45_000,
+  timeoutMs = 75_000,
 ): Promise<void> {
   const deadline = performance.now() + timeoutMs;
 
@@ -322,10 +322,12 @@ async function runSyntheticProfile(
             input: {
               noiseReduction: { type: "near_field" },
               turnDetection: {
-                createResponse: true,
-                eagerness: "low",
+                createResponse: false,
                 interruptResponse: true,
-                type: "semantic_vad",
+                prefixPaddingMs: 300,
+                silenceDurationMs: 1_000,
+                threshold: 0.65,
+                type: "server_vad",
               },
             },
           },
@@ -384,21 +386,39 @@ async function runSyntheticProfile(
 
     statusElement.textContent = `Interrupting synthetic ${profile} response with step 3…`;
     await playSyntheticFixture(audioContext, inputDestination, fixtures[2]);
-    await waitFor(
-      `${profile} final response and evidence`,
-      () =>
-        history.filter(
-          (item) => item.role === "user" && item.status === "completed",
-        ).length >= 3 &&
-        history.filter(
-          (item) => item.role === "assistant" && item.status === "completed",
-        ).length >= 2 &&
-        naturalInterruption &&
-        outputStartedCount >= 3 &&
-        outputStoppedCount >= 2 &&
-        responseLatencyMs.length >= 3 &&
-        usageUpdates.length > 0,
-    );
+    try {
+      await waitFor(
+        `${profile} final response and evidence`,
+        () =>
+          history.filter(
+            (item) => item.role === "user" && item.status === "completed",
+          ).length >= 3 &&
+          history.filter(
+            (item) => item.role === "assistant" && item.status === "completed",
+          ).length >= 2 &&
+          naturalInterruption &&
+          outputStartedCount >= 3 &&
+          outputStoppedCount >= 2 &&
+          responseLatencyMs.length >= 3 &&
+          usageUpdates.length > 0,
+      );
+    } catch (error) {
+      const completedUserTurns = history.filter(
+        (item) => item.role === "user" && item.status === "completed",
+      ).length;
+      const completedAssistantTurns = history.filter(
+        (item) => item.role === "assistant" && item.status === "completed",
+      ).length;
+      const detail = error instanceof Error ? error.message : String(error);
+
+      throw new Error(
+        `${detail} ` +
+          `[users=${completedUserTurns}, assistants=${completedAssistantTurns}, ` +
+          `outputStarted=${outputStartedCount}, outputStopped=${outputStoppedCount}, ` +
+          `interrupted=${naturalInterruption}, latencySamples=${responseLatencyMs.length}, ` +
+          `usageUpdates=${usageUpdates.length}]`,
+      );
+    }
 
     await recording.ready;
     recordingBlob = await recording.stop();

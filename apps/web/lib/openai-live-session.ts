@@ -3,6 +3,7 @@ import {
   RealtimeAgent,
   RealtimeSession,
   type RealtimeItem,
+  type TransportEvent,
 } from "@openai/agents/realtime";
 import type { Usage } from "@openai/agents";
 
@@ -21,6 +22,7 @@ type LiveAgentConfig = Readonly<{
 
 type HistoryListener = (history: RealtimeItem[]) => void;
 type ConnectionListener = (status: LiveConnectionStatus) => void;
+type RawTransportListener = (event: TransportEvent) => void;
 type ResponseStartListener = () => void;
 type UsageListener = (usage: Usage) => void;
 type UserSpeechStoppedListener = () => void;
@@ -39,6 +41,8 @@ export interface OpenAISdkSession {
   on(event: "history_updated", listener: HistoryListener): void;
   off(event: "history_updated", listener: HistoryListener): void;
   transport: {
+    requestResponse?(): void;
+    on(event: "*", listener: RawTransportListener): void;
     on(event: "connection_change", listener: ConnectionListener): void;
     on(
       event: "input_audio_buffer.speech_stopped",
@@ -49,6 +53,7 @@ export interface OpenAISdkSession {
       listener: ResponseStartListener,
     ): void;
     on(event: "usage_update", listener: UsageListener): void;
+    off(event: "*", listener: RawTransportListener): void;
     off(event: "connection_change", listener: ConnectionListener): void;
     off(
       event: "input_audio_buffer.speech_stopped",
@@ -93,6 +98,10 @@ function toLiveHistory(history: RealtimeItem[]): LiveHistoryItem[] {
       })
       .join("");
 
+    if (text.trim() === "") {
+      return [];
+    }
+
     return [
       {
         id: item.itemId,
@@ -130,10 +139,12 @@ function createOpenAISdkSession(
         input: {
           noiseReduction: { type: "near_field" },
           turnDetection: {
-            createResponse: true,
-            eagerness: "low",
+            createResponse: false,
             interruptResponse: true,
-            type: "semantic_vad",
+            prefixPaddingMs: 300,
+            silenceDurationMs: 1_000,
+            threshold: 0.65,
+            type: "server_vad",
           },
         },
       },
@@ -230,6 +241,7 @@ export class OpenAILiveSession implements LiveSession {
   private readonly callbacks: LiveSessionCallbacks;
   private readonly handleConnectionChange: ConnectionListener;
   private readonly handleHistoryChange: HistoryListener;
+  private readonly handleRawTransportEvent: RawTransportListener;
   private readonly handleResponseStart: ResponseStartListener;
   private readonly handleUsageUpdate: UsageListener;
   private readonly handleUserSpeechStopped: UserSpeechStoppedListener;
@@ -249,6 +261,16 @@ export class OpenAILiveSession implements LiveSession {
     this.handleHistoryChange = (history) => {
       this.callbacks.onHistoryChange(toLiveHistory(history));
     };
+    this.handleRawTransportEvent = (event) => {
+      if (
+        event.type ===
+          "conversation.item.input_audio_transcription.completed" &&
+        typeof event.transcript === "string" &&
+        event.transcript.trim() !== ""
+      ) {
+        this.sdkSession.transport.requestResponse?.();
+      }
+    };
     this.handleResponseStart = () => {
       this.callbacks.onResponseStart();
     };
@@ -262,6 +284,7 @@ export class OpenAILiveSession implements LiveSession {
       "connection_change",
       this.handleConnectionChange,
     );
+    this.sdkSession.transport.on("*", this.handleRawTransportEvent);
     this.sdkSession.on("history_updated", this.handleHistoryChange);
     this.sdkSession.transport.on(
       "input_audio_buffer.speech_stopped",
@@ -293,6 +316,7 @@ export class OpenAILiveSession implements LiveSession {
       "connection_change",
       this.handleConnectionChange,
     );
+    this.sdkSession.transport.off("*", this.handleRawTransportEvent);
     this.sdkSession.transport.off(
       "input_audio_buffer.speech_stopped",
       this.handleUserSpeechStopped,

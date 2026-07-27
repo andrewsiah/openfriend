@@ -58,40 +58,54 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 | Usage accounting     | Cached tokens are not double-counted                         | Passing | Adapter and pure evaluation tests                                                                                        |
 | Cost truthfulness    | Dated estimate discloses missing and separate charges        | Passing | Evaluation tests and visible disclosure                                                                                  |
 | Privacy boundary     | Summaries omit transcript and remain mounted-memory-only     | Passing | Component tests and architecture inspection                                                                              |
-| Automated quality    | Complete local gates pass                                    | Passing | `pnpm verify`; 78 web tests and 6 contract tests                                                                         |
+| Automated quality    | Complete local gates pass                                    | Passing | `pnpm verify`; 79 web tests and 6 contract tests                                                                         |
 | Responsive browser   | Workflow fits 320 px and desktop without application errors  | Passing | [Vercel preview](https://openfriend-git-andrew-phase1-profile-c-1048da-andrewsiah-stripe.vercel.app), 320 px and 1440 px |
 | Synthetic pair       | Real Economy and Quality WebRTC sessions complete unattended | Passing | Local pair: three finalized turns, natural interruption, usage, recording, and clean close for each profile              |
-| Audio turn stability | Silence does not create false user or assistant turns        | Pending | Automatic VAD passed the synthetic three-turn pair; a complete physical-microphone spoken-turn check remains             |
-| Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Pending | The real-WebRTC synthetic pair passed; the physical-microphone pair remains                                              |
-| Human quality        | Andrew records a 1–5 score for each real run                 | Pending | —                                                                                                                        |
+| Audio turn stability | Silence does not create false user or assistant turns        | Passing | 12-second physical-microphone silence gate; empty audio produced no assistant response; spoken fixture still responded   |
+| Paired conversation  | Real Economy and Quality microphone runs use the same guide  | Passing | Prerecorded guide played through Mac speakers into the physical microphone; three clean turns each and live interruption |
+| Human quality        | Andrew records a 1–5 score for each real run                 | Pending | Economy: `5 / 5` from Andrew's local physical-microphone run on 2026-07-27; Quality pending                              |
 | Deployment           | Paired workflow passes deployed browser acceptance           | Pending | Preview shell passes at 320 px and 1440 px; paired microphone run remains                                                |
 | Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Pending | Earlier comparison review passed; audio-fix review deferred after Fable usage limit                                      |
 
 The automated rows prove behavior and boundaries, not comparative model
-quality. A physical-microphone attempt on 2026-07-26 was stopped when unrelated
-room speech reached the microphone; the live session was ended and its mounted
-transcript state was reset. The pending rows still require quiet-room paired
-sessions and deployed-browser evidence.
+quality. The final browser path requests mono capture, echo cancellation, noise
+suppression, and automatic gain control. Realtime adds near-field noise
+reduction and noise-tolerant server VAD with a `0.65` activation threshold,
+`300 ms` prefix padding, and `1,000 ms` silence completion. Automatic response
+creation is disabled: a response is requested only after a completed,
+non-blank input transcript. A physical-microphone check held silence for
+12 seconds, ignored a non-speech system sound, proved an empty provider
+transcript does not trigger a reply, and still answered the next prerecorded
+spoken turn. The final adapter also filters textless provider history items
+from the visible transcript. Unrelated room speech was stopped and was not
+copied into repository evidence.
 
-A subsequent local physical-microphone run reproduced multiple false finalized
-turns from one requested utterance. The browser audio path now requests speech
-processing, and the Realtime session uses near-field noise reduction with
-low-eagerness semantic turn detection. Adapter tests pass and a five-second
-quiet-room gate produced no false turn, but a complete human spoken turn is
-still required before this behavior can pass. Andrew explicitly deferred the
-new Fable/high review after the Claude CLI reported its Fable usage limit.
+The physical paired run on 2026-07-26 played the same prerecorded three-step
+guide through Mac speakers into Chrome's MacBook Air microphone. Economy
+connected in `1,059 ms` with a `971 ms` median response-start interval. Quality
+connected in `1,205 ms` with a `1,674 ms` median interval. Both profiles
+captured three clean guide turns and completed three responses; Quality's
+second response was visibly truncated by the third-turn redirect. This proves
+the physical browser capture and interruption path without requiring Andrew to
+repeat the script, but it does not supply a human quality rating.
 
-The unattended local pair on 2026-07-26 used the real development client-secret
-route, Agents SDK, WebRTC transport, automatic semantic VAD, and the same
-three-step guide for both profiles. Economy connected in `1,037 ms`, recorded
-`737,395` bytes, had a `585 ms` median speech-stop-to-audio-start interval, and
-an estimated `$0.01909108` usage cost. Quality connected in `864 ms`, recorded
-`1,080,790` bytes, had a `534 ms` median interval, and an estimated `$0.0954072`
-usage cost. Both sessions finalized three user turns, naturally cleared output
-on the redirect, produced nonzero provider usage, and closed cleanly. The two
-recordings are local test artifacts, not repository content. Perceived quality
-remains pending until Andrew listens and records 1–5 scores. Synthetic input
-does not replace the physical microphone or browser speech-processing checks.
+Andrew then completed a direct local Economy session on 2026-07-27 and rated
+it `5 / 5`. That session connected in `4,658 ms`, had a `1,502 ms` median
+voice-response interval, reported `2,180` provider tokens, and estimated
+`$0.0242` in usage. The Quality rating remains pending.
+
+The final unattended local pair used the real development client-secret route,
+Agents SDK, WebRTC transport, the same server-VAD and transcript-gated response
+path, and the same three-step guide for both profiles. Economy connected in
+`636 ms`, recorded `1,038,927` bytes, had a `1,281 ms` median
+speech-stop-to-audio-start interval, and an estimated `$0.02619332` usage cost.
+Quality connected in `770 ms`, recorded `1,070,907` bytes, had a `1,038 ms`
+median interval, and an estimated `$0.0896368` usage cost. Both sessions
+finalized three user turns, naturally cleared output on the redirect, produced
+nonzero provider usage, and closed cleanly. The recordings are local test
+artifacts, not repository content. Perceived quality remains pending until
+Andrew records actual 1–5 scores. Andrew explicitly deferred the new
+Fable/high review after Claude reported its usage limit.
 
 ## 2026-07-26 deployed foundation evidence
 

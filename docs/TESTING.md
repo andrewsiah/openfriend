@@ -49,11 +49,19 @@ the VAD silence window and is not derived from transcript-finalization timing.
 
 The production browser capture path requests a mono microphone track with echo
 cancellation, noise suppression, and automatic gain control. The Realtime
-session also uses near-field input noise reduction and low-eagerness semantic
-turn detection. Before running the paired guide on a physical microphone, keep
-the room quiet for at least five seconds after the session becomes live: no
-user or assistant turn should appear. This silence gate catches false turn
-starts but does not replace a complete spoken-turn check.
+session also uses near-field input noise reduction and server VAD with a `0.65`
+activation threshold, `300 ms` prefix padding, and `1,000 ms` silence
+completion. VAD interrupts active output immediately, but automatic response
+creation is disabled. The browser requests a response only after input
+transcription completes with non-blank text, so empty audio cannot produce an
+invented assistant turn.
+
+Before running the paired guide on a physical microphone, keep the room quiet
+for at least ten seconds after the session becomes live: no assistant turn
+should appear. If VAD commits a non-speech sound, a blank provider history item
+must not trigger a response and must not appear in the visible transcript. This
+silence gate catches false replies but does not replace a complete spoken-turn
+check.
 
 When macOS hardware capture is unavailable, the local-only synthetic Realtime
 harness can verify the remaining browser transport without adding a production
@@ -67,15 +75,17 @@ pnpm --filter @openfriend/web test:synthetic-voice
 Open `http://127.0.0.1:4173/` and run the synthetic conversation. The harness
 generates clearly synthetic speech with macOS `say`, obtains a short-lived
 credential through a local proxy to the real development API route, and
-exercises the Agents SDK, WebRTC, automatic semantic-VAD turn commits,
-transcription, model response, natural interruption, usage, response-start
-latency, remote-stream recording, and clean close. It runs the accepted guide
-through Economy and then Quality with fresh sequential sessions.
+exercises the Agents SDK, WebRTC, automatic server-VAD turn commits,
+transcription-gated model response, natural interruption, usage,
+response-start latency, remote-stream recording, and clean close. It runs the
+accepted guide through Economy and then Quality with fresh sequential sessions.
 
 The spoken fixtures keep the accepted words but omit sentence punctuation that
 causes macOS `say` to insert turn-length internal pauses. The Web Audio playback
-then appends explicit silent frames so server VAD can finalize each complete
-turn without a manual input-buffer commit. The result leaves labeled in-memory
+normalizes their level and appends explicit silent frames so server VAD can
+finalize each complete turn without a manual input-buffer commit. The local
+harness allows up to 75 seconds for a complete spoken response; this does not
+change production latency behavior. The result leaves labeled in-memory
 recordings that can be downloaded before the harness reloads.
 
 This local harness does not prove production route protection, physical
