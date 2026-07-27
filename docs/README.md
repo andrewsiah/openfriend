@@ -35,6 +35,12 @@ document below.
   — accepted design for unattended local Realtime acceptance.
 - [plans/2026-07-26-synthetic-paired-voice.md](plans/2026-07-26-synthetic-paired-voice.md)
   — implemented Economy-then-Quality synthetic voice plan.
+- [plans/2026-07-26-greptile-merge-gate-design.md](plans/2026-07-26-greptile-merge-gate-design.md)
+  — accepted automated-review merge-gate design.
+- [plans/2026-07-26-greptile-merge-gate.md](plans/2026-07-26-greptile-merge-gate.md)
+  — implementation and live-verification record for the Greptile gate.
+- [plans/2026-07-26-public-codebase-harness.md](plans/2026-07-26-public-codebase-harness.md)
+  — implemented deterministic browser, architecture, and maintenance checks.
 - [decisions/README.md](decisions/README.md) — architectural decision record
   policy.
 
@@ -42,6 +48,8 @@ document below.
 
 - [../README.md](../README.md) — public project introduction.
 - [../CONTRIBUTING.md](../CONTRIBUTING.md) — contribution workflow.
+- [../CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community standards and
+  private conduct reporting.
 - [../SECURITY.md](../SECURITY.md) — vulnerability reporting.
 
 Update this map whenever a durable document is added, moved, or retired.

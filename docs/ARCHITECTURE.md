@@ -58,6 +58,27 @@ Swift contracts will mirror versioned service payloads rather than importing
 TypeScript. Code generation is added only if duplicated contracts become a
 measured maintenance problem.
 
+### Mechanically enforced boundaries
+
+`pnpm architecture:check` enforces the repository boundaries that must remain
+true as the codebase grows:
+
+- packages cannot import implementation from `apps/`; shared contracts or
+  behavior move into an appropriate package instead;
+- `packages/contracts` contains framework-independent TypeScript contracts and
+  cannot depend on React, Next.js, Node.js built-ins, or application code;
+- browser modules cannot import API routes or explicitly server-only modules,
+  and cannot reference named server credentials such as `OPENAI_API_KEY`; and
+- production code and configuration cannot use the deprecated
+  `gpt-realtime-mini` model identifier.
+
+For this check, a browser module is a module with a `"use client"` directive, a
+module under an app's `components/` directory, or a `*.client.*` module.
+Server-only imports include API route paths, the `server-only` marker, and
+modules following a `*.server.*` naming convention. Tests, fixtures, dependency
+trees, generated output, coverage, and nested worktrees are excluded so the
+gate evaluates shipped code and configuration.
+
 ## Live-model profiles
 
 `LiveModelProfile` is configuration for product-visible choices, not a general

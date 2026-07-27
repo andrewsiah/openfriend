@@ -46,6 +46,49 @@ or another company organization. Verify owner and environment before any
 provider mutation. Development is the default; production access, paid plans,
 and spend changes require explicit human intent.
 
+## Repository supply-chain controls
+
+Repository configuration schedules weekly grouped pnpm and GitHub Actions
+updates, with a cooldown for routine releases. Pull requests that change the
+dependency graph run a read-only dependency review and fail when they introduce
+a known vulnerability of moderate or greater severity. The repository changed
+its package-manager declaration from pnpm 11 to pnpm 10.34.5 because pnpm 10 was
+within GitHub Dependabot's documented support range when verified on
+2026-07-26; the same exact version is used locally and in CI. Workflow actions
+are pinned to the verified commits behind their documented release tags.
+
+Provider-side controls are separate from repository configuration. On
+2026-07-26, `gh api` verification through the GitHub REST API confirmed that the
+personal `andrewsiah/openfriend` repository's vulnerability-alerts endpoint
+returned HTTP 204, Dependabot security updates were enabled, and private
+vulnerability reporting was enabled.
+
+CodeQL default setup is configured. Validation run
+[`30238344037`](https://github.com/andrewsiah/openfriend/actions/runs/30238344037)
+completed successfully: Actions, JavaScript/TypeScript, and Swift analyses all
+reported success, while Adjust Configuration was skipped.
+
+Dependency Review first passed on
+[PR #4](https://github.com/andrewsiah/openfriend/pull/4) at commit `80aab33`.
+GitHub identified the exact `Dependency Review` context as GitHub Actions App ID
+`15368`. Active ruleset `19789735` now requires that context alongside `verify`
+and `Greptile Review`, without a bypass actor and with strict latest-`main`
+checks and resolved review conversations.
+
+On 2026-07-27, the first public-harness push exposed six advisories inherited
+from `main`. Explicit transitive floors move Hono's Node adapter, PostCSS, and
+Sharp to patched releases. The frozen install, full local gate, deterministic
+browser stories, production build, and a native Sharp transform pass with those
+versions.
+
+One high-severity `brace-expansion` advisory remains visible through the
+development-only ESLint chain. The patched major is not a compatible drop-in
+for `minimatch` 3, and forcing current `minimatch` breaks a callable API used by
+the installed React lint plugin. OpenFriend does not pass remote or
+user-controlled glob patterns into this local lint path. The alert is not
+dismissed: keep it visible and replace the exception when the upstream lint
+chain publishes a compatible resolution.
+
 ## Realtime client-secret boundary
 
 The Phase 1 client-secret route intentionally has no application authentication

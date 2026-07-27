@@ -4,23 +4,28 @@
   "private": true,
   "description": "A full-duplex personal companion for Apple Watch and the web.",
   "license": "MIT",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@10.34.5",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "pnpm --filter @openfriend/web dev",
     "build": "pnpm -r --if-present build",
-    "test": "node --test scripts/check-docs.test.mjs && pnpm -r --if-present test",
+    "test": "node --test scripts/*.test.mjs && pnpm -r --if-present test",
+    "test:browser": "pnpm --filter @openfriend/web test:browser",
     "test:watch": "pnpm -r --parallel --if-present test:watch",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
     "format": "prettier --write --ignore-unknown .",
     "format:check": "prettier --check --ignore-unknown .",
     "docs:check": "node scripts/check-docs.mjs",
-    "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm build"
+    "architecture:check": "node scripts/check-architecture.mjs",
+    "maintenance:report": "node scripts/maintenance-report.mjs",
+    "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm architecture:check && pnpm build"
   },
   "devDependencies": {
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "yaml": "^2.9.0"
   }
 }

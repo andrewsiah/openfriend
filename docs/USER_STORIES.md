@@ -3,6 +3,26 @@
 Stories are ordered by the experience they unlock. Infrastructure work belongs
 inside the smallest story that needs it.
 
+## Accepted: trustworthy merge review
+
+> As Andrew and a future contributor, I can only merge a pull request after
+> OpenFriend's complete latest diff has passed local CI and a current Greptile
+> review, so that automated review is a dependable merge gate rather than an
+> optional comment.
+
+Acceptance:
+
+- every pull request targeting `main` receives a Greptile status check;
+- every new commit triggers a fresh review of the updated diff;
+- Greptile must report at least `4/5` confidence;
+- GitHub requires a pull request, current CI and Greptile checks, and resolved
+  review conversations before merge;
+- direct pushes, force pushes, and deletion of `main` are blocked;
+- repository-owned rules give Greptile the accepted user stories and relevant
+  architecture, testing, security, and reliability context;
+- a real pull request records evidence for the initial review, update review,
+  required checks, and protected merge state.
+
 ## Accepted: Phase 0 foundation
 
 > As Andrew and a future contributor, I can open the public OpenFriend

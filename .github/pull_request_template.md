@@ -13,5 +13,8 @@
 - [ ] A focused test failed for the expected reason before implementation.
 - [ ] The smallest implementation made the test pass.
 - [ ] `pnpm verify` passes.
+- [ ] Greptile reviewed the latest commit with at least `4/5` confidence.
+- [ ] Actionable Greptile comments are resolved or answered with verified
+      rationale.
 - [ ] Documentation and quality evidence are updated when behavior changed.
 - [ ] No secrets, company resources, or false completion claims were introduced.
