@@ -262,6 +262,7 @@ export function LiveConversationLab({
               setResponseStartLatency(Math.round(elapsed));
             }
           },
+          onUsageUpdate() {},
         },
         clientSecret.model,
       );

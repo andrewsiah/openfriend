@@ -95,7 +95,7 @@ export function estimateLiveSessionCostUsd(
 export function medianLatencyMs(samples: readonly number[]): number | null {
   const validSamples = samples
     .filter((sample) => Number.isFinite(sample) && sample >= 0)
-    .toSorted((left, right) => left - right);
+    .sort((left, right) => left - right);
 
   if (validSamples.length === 0) {
     return null;

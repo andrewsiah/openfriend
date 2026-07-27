@@ -11,6 +11,7 @@ export type LiveSessionCallbacks = Readonly<{
   onConnectionChange: (status: LiveConnectionStatus) => void;
   onHistoryChange: (history: readonly LiveHistoryItem[]) => void;
   onResponseStart: () => void;
+  onUsageUpdate: (usage: LiveTokenUsage) => void;
   onUserSpeechStopped: () => void;
 }>;
 
@@ -19,3 +20,4 @@ export interface LiveSession {
   interrupt(): void;
   close(): void;
 }
+import type { LiveTokenUsage } from "./live-session-evaluation";

@@ -1,4 +1,5 @@
 import type { RealtimeItem } from "@openai/agents/realtime";
+import type { Usage } from "@openai/agents";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -14,17 +15,20 @@ type SdkTransport = OpenAISdkSession["transport"];
 type ConnectionListener = (status: LiveConnectionStatus) => void;
 type ResponseStartListener = () => void;
 type TurnStartedListener = () => void;
+type UsageListener = (usage: Usage) => void;
 type UserSpeechStoppedListener = () => void;
 
 class SdkTransportHarness implements SdkTransport {
   readonly connectionListeners = new Set<ConnectionListener>();
   readonly responseStartListeners = new Set<ResponseStartListener>();
   readonly turnStartedListeners = new Set<TurnStartedListener>();
+  readonly usageListeners = new Set<UsageListener>();
   readonly userSpeechStoppedListeners = new Set<UserSpeechStoppedListener>();
   readonly offConnectionChange =
     vi.fn<(listener: ConnectionListener) => void>();
   readonly offResponseStart =
     vi.fn<(listener: ResponseStartListener) => void>();
+  readonly offUsage = vi.fn<(listener: UsageListener) => void>();
   readonly offUserSpeechStopped =
     vi.fn<(listener: UserSpeechStoppedListener) => void>();
 
@@ -34,6 +38,7 @@ class SdkTransportHarness implements SdkTransport {
     listener: ResponseStartListener,
   ): void;
   on(event: "turn_started", listener: TurnStartedListener): void;
+  on(event: "usage_update", listener: UsageListener): void;
   on(
     event: "input_audio_buffer.speech_stopped",
     listener: UserSpeechStoppedListener,
@@ -43,11 +48,13 @@ class SdkTransportHarness implements SdkTransport {
       | "connection_change"
       | "input_audio_buffer.speech_stopped"
       | "output_audio_buffer.started"
-      | "turn_started",
+      | "turn_started"
+      | "usage_update",
     listener:
       | ConnectionListener
       | ResponseStartListener
       | TurnStartedListener
+      | UsageListener
       | UserSpeechStoppedListener,
   ): void {
     if (event === "connection_change") {
@@ -67,6 +74,11 @@ class SdkTransportHarness implements SdkTransport {
       return;
     }
 
+    if (event === "usage_update") {
+      this.usageListeners.add(listener as UsageListener);
+      return;
+    }
+
     this.turnStartedListeners.add(listener as TurnStartedListener);
   }
 
@@ -76,6 +88,7 @@ class SdkTransportHarness implements SdkTransport {
     listener: ResponseStartListener,
   ): void;
   off(event: "turn_started", listener: TurnStartedListener): void;
+  off(event: "usage_update", listener: UsageListener): void;
   off(
     event: "input_audio_buffer.speech_stopped",
     listener: UserSpeechStoppedListener,
@@ -85,11 +98,13 @@ class SdkTransportHarness implements SdkTransport {
       | "connection_change"
       | "input_audio_buffer.speech_stopped"
       | "output_audio_buffer.started"
-      | "turn_started",
+      | "turn_started"
+      | "usage_update",
     listener:
       | ConnectionListener
       | ResponseStartListener
       | TurnStartedListener
+      | UsageListener
       | UserSpeechStoppedListener,
   ): void {
     if (event === "connection_change") {
@@ -113,6 +128,13 @@ class SdkTransportHarness implements SdkTransport {
       return;
     }
 
+    if (event === "usage_update") {
+      const usageListener = listener as UsageListener;
+      this.usageListeners.delete(usageListener);
+      this.offUsage(usageListener);
+      return;
+    }
+
     this.turnStartedListeners.delete(listener as TurnStartedListener);
   }
 
@@ -131,6 +153,12 @@ class SdkTransportHarness implements SdkTransport {
   emitTurnStarted(): void {
     for (const listener of this.turnStartedListeners) {
       listener();
+    }
+  }
+
+  emitUsage(usage: Usage): void {
+    for (const listener of this.usageListeners) {
+      listener(usage);
     }
   }
 
@@ -175,6 +203,9 @@ function createSdkSessionHarness() {
     emitTurnStarted() {
       transport.emitTurnStarted();
     },
+    emitUsage(usage: Usage) {
+      transport.emitUsage(usage);
+    },
     emitUserSpeechStopped() {
       transport.emitUserSpeechStopped();
     },
@@ -196,6 +227,7 @@ function createLiveSession(
       onConnectionChange: callbacks.onConnectionChange ?? vi.fn(),
       onHistoryChange: callbacks.onHistoryChange ?? vi.fn(),
       onResponseStart: callbacks.onResponseStart ?? vi.fn(),
+      onUsageUpdate: callbacks.onUsageUpdate ?? vi.fn(),
       onUserSpeechStopped: callbacks.onUserSpeechStopped ?? vi.fn(),
     },
     createSdkSession,
@@ -318,6 +350,41 @@ describe("OpenAILiveSession", () => {
     expect(onUserSpeechStopped).toHaveBeenCalledOnce();
   });
 
+  it("maps SDK usage into non-overlapping token counts", () => {
+    const harness = createSdkSessionHarness();
+    const onUsageUpdate = vi.fn();
+    createLiveSession(harness.sdkSession, { onUsageUpdate });
+
+    harness.emitUsage({
+      inputTokens: 400,
+      outputTokens: 150,
+      inputTokensDetails: [
+        {
+          text_tokens: 300,
+          audio_tokens: 80,
+          cached_tokens: 200,
+          cached_tokens_details: {
+            text_tokens: 180,
+            audio_tokens: 10,
+          },
+        },
+      ],
+      outputTokensDetails: [{ text_tokens: 50, audio_tokens: 80 }],
+    } as unknown as Usage);
+
+    expect(onUsageUpdate).toHaveBeenCalledWith({
+      uncachedInputTextTokens: 120,
+      cachedInputTextTokens: 180,
+      uncachedInputAudioTokens: 70,
+      cachedInputAudioTokens: 10,
+      uncachedInputUnknownTokens: 10,
+      cachedInputUnknownTokens: 10,
+      outputTextTokens: 50,
+      outputAudioTokens: 80,
+      outputUnknownTokens: 20,
+    });
+  });
+
   it("delegates manual interruption to the SDK session", () => {
     const { sdkSession } = createSdkSessionHarness();
     const { liveSession } = createLiveSession(sdkSession);
@@ -348,6 +415,7 @@ describe("OpenAILiveSession", () => {
     const userSpeechStoppedListener = [
       ...harness.transport.userSpeechStoppedListeners,
     ][0];
+    const usageListener = [...harness.transport.usageListeners][0];
 
     liveSession.close();
 
@@ -364,5 +432,6 @@ describe("OpenAILiveSession", () => {
     expect(harness.transport.offUserSpeechStopped).toHaveBeenCalledWith(
       userSpeechStoppedListener,
     );
+    expect(harness.transport.offUsage).toHaveBeenCalledWith(usageListener);
   });
 });
