@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -82,6 +88,7 @@ function createSequentialSessionHarness(
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -202,7 +209,7 @@ describe("LiveConversationLab", () => {
   });
 
   it("clears the connection timeout after the session becomes live", async () => {
-    const user = userEvent.setup();
+    vi.useFakeTimers();
     const sessionHarness = createSessionHarness();
     vi.stubGlobal(
       "fetch",
@@ -223,13 +230,17 @@ describe("LiveConversationLab", () => {
       />,
     );
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole("button", { name: /start live conversation/i }),
     );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(sessionHarness.createSession).toHaveBeenCalledOnce();
     act(() => {
       sessionHarness.emitConnection("connected");
+      vi.advanceTimersByTime(20);
     });
-    await new Promise((resolve) => setTimeout(resolve, 20));
 
     expect(screen.getByRole("status")).toHaveTextContent(/live/i);
     expect(sessionHarness.session.close).not.toHaveBeenCalled();
