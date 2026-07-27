@@ -131,7 +131,21 @@ TypeScript and ESLint ignores were removed.
   repository and CI target Node 22 rather than Node 26.
 - PR #6 was recreated again from `17e1d86` as head `c9a8915`; `verify` and
   `Dependency Review` ran, but Greptile still did not start on the native bot
-  pull request. Its exact commit is being promoted without modification on
-  `andrew/jsdom-29-reviewed` for a real Greptile review.
-- The promoted pull-request, protected-merge, bot-closure, and final-main
-  evidence will be appended during execution.
+  pull request.
+- PR #13 promoted that exact dependency commit from current `main`. Its first
+  head passed `verify`, `Dependency Review`, and a real 5/5 `Greptile Review`.
+  A subsequent Codex review correctly found that jsdom 29 requires Node
+  22.13.0 while the repository still advertised Node 22 generally.
+- Head `ef3b909` raised the declared and automated Node floor to 22.13.0 and
+  added a focused configuration regression test. Local `pnpm verify` passed
+  with 53 repository tests, 6 contract tests, and 86 web tests; the isolated
+  browser suite passed 4/4.
+- The corrected head passed `verify`, `Dependency Review`, and a fresh real
+  5/5 `Greptile Review` with no files needing attention. The review thread was
+  resolved before PR #13 merged through the active ruleset as `61bc7eb`.
+- Native Dependabot PR #6 was closed as superseded only after that merge was
+  confirmed. The durable promotion procedure is recorded in
+  [ENGINEERING.md](../ENGINEERING.md).
+- The main ruleset remains active with no bypass actors and still requires the
+  exact App-bound checks `verify`, `Greptile Review`, and `Dependency Review`,
+  strict latest-main status, and resolved review conversations.

@@ -9,8 +9,6 @@ Phase 2 is next. Its first accepted story is a useful phone-free conversation
 on Andrew's physical Apple Watch. A bounded transport and authentication design
 must be accepted before implementation begins.
 
-- [Dependabot review loop](plans/2026-07-27-dependabot-review-loop.md)
-
 ## Completed
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
@@ -19,6 +17,7 @@ must be accepted before implementation begins.
 - [Synthetic paired voice acceptance](plans/2026-07-26-synthetic-paired-voice.md)
 - [Greptile merge gate](plans/2026-07-26-greptile-merge-gate.md)
 - [Public codebase harness](plans/2026-07-26-public-codebase-harness.md)
+- [Dependabot review loop](plans/2026-07-27-dependabot-review-loop.md)
 
 ## Accepted design
 
