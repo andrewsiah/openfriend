@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "description": "Repository-wide agent workflow, delegation, account, and secret-handling rules."
+    },
+    {
+      "path": "docs/USER_STORIES.md",
+      "description": "Accepted product and engineering stories with observable acceptance criteria."
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "description": "Runtime boundaries, shared contracts, and action lifecycle."
+    },
+    {
+      "path": "docs/ENGINEERING.md",
+      "description": "User-story workflow, TDD, YAGNI, orchestration, and definition of done."
+    },
+    {
+      "path": "docs/TESTING.md",
+      "description": "Required local gate, test layers, and mandatory browser and voice teardown."
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "description": "Credential, privacy, approval, and data-handling requirements."
+    },
+    {
+      "path": "docs/RELIABILITY.md",
+      "description": "Truthful action, retry, reconnection, and degraded-state requirements."
+    }
+  ]
+}

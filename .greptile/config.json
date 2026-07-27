@@ -1,0 +1,11 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax", "style", "info"],
+  "triggerOnUpdates": true,
+  "triggerOnDrafts": false,
+  "statusCheck": true,
+  "statusCommentsEnabled": true,
+  "fileChangeLimit": 100,
+  "includeBranches": ["main"],
+  "excludeAuthors": []
+}

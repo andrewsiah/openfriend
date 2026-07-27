@@ -12,10 +12,12 @@ comparison; an implementation plan has not yet been accepted.
 
 - [Phase 0 foundation implementation](plans/2026-07-26-phase-0-foundation.md)
 - [Phase 1 live conversation](plans/2026-07-26-phase-1-live-conversation.md)
+- [Greptile merge gate](plans/2026-07-26-greptile-merge-gate.md)
 
 ## Accepted design
 
 - [OpenFriend foundation design](plans/2026-07-26-openfriend-foundation-design.md)
+- [Greptile merge-gate design](plans/2026-07-26-greptile-merge-gate-design.md)
 
 ## Plan lifecycle
 
