@@ -221,8 +221,17 @@ On 2026-07-26:
   usage, median latency, sanitized SDK usage, exact listener removal, the fixed
   guide, required rating, saved summary, explicit other-profile preparation,
   and reset during a live second session;
-- 68 web tests pass together with focused typecheck, lint, and formatting;
+- the complete `pnpm verify` gate passes with 68 web tests, 6 contract tests,
+  typecheck, lint, formatting, docs validation, and the production build;
+- real-browser checks at 320 px and desktop widths show no horizontal overflow,
+  keep the fixed guide visible, and produce no application-sourced console
+  error;
+- the complete public branch diff has zero credential-shaped matches;
 - Claude Fable/high returned a structured `APPROVED` final verdict with no
   actionable P0/P1 runtime or regression-test finding;
-- real paired-microphone, deployed-browser, and integrated-gate evidence remain
+- a physical-microphone attempt established permission and an Economy
+  connection, but was stopped immediately when unrelated room speech reached
+  the microphone; the session was ended and the mounted transcript state was
+  reset without treating the attempt as comparative evidence;
+- the quiet-room paired-microphone and deployed-browser evidence remain
   pending.

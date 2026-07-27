@@ -58,13 +58,18 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 | Usage accounting    | Cached tokens are not double-counted                        | Passing | Adapter and pure evaluation tests                  |
 | Cost truthfulness   | Dated estimate discloses missing and separate charges       | Passing | Evaluation tests and visible disclosure            |
 | Privacy boundary    | Summaries omit transcript and remain mounted-memory-only    | Passing | Component tests and architecture inspection        |
+| Automated quality   | Complete local gates pass                                   | Passing | `pnpm verify`; 68 web tests and 6 contract tests   |
+| Responsive browser  | Workflow fits 320 px and desktop without application errors | Passing | Local real-browser checks on 2026-07-26            |
 | Paired conversation | Real Economy and Quality microphone runs use the same guide | Pending | —                                                  |
 | Human quality       | Andrew records a 1–5 score for each real run                | Pending | —                                                  |
 | Deployment          | Paired workflow passes deployed browser acceptance          | Pending | —                                                  |
 | Final review        | Claude Fable/high finds no actionable P0/P1 issue           | Passing | Structured `APPROVED` verdict on runtime and tests |
 
 The automated rows prove behavior and boundaries, not comparative model
-quality. The pending rows require real sessions and deployed-browser evidence.
+quality. A physical-microphone attempt on 2026-07-26 was stopped when unrelated
+room speech reached the microphone; the live session was ended and its mounted
+transcript state was reset. The pending rows still require quiet-room paired
+sessions and deployed-browser evidence.
 
 ## 2026-07-26 deployed foundation evidence
 
