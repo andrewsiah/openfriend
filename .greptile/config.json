@@ -7,5 +7,6 @@
   "statusCommentsEnabled": true,
   "fileChangeLimit": 100,
   "includeBranches": ["main"],
+  "includeAuthors": ["*"],
   "excludeAuthors": []
 }

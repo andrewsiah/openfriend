@@ -173,6 +173,13 @@ test("Dependabot keeps security-relevant TypeScript and ESLint majors visible", 
   );
 });
 
+test("Greptile explicitly includes every pull request author", async () => {
+  const config = JSON.parse(await readRepositoryFile(".greptile/config.json"));
+
+  assert.deepEqual(config.includeAuthors, ["*"]);
+  assert.deepEqual(config.excludeAuthors, []);
+});
+
 test("configuration validation rejects malformed YAML", () => {
   const malformed = `
 version: 2
@@ -263,6 +270,35 @@ test("CI uses immutable allowlisted actions and supported repository pnpm", asyn
   assert.ok(actions.includes("actions/checkout"));
   assert.ok(actions.includes("pnpm/action-setup"));
   assert.ok(actions.includes("actions/setup-node"));
+});
+
+test("repository and automation require jsdom 29's Node 22.13 floor", async () => {
+  const packageJson = JSON.parse(await readRepositoryFile("package.json"));
+  const workflowPaths = [
+    ".github/workflows/ci.yml",
+    ".github/workflows/maintenance-report.yml",
+  ];
+
+  assert.equal(packageJson.engines?.node, ">=22.13.0");
+
+  for (const workflowPath of workflowPaths) {
+    const workflow = parseConfiguration(await readRepositoryFile(workflowPath));
+    const setupNodeSteps = Object.values(workflow.jobs ?? {}).flatMap((job) =>
+      (job.steps ?? []).filter(
+        (step) =>
+          typeof step.uses === "string" &&
+          actionName(step.uses) === "actions/setup-node",
+      ),
+    );
+
+    assert.ok(
+      setupNodeSteps.length > 0,
+      `${workflowPath} must set up the repository Node runtime`,
+    );
+    for (const step of setupNodeSteps) {
+      assert.equal(String(step.with?.["node-version"]), "22.13.0");
+    }
+  }
 });
 
 test("CI runs the isolated browser story after verify and retains only failure evidence", async () => {
