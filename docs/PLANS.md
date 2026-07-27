@@ -6,7 +6,9 @@ scope, acceptance criteria, decisions, and evidence.
 ## Active
 
 Phase 1 remains active. Its next accepted story is Economy-versus-Quality
-comparison; an implementation plan has not yet been accepted.
+comparison:
+
+- [Phase 1 profile comparison](plans/2026-07-26-phase-1-profile-comparison.md)
 
 ## Completed
 
