@@ -117,8 +117,15 @@ Add a dated checklist to this plan containing only non-sensitive facts:
 
 **Step 5: Stop on any unresolved ownership**
 
-Expected: no code or provider mutation begins while a prerequisite is
-ambiguous.
+Expected: no provider mutation begins while ownership or authority is
+ambiguous. Tasks 1–2 may proceed only as local, synthetic, server-only
+prerequisites; they do not require signing, a connected Watch, deployment,
+public route exposure, provider mutation, or live Apple/OpenAI calls.
+
+Stop before Task 2A until the exact personal Watch model, watchOS version,
+active cellular-plan status, and working personal signing readiness are
+confirmed. The Task 2A signing, deployment, WAF, preview-protection, and live
+endpoint gates remain unchanged.
 
 **Step 6: Commit the non-sensitive acceptance record**
 

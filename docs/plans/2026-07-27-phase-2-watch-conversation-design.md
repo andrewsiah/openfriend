@@ -461,12 +461,20 @@ real transcripts, account identifiers, or screenshots containing private data.
 
 ## Prerequisites and stop conditions
 
-Implementation is blocked until Andrew confirms:
+Tasks 1–2 of the implementation plan may proceed as local, synthetic,
+server-only prerequisites. They do not require signing, a connected Watch,
+deployment, public route exposure, provider mutation, or live Apple/OpenAI
+calls. This exception does not authorize any provider mutation and does not
+weaken the public-repository or personal-account boundaries.
+
+Task 2A and all later implementation remain blocked until Andrew confirms:
 
 - a personal Apple Developer team that may sign this Watch target;
 - authority to register or adopt the Watch App ID and Sign in with Apple
   capability in that personal team;
-- the exact personal Watch hardware and cellular plan for the field test;
+- the exact personal Watch model, watchOS version, and active cellular-plan
+  status for the field test;
+- working personal signing readiness for the Watch target;
 - a personal Vercel/OpenAI development environment for the authenticated route;
 - an accepted authenticated-route rate-limit mechanism that does not require
   Supabase.
@@ -481,6 +489,8 @@ Stop Phase 2 implementation if:
 - the only path forward requires a persistent relay, native WebRTC port, new
   database, or unrelated background-runtime category without a newly accepted
   design.
+
+Stop after Task 2 until every Task 2A prerequisite above is confirmed.
 
 ## Current primary sources
 
