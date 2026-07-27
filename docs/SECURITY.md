@@ -100,6 +100,25 @@ The route may return only the short-lived Realtime client secret, its expiry,
 and the selected model. It must never return or log the server API key or an
 upstream error body.
 
+## Phase 2 Watch authentication boundary
+
+The planned Watch route is separate from the unauthenticated Phase 1 browser
+route. It verifies a nonce-bound Sign in with Apple identity token, expected
+issuer, audience, expiry, and a single allowed subject before minting a
+server-selected Economy Realtime client secret.
+
+The Watch holds the identity token and Realtime secret in memory only for the
+active session. The gateway stores no Watch session, email, name, audio, or
+transcript. The allowed Apple subject and safety-identifier key belong only in
+an approved personal secret store. Responses remain no-store and sanitized.
+
+Keep hosting protection enabled until the authenticated route and rate limit
+are verified in the personal provider account. App Attest, refresh tokens,
+multi-user identity, and durable auth state are deferred. Locking or removing
+the physical Watch must stop capture and leave no durable bearer credential.
+The complete boundary and threat gates are in the
+[Phase 2 design](plans/2026-07-27-phase-2-watch-conversation-design.md).
+
 ## Threats to address by phase
 
 Phase 0 protects repository and account boundaries. Phase 1 adds ephemeral

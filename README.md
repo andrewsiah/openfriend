@@ -39,19 +39,22 @@ See [the product guide](docs/PRODUCT.md) for the accepted scope.
 
 ## Current status
 
-OpenFriend is in **Phase 1: Web Voice Lab**. Its first story is complete: the web
-app can start a real, ephemeral OpenAI Realtime conversation from the
-microphone, show finalized user and assistant transcripts, measure connection
-and audible response-start latency, support both natural barge-in and an
-explicit Interrupt control, and end the session cleanly.
+OpenFriend has accepted the **Phase 1: Web Voice Lab** experience and is
+planning **Phase 2: Watch Field Test**. The web app can start a real, ephemeral
+OpenAI Realtime conversation from the microphone, show finalized user and
+assistant transcripts, measure connection and audible response-start latency,
+support both natural barge-in and an explicit Interrupt control, and end the
+session cleanly.
 
 Conversation content remains in the browser session only. OpenFriend does not
 yet persist memory, perform external actions, or provide physical-device Watch
 voice behavior. The voice lab now guides otherwise equivalent Economy and
 Quality sessions, asks for a 1–5 quality score, and compares median response
 latency, provider-reported usage, and estimated cost. Those evaluation summaries
-also remain in memory only and clear on reload. The independent Watch field
-test follows this Phase 1 comparison.
+also remain in memory only and clear on reload. The Phase 2 design and TDD plan
+now recommend a direct, authenticated Watch-to-Realtime WebSocket, conditional
+on signing and physical Wi-Fi/cellular proof. No Watch voice implementation has
+started.
 
 An unsigned, Watch-only SwiftUI simulator skeleton is also available under
 `apps/watch`. It proves the independent target and truthful idle state build on
@@ -75,9 +78,10 @@ a stronger agent.
 
 ```mermaid
 flowchart LR
-    Watch["Apple Watch\nindependent SwiftUI app"] --> Service["OpenFriend service"]
+    Watch["Apple Watch\nindependent SwiftUI app"] -->|"authenticate and mint"| Gateway["OpenFriend gateway"]
+    Watch -->|"ephemeral direct session"| Live["Live companion\nfull-duplex conversation"]
     Web["Web voice lab\nand visual dashboard"] --> Service
-    Service --> Live["Live companion\nfull-duplex conversation"]
+    Service["OpenFriend service"] --> Live
     Live --> Operator["Background operator\ndeep work and tools"]
     Operator --> Review["Visual review\napprove, edit, reject"]
     Review --> Actions["Confirmed external actions"]

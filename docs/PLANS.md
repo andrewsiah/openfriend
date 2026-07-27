@@ -6,8 +6,16 @@ scope, acceptance criteria, decisions, and evidence.
 ## Active
 
 Phase 2 is next. Its first accepted story is a useful phone-free conversation
-on Andrew's physical Apple Watch. A bounded transport and authentication design
-must be accepted before implementation begins.
+on Andrew's physical Apple Watch.
+
+- [Phase 2 phone-free Watch conversation design](plans/2026-07-27-phase-2-watch-conversation-design.md)
+  — recommended for acceptance; direct Realtime WebSocket is conditional on a
+  signed physical-device feasibility gate.
+- [Phase 2 phone-free Watch conversation implementation](plans/2026-07-27-phase-2-watch-conversation.md)
+  — detailed TDD plan; implementation has not begun.
+
+Signing authority, the physical cellular Watch, authenticated-route rate
+limiting, and the complete hardware matrix remain unresolved prerequisites.
 
 ## Completed
 

@@ -127,6 +127,23 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 | Deployment           | Paired workflow passes deployed browser acceptance           | Passing  | Andrew completed user-visible Economy and Quality microphone sessions on the Vercel branch preview on 2026-07-27         |
 | Final review         | Claude Fable/high finds no actionable P0/P1 issue            | Deferred | Earlier comparison review passed; final audio-fix review remains unavailable at the Fable usage limit                    |
 
+## Phase 2 Watch field-test score
+
+| Dimension             | Target                                                                  | Status  | Evidence                                                                |
+| --------------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------- |
+| Design                | Compare direct WebSocket, relay, and native WebRTC from primary sources | Pending | [Phase 2 design](plans/2026-07-27-phase-2-watch-conversation-design.md) |
+| Implementation plan   | Bite-sized TDD tasks and physical stop gates are reviewed               | Pending | [Phase 2 plan](plans/2026-07-27-phase-2-watch-conversation.md)          |
+| Fable review          | One bounded Fable/high review completes                                 | Pending | Fable 5 usage limit prevented the 2026-07-27 read-only review           |
+| Watch implementation  | Authenticated full-duplex PCM WebSocket session builds and tests        | Pending | Production Watch code has not begun                                     |
+| Signing               | Personal Apple team and required capabilities are verified              | Pending | No signing or provider mutation was performed                           |
+| Physical feasibility  | Active audio permits direct WebSocket and simultaneous capture/playback | Pending | No signed physical-device run has occurred                              |
+| Phone-free field test | Wi-Fi and Watch cellular pass without the paired iPhone data path       | Pending | Physical network matrix has not begun                                   |
+| Loss behavior         | Reconnect, route loss, interruption, lock, and teardown are truthful    | Pending | Physical failure matrix has not begun                                   |
+
+Planning documents are not evidence that Watch voice works. A row moves to
+Passing only after its named review, signed build, provider check, or physical
+scenario is freshly verified.
+
 The automated rows prove behavior and boundaries, not comparative model
 quality. The final browser path requests mono capture, echo cancellation, noise
 suppression, and automatic gain control. Realtime adds near-field noise

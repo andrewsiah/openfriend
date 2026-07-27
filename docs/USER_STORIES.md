@@ -95,6 +95,12 @@ Acceptance:
 - connection and delegated-work status are glanceable;
 - Wi-Fi, cellular, noise, and reconnection scenarios pass on the physical Watch.
 
+Planning status: the dated Phase 2 design recommends an authenticated,
+ephemeral-token `URLSessionWebSocketTask` path after an active Watch audio
+session, with a persistent relay and native Watch WebRTC deferred. The detailed
+TDD plan is written, but production Watch code, signing, authentication,
+physical feasibility, and the Wi-Fi/cellular/no-phone matrix have not begun.
+
 ### Hand detailed review to the web
 
 > As Andrew speaking on my Watch, I can send a structured draft to a web review
