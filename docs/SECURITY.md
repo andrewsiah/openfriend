@@ -51,10 +51,11 @@ and spend changes require explicit human intent.
 Repository configuration schedules weekly grouped pnpm and GitHub Actions
 updates, with a cooldown for routine releases. Pull requests that change the
 dependency graph run a read-only dependency review and fail when they introduce
-a known vulnerability of moderate or greater severity. The repository declares
-pnpm 10, which is within GitHub Dependabot's documented pnpm support range as
-verified on 2026-07-26. Workflow actions are pinned to the verified commits
-behind their documented release tags.
+a known vulnerability of moderate or greater severity. The repository changed
+its package-manager declaration from pnpm 11 to pnpm 10.34.5 because pnpm 10 was
+within GitHub Dependabot's documented support range when verified on
+2026-07-26; the same exact version is used locally and in CI. Workflow actions
+are pinned to the verified commits behind their documented release tags.
 
 Provider-side controls are separate from repository configuration. On
 2026-07-26, `gh api` verification through the GitHub REST API confirmed that the

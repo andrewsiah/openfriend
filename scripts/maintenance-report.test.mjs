@@ -176,6 +176,10 @@ test("reports missing required documentation and security automation", async (t)
     report,
     /`\.github\/workflows\/ci\.yml` — missing required security automation/,
   );
+  assert.match(
+    report,
+    /`\.github\/workflows\/dependency-review\.yml` — missing required security automation/,
+  );
   assert.match(report, /Repository guardrails \| \d+/);
 });
 
@@ -389,11 +393,6 @@ test("reports missing or unsupported dependency-health foundations", async (t) =
     missingReport,
     /`\.github\/dependabot\.yml` — missing dependency automation/,
   );
-  assert.match(
-    missingReport,
-    /`\.github\/workflows\/dependency-review\.yml` — missing pull-request dependency review/,
-  );
-
   const unsupportedReport = await generateMaintenanceReport(unsupportedRoot);
   assert.match(
     unsupportedReport,

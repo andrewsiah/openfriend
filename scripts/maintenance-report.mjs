@@ -49,7 +49,10 @@ export const TEST_LINE_WARNING = 1000;
 export const QUALITY_EVIDENCE_WARNING_DAYS = 90;
 export const SUBSTANTIAL_BASELINE_LINES = 200;
 
-const REQUIRED_SECURITY_AUTOMATION = [".github/workflows/ci.yml"];
+const REQUIRED_SECURITY_AUTOMATION = [
+  ".github/workflows/ci.yml",
+  ".github/workflows/dependency-review.yml",
+];
 const MAINTENANCE_BASELINE = "scripts/maintenance-baseline.json";
 
 async function listRepositoryFiles(root) {
@@ -471,10 +474,6 @@ async function findDependencyHealth(root, repositoryFileSet) {
   const requiredFiles = [
     ["pnpm-lock.yaml", "missing pnpm lockfile"],
     [".github/dependabot.yml", "missing dependency automation"],
-    [
-      ".github/workflows/dependency-review.yml",
-      "missing pull-request dependency review",
-    ],
   ];
 
   for (const [relativePath, issue] of requiredFiles) {
