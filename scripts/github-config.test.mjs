@@ -155,6 +155,27 @@ test("Dependabot groups weekly pnpm dependency updates with a cooldown", async (
   assertWeeklyGroupedUpdates(npmUpdates, "pnpm");
 });
 
+test("Dependabot suppresses only known-incompatible TypeScript and ESLint majors", async () => {
+  const config = parseConfiguration(
+    await readRepositoryFile(".github/dependabot.yml"),
+  );
+  const npmUpdates = dependencyUpdate(config, "npm");
+  const incompatibleMajorPolicy = (npmUpdates.ignore ?? []).filter((rule) =>
+    ["typescript", "eslint"].includes(rule["dependency-name"]),
+  );
+
+  assert.deepEqual(incompatibleMajorPolicy, [
+    {
+      "dependency-name": "typescript",
+      "update-types": ["version-update:semver-major"],
+    },
+    {
+      "dependency-name": "eslint",
+      "update-types": ["version-update:semver-major"],
+    },
+  ]);
+});
+
 test("configuration validation rejects malformed YAML", () => {
   const malformed = `
 version: 2

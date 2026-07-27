@@ -1,0 +1,63 @@
+# Dependabot review loop design
+
+## Accepted story
+
+> As Andrew and a future contributor, I can merge a dependency update only
+> after the update passes repository verification, dependency review, and the
+> same current Greptile review required of every other pull request.
+
+## Acceptance criteria
+
+- Dependabot-authored pull requests targeting `main` receive the exact required
+  `Greptile Review` check from the Greptile GitHub App;
+- the existing `verify`, `Dependency Review`, and Greptile ruleset requirements
+  remain unchanged and have no bypass;
+- no workflow is allowed to imitate, replace, or manufacture a Greptile result;
+- known-incompatible TypeScript and ESLint major versions stop generating
+  routine version-update pull requests while minor, patch, and security updates
+  remain visible;
+- the existing Dependabot pull requests are retriggered or triaged from current
+  checks, not merged from stale evidence; and
+- live provider evidence is recorded before completion is claimed.
+
+## Evidence-led design
+
+The repository-local Greptile configuration already has no excluded authors,
+but the Andrewsiah organization dashboard had an explicit
+`dependabot[bot]` author exclusion. Pull requests from humans received Greptile
+checks while four Dependabot pull requests did not. A human
+`@greptileai` mention on a passing Dependabot pull request did not create a
+check while the exclusion remained active.
+
+The narrow fix is to remove only `dependabot[bot]` from the organization-level
+author exclusion and prove the result on a real Dependabot update. The
+`renovate[bot]` exclusion remains because Renovate is not part of this
+repository's dependency workflow. GitHub branch protection remains the
+enforcement layer, and Greptile remains the sole producer of its required
+check.
+
+The npm Dependabot entry explicitly ignores semver-major version updates for
+`typescript` and `eslint`. Their current major pull requests fail the repository
+gate, while the pinned supported majors continue receiving routine minor,
+patch, and security updates. This policy is reviewable in Git and can be
+removed deliberately when the repository is ready for either migration.
+
+## Alternatives rejected
+
+- A `pull_request_target` workflow that posts `@greptileai` adds write authority
+  but cannot repair an organization-level author exclusion. The live manual
+  trigger was a no-op while the filter existed.
+- A workflow that manufactures a successful `Greptile Review` result would
+  defeat the required App identity and create false assurance.
+- Removing Greptile from branch protection for dependency updates would create
+  a weaker merge path and GitHub required checks cannot be scoped safely by
+  pull-request author.
+- Ignoring every major dependency update would hide useful migrations that have
+  not been shown to be incompatible.
+
+## External-state boundary
+
+Only Andrew's personal `andrewsiah/openfriend` GitHub repository and Andrewsiah
+Greptile organization are in scope. Provider changes contain no repository
+contents or secrets. Existing unrelated worktrees and product pull requests
+remain untouched.
