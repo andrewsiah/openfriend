@@ -17,7 +17,8 @@ product, architecture, engineering, testing, security, and planning guidance.
 4. Keep the live companion responsive; delegate deeper work to the operator.
 5. Confirm external actions in their source system before claiming completion.
 6. Keep secrets server-side and out of Git, prompts, logs, clients, and Watch.
-7. Run [docs/TESTING.md](docs/TESTING.md) checks and record durable evidence.
+7. Follow [docs/TESTING.md](docs/TESTING.md), including mandatory browser and
+   voice teardown, and record durable evidence.
 8. Preserve existing user work and keep commits narrow.
 
 ## Orchestration and delegation
