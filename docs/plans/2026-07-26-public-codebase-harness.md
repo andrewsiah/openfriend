@@ -285,9 +285,9 @@ git commit -m "chore: add weekly quality maintenance report"
 
 **Files:**
 
-- Create: `CONTRIBUTING.md`
-- Create: `.github/SECURITY.md`
-- Create: `CODE_OF_CONDUCT.md`
+- Modify: `CONTRIBUTING.md`
+- Modify: `SECURITY.md`
+- Modify: `CODE_OF_CONDUCT.md`
 - Modify: `README.md`
 - Modify: `docs/README.md`
 - Modify: `scripts/check-docs.mjs`
@@ -295,8 +295,9 @@ git commit -m "chore: add weekly quality maintenance report"
 
 **Step 1: Write failing documentation checks**
 
-Require the contributor guide, GitHub-recognized security policy, and code of
-conduct. Verify all relative links and reject placeholder reporting contacts.
+Require the existing contributor guide, GitHub-recognized root security policy,
+and code of conduct. Verify all relative links, required guidance, and reject
+placeholder reporting contacts.
 
 **Step 2: Add the minimal documents**
 
@@ -305,8 +306,8 @@ conduct. Verify all relative links and reject placeholder reporting contacts.
 - Security policy: supported `main`, private GitHub vulnerability reporting,
   no public disclosure of suspected secrets, and response expectations without
   unsupported guarantees.
-- Contributor Covenant with GitHub private reporting as the project-specific
-  enforcement contact.
+- Contributor Covenant with the existing private maintainer contact for conduct
+  enforcement.
 
 Do not add CODEOWNERS, DCO, signed commits, automatic releases, or mandatory
 human approval for the solo-maintainer phase.
@@ -319,7 +320,7 @@ Run documentation tests, `pnpm docs:check`, placeholder/secret searches, and
 **Step 4: Commit**
 
 ```bash
-git add CONTRIBUTING.md CODE_OF_CONDUCT.md .github/SECURITY.md README.md \
+git add CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md README.md \
   docs/README.md scripts/check-docs.mjs scripts/check-docs.test.mjs
 git commit -m "docs: add public contribution governance"
 ```

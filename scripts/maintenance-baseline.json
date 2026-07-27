@@ -23,6 +23,8 @@
     "apps/web/tests/synthetic-voice/main.ts": 296,
     "scripts/check-architecture.mjs": 496,
     "scripts/check-architecture.test.mjs": 340,
+    "scripts/check-docs.mjs": 257,
+    "scripts/check-docs.test.mjs": 296,
     "scripts/github-config.test.mjs": 352,
     "scripts/maintenance-report.mjs": 745,
     "scripts/maintenance-report.test.mjs": 470

@@ -102,15 +102,14 @@ pnpm dev
 Quality gates:
 
 ```bash
-pnpm test
-pnpm typecheck
-pnpm lint
-pnpm format:check
-pnpm docs:check
-pnpm build
+pnpm verify
+pnpm test:browser
 ```
 
-`pnpm verify` runs the complete local gate without provider credentials.
+`pnpm verify` runs the core local gate without provider credentials.
+`pnpm test:browser` adds the deterministic browser story without external
+network calls. `pnpm maintenance:report` generates the weekly informational
+repository-health report locally.
 Rendering the idle web app also requires no credential. A real voice
 conversation requires a server-side `OPENAI_API_KEY`; copy `.env.example` to a
 local ignored environment file and provide the value without committing it.
@@ -147,7 +146,9 @@ Read [docs/SECURITY.md](docs/SECURITY.md),
 The first user is Andrew, but the project is public so others can learn from,
 challenge, and improve it. Start with [CONTRIBUTING.md](CONTRIBUTING.md), the
 [user-story backlog](docs/USER_STORIES.md), and the
-[active plans](docs/PLANS.md).
+[active plans](docs/PLANS.md). Participation is governed by the
+[Code of Conduct](CODE_OF_CONDUCT.md); report vulnerabilities through the
+[private security process](SECURITY.md).
 
 ## License
 
