@@ -13,6 +13,14 @@ The first user is Andrew. Designing for one known person keeps early choices
 honest. Explicit ownership fields and service boundaries preserve a path to
 multiple users and self-hosting later without building those systems now.
 
+## What makes a good friend
+
+Working note from _Her_, recorded verbatim:
+
+> an intuitive entity that listens, understands and knows you. its not just an
+> ai, it's a consciousness. it grows through its experiences, and every moment
+> it's evolving, just like you.
+
 ## Product principles
 
 ### Conversation is the interface
