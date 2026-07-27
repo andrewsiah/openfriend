@@ -95,7 +95,13 @@ remediation for:
   1,000 lines;
 - missing required system-of-record documents and security automation;
 - broken relative Markdown links; and
-- Pending quality-score rows, plus old dated evidence when a date is supplied.
+- missing or older-than-90-day core-document review dates;
+- files that grew by both at least 100 lines and at least 25 percent from the
+  reviewed baseline;
+- missing dependency manifests, pnpm lockfiles, pnpm 10 declarations,
+  Dependabot, or pull-request dependency review; and
+- Pending or invalid quality-score statuses, Passing rows with blank or
+  unproven evidence, plus old dated quality evidence when a date is supplied.
 
 The size thresholds are prompts to inspect cohesion, not reasons to split code
 mechanically. All findings are informational and leave the command successful;
@@ -103,11 +109,24 @@ invalid arguments and unreadable repository roots fail the command. The report
 excludes `.git`, `.next`, `.turbo`, `.worktrees`, `node_modules`, `dist`,
 `coverage`, and `test-results`.
 
+The checked-in `scripts/maintenance-baseline.json` is review evidence, not an
+automatically moving target. It records review dates for the required core docs
+and line counts for tracked source and test files that had at least 200 lines
+when the baseline was generated. Refresh it intentionally only after reviewing
+the affected documents and accepting the current file structure; update
+`generatedOn`, the reviewed document dates, and current line counts together.
+Historical dates in plans or evidence narratives do not make a core document
+stale.
+
 The weekly and manually dispatchable GitHub workflow runs with read-only
 contents permission, installs the locked pnpm dependency graph, writes the
 report to the Actions job summary, and retains the Markdown artifact for three
 days. It cannot create or modify issues, pull requests, or repository contents.
-`pnpm maintenance:report` is intentionally not part of `pnpm verify`.
+The workflow invokes the Node script directly so the artifact contains pure
+Markdown without a package-manager banner or checkout path. Its frozen-lock
+install is the live lockfile-consistency check; Dependabot and GitHub security
+alerts remain authoritative for known vulnerabilities. The
+`pnpm maintenance:report` command is intentionally not part of `pnpm verify`.
 
 ## Voice and browser teardown
 

@@ -107,6 +107,18 @@ test("warns above documented production and test file line thresholds", async (t
   assert.match(report, /Oversized files \| 2/);
 });
 
+test("does not classify repository tooling as production source", async (t) => {
+  const root = await createRepository({
+    "scripts/tool.mjs": Array.from({ length: 501 }, () => "line").join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.doesNotMatch(report, /`scripts\/tool\.mjs` — 501 lines/);
+  assert.match(report, /Oversized files \| 0/);
+});
+
 test("reports missing required documentation and security automation", async (t) => {
   const root = await createRepository();
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -116,7 +128,7 @@ test("reports missing required documentation and security automation", async (t)
   assert.match(report, /`docs\/README\.md` — missing required documentation/);
   assert.match(
     report,
-    /`\.github\/workflows\/dependency-review\.yml` — missing required security automation/,
+    /`\.github\/workflows\/ci\.yml` — missing required security automation/,
   );
   assert.match(report, /Repository guardrails \| \d+/);
 });
@@ -163,6 +175,160 @@ test("reports pending quality rows and evidence older than 90 days for an explic
   );
   assert.doesNotMatch(report, /2026-07-01 is/);
   assert.match(report, /Quality evidence \| 2/);
+});
+
+test("reports invalid quality statuses and passing rows without proven evidence", async (t) => {
+  const root = await createRepository({
+    "docs/QUALITY_SCORE.md": [
+      "| Dimension | Target | Status | Evidence |",
+      "| --- | --- | --- | --- |",
+      "| Blank | Proven | Passing | |",
+      "| Contradiction | Proven | Passing | Awaits live dispatch |",
+      "| Invalid | Proven | Unknown | Recorded locally |",
+      "| Open | Proven | Pending | Waiting for source evidence |",
+      "| Deferred | Proven | Passing | Pending provider result |",
+      "| Unchecked | Proven | Passing | Unverified locally |",
+      "| Unsupported | Proven | Passing | Not proven on hardware |",
+      "",
+    ].join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:3` — Passing status for Blank has blank evidence/,
+  );
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:4` — Passing evidence for Contradiction contains an unproven signal: awaits/,
+  );
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:5` — invalid quality status for Invalid: Unknown/,
+  );
+  assert.match(report, /`docs\/QUALITY_SCORE\.md:6` — Pending status for Open/);
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:7` — Passing evidence for Deferred contains an unproven signal: pending/,
+  );
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:8` — Passing evidence for Unchecked contains an unproven signal: unverified/,
+  );
+  assert.match(
+    report,
+    /`docs\/QUALITY_SCORE\.md:9` — Passing evidence for Unsupported contains an unproven signal: not proven/,
+  );
+  assert.match(report, /Quality evidence \| 7/);
+});
+
+test("reports stale and missing core-document review entries from the baseline only", async (t) => {
+  const root = await createRepository({
+    "docs/plans/history.md":
+      "# Historical plan\n\nEvidence recorded on 2025-01-01.\n",
+    "scripts/maintenance-baseline.json": JSON.stringify({
+      generatedOn: "2026-01-01",
+      coreDocs: {
+        "docs/ARCHITECTURE.md": "2026-01-01",
+      },
+      lineCounts: {},
+    }),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root, { date: "2026-07-26" });
+
+  assert.match(
+    report,
+    /`docs\/ARCHITECTURE\.md` — core-document review dated 2026-01-01 is 206 days old/,
+  );
+  assert.match(
+    report,
+    /`docs\/SECURITY\.md` — missing core-document review date/,
+  );
+  assert.doesNotMatch(report, /docs\/plans\/history\.md.*stale/);
+});
+
+test("reports rapid growth only when line and percentage thresholds are both met", async (t) => {
+  const lines = (count) =>
+    Array.from({ length: count }, () => "line").join("\n");
+  const root = await createRepository({
+    "scripts/maintenance-baseline.json": JSON.stringify({
+      generatedOn: "2026-07-26",
+      coreDocs: {},
+      lineCounts: {
+        "src/growing.ts": 400,
+        "src/lines-only.ts": 500,
+        "src/percent-only.ts": 200,
+      },
+    }),
+    "src/growing.ts": lines(501),
+    "src/lines-only.ts": lines(600),
+    "src/percent-only.ts": lines(250),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(
+    report,
+    /`src\/growing\.ts` — 501 lines, up 101 \(25\.3%\) from baseline 400/,
+  );
+  assert.doesNotMatch(report, /lines-only\.ts.*up/);
+  assert.doesNotMatch(report, /percent-only\.ts.*up/);
+  assert.match(report, /Rapid growth \| 1/);
+});
+
+test("reports substantial tracked source or test files missing from the baseline", async (t) => {
+  const root = await createRepository({
+    "scripts/maintenance-baseline.json": JSON.stringify({
+      generatedOn: "2026-07-26",
+      coreDocs: {},
+      lineCounts: {},
+    }),
+    "src/substantial.ts": Array.from({ length: 200 }, () => "line").join("\n"),
+    "src/small.ts": Array.from({ length: 199 }, () => "line").join("\n"),
+  });
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  const report = await generateMaintenanceReport(root);
+
+  assert.match(
+    report,
+    /`src\/substantial\.ts` — missing baseline line count for 200-line substantial file/,
+  );
+  assert.doesNotMatch(report, /src\/small\.ts.*baseline/);
+});
+
+test("reports missing or unsupported dependency-health foundations", async (t) => {
+  const missingRoot = await createRepository();
+  const unsupportedRoot = await createRepository({
+    "package.json": JSON.stringify({ packageManager: "pnpm@9.15.0" }),
+    "pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
+  });
+  t.after(() => rm(missingRoot, { recursive: true, force: true }));
+  t.after(() => rm(unsupportedRoot, { recursive: true, force: true }));
+
+  const missingReport = await generateMaintenanceReport(missingRoot);
+  assert.match(missingReport, /`package\.json` — missing dependency manifest/);
+  assert.match(missingReport, /`pnpm-lock\.yaml` — missing pnpm lockfile/);
+  assert.match(
+    missingReport,
+    /`\.github\/dependabot\.yml` — missing dependency automation/,
+  );
+  assert.match(
+    missingReport,
+    /`\.github\/workflows\/dependency-review\.yml` — missing pull-request dependency review/,
+  );
+
+  const unsupportedReport = await generateMaintenanceReport(unsupportedRoot);
+  assert.match(
+    unsupportedReport,
+    /`package\.json` — packageManager must declare a supported pnpm 10\.x release/,
+  );
+  assert.match(unsupportedReport, /Dependency health \| \d+/);
 });
 
 test("excludes dependencies, generated output, worktrees, and test artifacts", async (t) => {

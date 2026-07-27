@@ -35,7 +35,7 @@ jobs:
       - name: Generate informational maintenance report
         run: |
           set -o pipefail
-          pnpm maintenance:report --date "$(date -u +%F)" |
+          node scripts/maintenance-report.mjs --date "$(date -u +%F)" |
             tee maintenance-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload maintenance report

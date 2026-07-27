@@ -227,6 +227,7 @@ git commit -m "test: add deterministic browser harness"
 
 - Create: `scripts/maintenance-report.mjs`
 - Create: `scripts/maintenance-report.test.mjs`
+- Create: `scripts/maintenance-baseline.json`
 - Create: `.github/workflows/maintenance-report.yml`
 - Modify: `package.json`
 - Modify: `docs/QUALITY_SCORE.md`
@@ -239,7 +240,12 @@ Use temporary fixture repositories to prove deterministic reporting for:
 - TODO, FIXME, skipped, and focused test markers;
 - oversized source and test files using documented warning thresholds;
 - required documentation and security workflow presence;
-- stale quality-score evidence signals.
+- stale or missing core-document review dates from the maintenance baseline;
+- rapid file growth only when both 100-line and 25-percent thresholds are met;
+- dependency-manifest, pnpm lockfile, pnpm 10, Dependabot, and dependency-review
+  health; and
+- stale, Pending, invalid, blank, or internally contradictory quality-score
+  evidence signals.
 
 The report is informational: findings do not fail the main quality gate.
 
@@ -247,23 +253,30 @@ The report is informational: findings do not fail the main quality gate.
 
 Include a generated timestamp only when explicitly supplied, stable sorting,
 counts, paths, and remediation. Exclude dependencies, generated output,
-worktrees, and test artifacts.
+worktrees, and test artifacts. Store reviewed core-document dates and line
+counts for substantial tracked source and test files in
+`scripts/maintenance-baseline.json`; historical plan and evidence dates are not
+core-document freshness signals.
 
 **Step 3: Add the least-privilege schedule**
 
 Run weekly and through `workflow_dispatch`, with `contents: read`. Write Markdown
 to the Actions step summary and upload it with short retention. Do not grant
-issue, pull-request, or contents-write permission.
+issue, pull-request, or contents-write permission. Invoke the Node report script
+directly so the summary and artifact contain only deterministic Markdown.
 
 **Step 4: Verify**
 
-Run focused tests, generate a local report, validate workflow configuration, and
-run `pnpm verify`.
+Run focused tests, generate a local report directly with Node, validate workflow
+configuration, and run `pnpm verify`. The frozen-lock workflow install is the
+live lockfile-consistency check; provider alerts remain authoritative for
+known vulnerabilities.
 
 **Step 5: Commit**
 
 ```bash
 git add scripts/maintenance-report.mjs scripts/maintenance-report.test.mjs \
+  scripts/maintenance-baseline.json \
   .github/workflows/maintenance-report.yml package.json docs
 git commit -m "chore: add weekly quality maintenance report"
 ```

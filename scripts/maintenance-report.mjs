@@ -47,12 +47,10 @@ const SOURCE_EXTENSIONS = new Set([
 export const PRODUCTION_LINE_WARNING = 500;
 export const TEST_LINE_WARNING = 1000;
 export const QUALITY_EVIDENCE_WARNING_DAYS = 90;
+export const SUBSTANTIAL_BASELINE_LINES = 200;
 
-const REQUIRED_SECURITY_AUTOMATION = [
-  ".github/dependabot.yml",
-  ".github/workflows/ci.yml",
-  ".github/workflows/dependency-review.yml",
-];
+const REQUIRED_SECURITY_AUTOMATION = [".github/workflows/ci.yml"];
+const MAINTENANCE_BASELINE = "scripts/maintenance-baseline.json";
 
 async function listRepositoryFiles(root) {
   const files = [];
@@ -149,6 +147,11 @@ function findOversizedFile(relativePath, source) {
   }
 
   const testFile = isTestFile(relativePath);
+  const productionFile = /^(?:apps|packages|src)\//.test(relativePath);
+  if (!testFile && !productionFile) {
+    return [];
+  }
+
   const threshold = testFile ? TEST_LINE_WARNING : PRODUCTION_LINE_WARNING;
   const lineCount = countLines(source);
 
@@ -200,12 +203,43 @@ function findQualityEvidence(relativePath, source, reportDate) {
         .slice(1, -1)
         .split("|")
         .map((cell) => cell.trim());
+      const dimension = cells[0] || "unnamed dimension";
+      const status = cells[2] ?? "";
+      const normalizedStatus = status.toLowerCase();
 
-      if (cells[2]?.toLowerCase() === "pending") {
+      if (
+        normalizedStatus &&
+        normalizedStatus !== "status" &&
+        !/^:?-+:?$/.test(normalizedStatus) &&
+        normalizedStatus !== "passing" &&
+        normalizedStatus !== "pending"
+      ) {
         findings.push({
-          issue: `Pending status for ${cells[0] || "unnamed dimension"}`,
+          issue: `invalid quality status for ${dimension}: ${status}`,
           location: `${relativePath}:${index + 1}`,
         });
+      } else if (normalizedStatus === "pending") {
+        findings.push({
+          issue: `Pending status for ${dimension}`,
+          location: `${relativePath}:${index + 1}`,
+        });
+      } else if (normalizedStatus === "passing") {
+        const evidence = cells[3] ?? "";
+        const unprovenSignal = evidence
+          .toLowerCase()
+          .match(/\b(pending|awaits|unverified|not proven)\b/)?.[1];
+
+        if (!evidence) {
+          findings.push({
+            issue: `Passing status for ${dimension} has blank evidence`,
+            location: `${relativePath}:${index + 1}`,
+          });
+        } else if (unprovenSignal) {
+          findings.push({
+            issue: `Passing evidence for ${dimension} contains an unproven signal: ${unprovenSignal}`,
+            location: `${relativePath}:${index + 1}`,
+          });
+        }
       }
     }
 
@@ -232,6 +266,217 @@ function findQualityEvidence(relativePath, source, reportDate) {
       }
     }
   });
+
+  return findings;
+}
+
+async function loadMaintenanceBaseline(root, repositoryFileSet) {
+  if (!repositoryFileSet.has(MAINTENANCE_BASELINE)) {
+    return {
+      baseline: undefined,
+      findings: [
+        {
+          issue: "missing maintenance baseline",
+          path: MAINTENANCE_BASELINE,
+        },
+      ],
+    };
+  }
+
+  try {
+    const baseline = JSON.parse(
+      await readFile(path.join(root, MAINTENANCE_BASELINE), "utf8"),
+    );
+    const findings = [];
+
+    try {
+      parseExplicitDate(baseline.generatedOn);
+    } catch {
+      findings.push({
+        issue: "baseline generatedOn must be a valid YYYY-MM-DD date",
+        path: MAINTENANCE_BASELINE,
+      });
+    }
+
+    if (
+      !baseline.coreDocs ||
+      typeof baseline.coreDocs !== "object" ||
+      Array.isArray(baseline.coreDocs)
+    ) {
+      baseline.coreDocs = {};
+      findings.push({
+        issue: "baseline coreDocs must be a path-to-date mapping",
+        path: MAINTENANCE_BASELINE,
+      });
+    }
+
+    if (
+      !baseline.lineCounts ||
+      typeof baseline.lineCounts !== "object" ||
+      Array.isArray(baseline.lineCounts)
+    ) {
+      baseline.lineCounts = {};
+      findings.push({
+        issue: "baseline lineCounts must be a path-to-count mapping",
+        path: MAINTENANCE_BASELINE,
+      });
+    }
+
+    return { baseline, findings };
+  } catch {
+    return {
+      baseline: undefined,
+      findings: [
+        {
+          issue: "maintenance baseline must contain valid JSON",
+          path: MAINTENANCE_BASELINE,
+        },
+      ],
+    };
+  }
+}
+
+function findDocumentationReviews(baseline, reportDate) {
+  if (!baseline) {
+    return [];
+  }
+
+  const findings = [];
+
+  for (const relativePath of REQUIRED_DOCS) {
+    const reviewDate = baseline.coreDocs[relativePath];
+
+    if (!reviewDate) {
+      findings.push({
+        issue: "missing core-document review date",
+        path: relativePath,
+      });
+      continue;
+    }
+
+    let parsedReviewDate;
+    try {
+      parsedReviewDate = parseExplicitDate(reviewDate);
+    } catch {
+      findings.push({
+        issue: `invalid core-document review date: ${reviewDate}`,
+        path: relativePath,
+      });
+      continue;
+    }
+
+    if (!reportDate) {
+      continue;
+    }
+
+    const ageDays = Math.floor(
+      (reportDate.valueOf() - parsedReviewDate.valueOf()) / 86_400_000,
+    );
+    if (ageDays > QUALITY_EVIDENCE_WARNING_DAYS) {
+      findings.push({
+        issue: `core-document review dated ${reviewDate} is ${ageDays} days old`,
+        path: relativePath,
+      });
+    }
+  }
+
+  return findings;
+}
+
+function findRapidGrowth(baseline, currentLineCounts) {
+  if (!baseline) {
+    return [];
+  }
+
+  const findings = [];
+  const currentEntries = [...currentLineCounts.entries()].sort(
+    ([left], [right]) => left.localeCompare(right),
+  );
+
+  for (const [relativePath, currentCount] of currentEntries) {
+    if (
+      SOURCE_EXTENSIONS.has(path.extname(relativePath)) &&
+      currentCount >= SUBSTANTIAL_BASELINE_LINES &&
+      !Object.hasOwn(baseline.lineCounts, relativePath)
+    ) {
+      findings.push({
+        issue: `missing baseline line count for ${currentCount}-line substantial file`,
+        path: relativePath,
+      });
+    }
+  }
+
+  const baselineEntries = Object.entries(baseline.lineCounts).sort(
+    ([left], [right]) => left.localeCompare(right),
+  );
+
+  for (const [relativePath, baselineCount] of baselineEntries) {
+    if (!Number.isInteger(baselineCount) || baselineCount < 1) {
+      continue;
+    }
+
+    const currentCount = currentLineCounts.get(relativePath);
+    if (currentCount === undefined) {
+      continue;
+    }
+
+    const addedLines = currentCount - baselineCount;
+    const growthPercent = (addedLines / baselineCount) * 100;
+    if (addedLines >= 100 && growthPercent >= 25) {
+      findings.push({
+        addedLines,
+        baselineCount,
+        currentCount,
+        growthPercent,
+        path: relativePath,
+      });
+    }
+  }
+
+  return findings;
+}
+
+async function findDependencyHealth(root, repositoryFileSet) {
+  const findings = [];
+
+  if (!repositoryFileSet.has("package.json")) {
+    findings.push({
+      issue: "missing dependency manifest",
+      path: "package.json",
+    });
+  } else {
+    try {
+      const packageJson = JSON.parse(
+        await readFile(path.join(root, "package.json"), "utf8"),
+      );
+      if (!/^pnpm@10\.\d+\.\d+$/.test(packageJson.packageManager ?? "")) {
+        findings.push({
+          issue: "packageManager must declare a supported pnpm 10.x release",
+          path: "package.json",
+        });
+      }
+    } catch {
+      findings.push({
+        issue: "dependency manifest must contain valid JSON",
+        path: "package.json",
+      });
+    }
+  }
+
+  const requiredFiles = [
+    ["pnpm-lock.yaml", "missing pnpm lockfile"],
+    [".github/dependabot.yml", "missing dependency automation"],
+    [
+      ".github/workflows/dependency-review.yml",
+      "missing pull-request dependency review",
+    ],
+  ];
+
+  for (const [relativePath, issue] of requiredFiles) {
+    if (!repositoryFileSet.has(relativePath)) {
+      findings.push({ issue, path: relativePath });
+    }
+  }
 
   return findings;
 }
@@ -316,13 +561,25 @@ function renderSection(title, findings, remediation, renderFinding) {
 
 export async function generateMaintenanceReport(root, options = {}) {
   const reportDate = parseExplicitDate(options.date);
+  const currentLineCounts = new Map();
+  const dependencyHealth = [];
+  const documentationReviews = [];
   const qualityEvidence = [];
+  const rapidGrowth = [];
   const repositoryGuardrails = [];
   const oversizedFiles = [];
   const taskMarkers = [];
   const testControlMarkers = [];
   const repositoryFiles = await listRepositoryFiles(root);
   const repositoryFileSet = new Set(repositoryFiles);
+  const { baseline, findings: baselineFindings } =
+    await loadMaintenanceBaseline(root, repositoryFileSet);
+
+  documentationReviews.push(...baselineFindings);
+  documentationReviews.push(...findDocumentationReviews(baseline, reportDate));
+  dependencyHealth.push(
+    ...(await findDependencyHealth(root, repositoryFileSet)),
+  );
 
   for (const requiredPath of REQUIRED_DOCS) {
     if (!repositoryFileSet.has(requiredPath)) {
@@ -348,6 +605,7 @@ export async function generateMaintenanceReport(root, options = {}) {
     }
 
     const source = await readFile(path.join(root, relativePath), "utf8");
+    currentLineCounts.set(relativePath, countLines(source));
     repositoryGuardrails.push(
       ...(await findBrokenRelativeLinks(root, relativePath, source)),
     );
@@ -358,6 +616,8 @@ export async function generateMaintenanceReport(root, options = {}) {
     taskMarkers.push(...findTaskMarkers(relativePath, source));
     testControlMarkers.push(...findTestControlMarkers(relativePath, source));
   }
+
+  rapidGrowth.push(...findRapidGrowth(baseline, currentLineCounts));
 
   const lines = [
     "# Repository maintenance report",
@@ -373,6 +633,9 @@ export async function generateMaintenanceReport(root, options = {}) {
     `| Skipped/focused tests | ${testControlMarkers.length} |`,
     `| Oversized files | ${oversizedFiles.length} |`,
     `| Repository guardrails | ${repositoryGuardrails.length} |`,
+    `| Documentation reviews | ${documentationReviews.length} |`,
+    `| Rapid growth | ${rapidGrowth.length} |`,
+    `| Dependency health | ${dependencyHealth.length} |`,
     `| Quality evidence | ${qualityEvidence.length} |`,
     "",
     ...renderSection(
@@ -403,6 +666,27 @@ export async function generateMaintenanceReport(root, options = {}) {
         finding.target
           ? `\`${finding.location}\` — ${finding.issue} to \`${finding.target}\``
           : `\`${finding.path}\` — ${finding.issue}`,
+    ),
+    ...renderSection(
+      "Documentation reviews",
+      documentationReviews,
+      "Review missing or stale core documents and update the checked-in baseline date from that completed review.",
+      (finding) => `\`${finding.path}\` — ${finding.issue}`,
+    ),
+    ...renderSection(
+      "Rapid growth",
+      rapidGrowth,
+      "Review files that grew by at least 100 lines and 25%; refresh the baseline only after accepting the new structure.",
+      (finding) =>
+        finding.issue
+          ? `\`${finding.path}\` — ${finding.issue}`
+          : `\`${finding.path}\` — ${finding.currentCount} lines, up ${finding.addedLines} (${finding.growthPercent.toFixed(1)}%) from baseline ${finding.baselineCount}`,
+    ),
+    ...renderSection(
+      "Dependency health",
+      dependencyHealth,
+      "Restore the pnpm manifest and lockfile or required dependency automation; provider alerts remain authoritative for vulnerabilities.",
+      (finding) => `\`${finding.path}\` — ${finding.issue}`,
     ),
     ...renderSection(
       "Quality evidence",

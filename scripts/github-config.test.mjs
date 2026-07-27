@@ -307,7 +307,7 @@ test("weekly maintenance reporting is read-only, reproducible, and short-lived",
   );
   const installStep = steps.find((step) => step.run?.includes("pnpm install"));
   const reportStep = steps.find((step) =>
-    step.run?.includes("pnpm maintenance:report"),
+    step.run?.includes("scripts/maintenance-report.mjs"),
   );
   const uploadStep = steps.find(
     (step) =>
@@ -334,7 +334,12 @@ test("weekly maintenance reporting is read-only, reproducible, and short-lived",
   assert.ok(packageManager, "packageManager must declare a stable pnpm 10");
   assert.equal(String(pnpmStep?.with?.version), packageManager[1]);
   assert.match(installStep?.run ?? "", /pnpm install --frozen-lockfile/);
-  assert.match(reportStep?.run ?? "", /pnpm maintenance:report --date/);
+  assert.match(
+    reportStep?.run ?? "",
+    /^node scripts\/maintenance-report\.mjs --date/m,
+    "the workflow must capture pure Markdown without a package-manager banner",
+  );
+  assert.doesNotMatch(reportStep?.run ?? "", /pnpm maintenance:report/);
   assert.match(reportStep?.run ?? "", /maintenance-report\.md/);
   assert.match(reportStep?.run ?? "", /GITHUB_STEP_SUMMARY/);
   assert.equal(uploadStep?.with?.path, "maintenance-report.md");
