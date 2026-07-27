@@ -233,7 +233,7 @@ On 2026-07-26:
   and media internals never creates an input controller;
 - restarting Chrome's audio helper, selecting a virtual input, and toggling the
   built-in microphone sample rate do not restore capture, so restarting the
-  system `coreaudiod` service is the next required gate;
+  system `coreaudiod` service was the next required gate;
 - while Andrew was away from the computer, the local-only synthetic Realtime
   harness bypassed hardware capture without adding a production route or fake
   microphone control: a local proxy to the development client-secret route and
@@ -247,6 +247,24 @@ On 2026-07-26:
   not validate real microphone capture, audio processing, device switching, or
   natural VAD barge-in; the reported run required an explicit input-buffer
   commit, so it is provisional evidence rather than Phase 1 completion;
+- Andrew restarted `coreaudiod`; the process ID changed and an independent
+  two-second AVFoundation capture from the MacBook Air microphone then opened
+  at `48 kHz` and completed normally;
+- a fresh local Chrome session using the physical microphone connected,
+  captured several human conversation turns, showed finalized user and
+  assistant transcripts, naturally truncated multiple assistant replies when
+  Andrew spoke over them, stopped a long reply through the explicit Interrupt
+  control, and ended cleanly;
+- that real session exposed a faulty `1–20 ms` response diagnostic: finalized
+  transcription could arrive after response creation, so it was the wrong clock
+  boundary; focused red/green tests now anchor the metric on
+  `input_audio_buffer.speech_stopped` and consume it at
+  `output_audio_buffer.started`;
+- after that repair, a fresh physical-microphone session connected in
+  `1,064 ms`, transcribed the clearly synthetic acoustic prompt `What is one
+cheerful thing about today?`, displayed the assistant reply, measured
+  `389 ms` from server-detected speech stop to first output audio, and ended
+  cleanly;
 - `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
   lint, formatting, documentation, and production-build gates;
 - GitHub CI passes on reviewed commit `ff82f30`;
@@ -258,9 +276,9 @@ On 2026-07-26:
 - an unauthenticated browser is redirected to Vercel Login before any
   OpenFriend content is served.
 
-Phase 1 is not complete. Restart the system audio service, rerun the full spoken
-conversation acceptance sequence, then update status and merge only if that
-sequence passes.
+The local real-browser conversation gate now passes. Phase 1 remains active
+until the reviewed latency repair is pushed, GitHub CI and the personal Vercel
+preview pass on that commit, and the final status documents are updated.
 
 ## Stop condition
 

@@ -13,34 +13,84 @@ import type {
 type SdkTransport = OpenAISdkSession["transport"];
 type ConnectionListener = (status: LiveConnectionStatus) => void;
 type ResponseStartListener = () => void;
+type TurnStartedListener = () => void;
+type UserSpeechStoppedListener = () => void;
 
 class SdkTransportHarness implements SdkTransport {
   readonly connectionListeners = new Set<ConnectionListener>();
   readonly responseStartListeners = new Set<ResponseStartListener>();
+  readonly turnStartedListeners = new Set<TurnStartedListener>();
+  readonly userSpeechStoppedListeners = new Set<UserSpeechStoppedListener>();
   readonly offConnectionChange =
     vi.fn<(listener: ConnectionListener) => void>();
   readonly offResponseStart =
     vi.fn<(listener: ResponseStartListener) => void>();
+  readonly offUserSpeechStopped =
+    vi.fn<(listener: UserSpeechStoppedListener) => void>();
 
   on(event: "connection_change", listener: ConnectionListener): void;
-  on(event: "turn_started", listener: ResponseStartListener): void;
   on(
-    event: "connection_change" | "turn_started",
-    listener: ConnectionListener | ResponseStartListener,
+    event: "output_audio_buffer.started",
+    listener: ResponseStartListener,
+  ): void;
+  on(event: "turn_started", listener: TurnStartedListener): void;
+  on(
+    event: "input_audio_buffer.speech_stopped",
+    listener: UserSpeechStoppedListener,
+  ): void;
+  on(
+    event:
+      | "connection_change"
+      | "input_audio_buffer.speech_stopped"
+      | "output_audio_buffer.started"
+      | "turn_started",
+    listener:
+      | ConnectionListener
+      | ResponseStartListener
+      | TurnStartedListener
+      | UserSpeechStoppedListener,
   ): void {
     if (event === "connection_change") {
       this.connectionListeners.add(listener as ConnectionListener);
       return;
     }
 
-    this.responseStartListeners.add(listener as ResponseStartListener);
+    if (event === "input_audio_buffer.speech_stopped") {
+      this.userSpeechStoppedListeners.add(
+        listener as UserSpeechStoppedListener,
+      );
+      return;
+    }
+
+    if (event === "output_audio_buffer.started") {
+      this.responseStartListeners.add(listener as ResponseStartListener);
+      return;
+    }
+
+    this.turnStartedListeners.add(listener as TurnStartedListener);
   }
 
   off(event: "connection_change", listener: ConnectionListener): void;
-  off(event: "turn_started", listener: ResponseStartListener): void;
   off(
-    event: "connection_change" | "turn_started",
-    listener: ConnectionListener | ResponseStartListener,
+    event: "output_audio_buffer.started",
+    listener: ResponseStartListener,
+  ): void;
+  off(event: "turn_started", listener: TurnStartedListener): void;
+  off(
+    event: "input_audio_buffer.speech_stopped",
+    listener: UserSpeechStoppedListener,
+  ): void;
+  off(
+    event:
+      | "connection_change"
+      | "input_audio_buffer.speech_stopped"
+      | "output_audio_buffer.started"
+      | "turn_started",
+    listener:
+      | ConnectionListener
+      | ResponseStartListener
+      | TurnStartedListener
+      | UserSpeechStoppedListener,
   ): void {
     if (event === "connection_change") {
       const connectionListener = listener as ConnectionListener;
@@ -49,9 +99,21 @@ class SdkTransportHarness implements SdkTransport {
       return;
     }
 
-    const responseStartListener = listener as ResponseStartListener;
-    this.responseStartListeners.delete(responseStartListener);
-    this.offResponseStart(responseStartListener);
+    if (event === "input_audio_buffer.speech_stopped") {
+      const userSpeechStoppedListener = listener as UserSpeechStoppedListener;
+      this.userSpeechStoppedListeners.delete(userSpeechStoppedListener);
+      this.offUserSpeechStopped(userSpeechStoppedListener);
+      return;
+    }
+
+    if (event === "output_audio_buffer.started") {
+      const responseStartListener = listener as ResponseStartListener;
+      this.responseStartListeners.delete(responseStartListener);
+      this.offResponseStart(responseStartListener);
+      return;
+    }
+
+    this.turnStartedListeners.delete(listener as TurnStartedListener);
   }
 
   emitConnectionChange(status: LiveConnectionStatus): void {
@@ -62,6 +124,18 @@ class SdkTransportHarness implements SdkTransport {
 
   emitResponseStart(): void {
     for (const listener of this.responseStartListeners) {
+      listener();
+    }
+  }
+
+  emitTurnStarted(): void {
+    for (const listener of this.turnStartedListeners) {
+      listener();
+    }
+  }
+
+  emitUserSpeechStopped(): void {
+    for (const listener of this.userSpeechStoppedListeners) {
       listener();
     }
   }
@@ -98,6 +172,12 @@ function createSdkSessionHarness() {
     emitResponseStart() {
       transport.emitResponseStart();
     },
+    emitTurnStarted() {
+      transport.emitTurnStarted();
+    },
+    emitUserSpeechStopped() {
+      transport.emitUserSpeechStopped();
+    },
   };
 }
 
@@ -116,6 +196,7 @@ function createLiveSession(
       onConnectionChange: callbacks.onConnectionChange ?? vi.fn(),
       onHistoryChange: callbacks.onHistoryChange ?? vi.fn(),
       onResponseStart: callbacks.onResponseStart ?? vi.fn(),
+      onUserSpeechStopped: callbacks.onUserSpeechStopped ?? vi.fn(),
     },
     createSdkSession,
   });
@@ -214,14 +295,27 @@ describe("OpenAILiveSession", () => {
     ]);
   });
 
-  it("maps SDK response starts to the app callback", () => {
+  it("maps first output audio, not response creation, to the app callback", () => {
     const harness = createSdkSessionHarness();
     const onResponseStart = vi.fn();
     createLiveSession(harness.sdkSession, { onResponseStart });
 
+    harness.emitTurnStarted();
+    expect(onResponseStart).not.toHaveBeenCalled();
+
     harness.emitResponseStart();
 
     expect(onResponseStart).toHaveBeenCalledOnce();
+  });
+
+  it("maps SDK speech-stopped events to the app callback", () => {
+    const harness = createSdkSessionHarness();
+    const onUserSpeechStopped = vi.fn();
+    createLiveSession(harness.sdkSession, { onUserSpeechStopped });
+
+    harness.emitUserSpeechStopped();
+
+    expect(onUserSpeechStopped).toHaveBeenCalledOnce();
   });
 
   it("delegates manual interruption to the SDK session", () => {
@@ -251,6 +345,9 @@ describe("OpenAILiveSession", () => {
     const responseStartListener = [
       ...harness.transport.responseStartListeners,
     ][0];
+    const userSpeechStoppedListener = [
+      ...harness.transport.userSpeechStoppedListeners,
+    ][0];
 
     liveSession.close();
 
@@ -263,6 +360,9 @@ describe("OpenAILiveSession", () => {
     );
     expect(harness.transport.offResponseStart).toHaveBeenCalledWith(
       responseStartListener,
+    );
+    expect(harness.transport.offUserSpeechStopped).toHaveBeenCalledWith(
+      userSpeechStoppedListener,
     );
   });
 });

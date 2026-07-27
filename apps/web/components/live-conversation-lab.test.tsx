@@ -35,6 +35,9 @@ function createSessionHarness() {
     emitHistory(history: readonly LiveHistoryItem[]) {
       callbacks?.onHistoryChange(history);
     },
+    emitUserSpeechStopped() {
+      callbacks?.onUserSpeechStopped();
+    },
     emitResponseStart() {
       callbacks?.onResponseStart();
     },
@@ -396,7 +399,7 @@ describe("LiveConversationLab", () => {
     );
   });
 
-  it("measures the latest model response-start latency", async () => {
+  it("measures response start from speech stopped even when transcription finalizes later", async () => {
     const user = userEvent.setup();
     const sessionHarness = createSessionHarness();
     const now = vi
@@ -404,7 +407,8 @@ describe("LiveConversationLab", () => {
       .mockReturnValueOnce(1_000)
       .mockReturnValueOnce(1_120)
       .mockReturnValueOnce(2_000)
-      .mockReturnValueOnce(2_140);
+      .mockReturnValueOnce(2_600)
+      .mockReturnValue(9_000);
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -429,6 +433,8 @@ describe("LiveConversationLab", () => {
 
     act(() => {
       sessionHarness.emitConnection("connected");
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitResponseStart();
       sessionHarness.emitHistory([
         {
           id: "user-1",
@@ -441,8 +447,100 @@ describe("LiveConversationLab", () => {
     });
 
     expect(screen.getByText(/response start/i).parentElement).toHaveTextContent(
-      "140 ms",
+      "600 ms",
     );
+    expect(now).toHaveBeenCalledTimes(4);
+  });
+
+  it("uses the latest speech stop once for the next voice response", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    const now = vi
+      .fn<() => number>()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(2_000)
+      .mockReturnValueOnce(2_300)
+      .mockReturnValueOnce(2_700)
+      .mockReturnValue(9_000);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        now={now}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    act(() => {
+      sessionHarness.emitConnection("connected");
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitResponseStart();
+      sessionHarness.emitResponseStart();
+    });
+
+    expect(screen.getByText(/response start/i).parentElement).toHaveTextContent(
+      "400 ms",
+    );
+    expect(now).toHaveBeenCalledTimes(5);
+  });
+
+  it("does not measure a missing or negative voice-response interval", async () => {
+    const user = userEvent.setup();
+    const sessionHarness = createSessionHarness();
+    const now = vi
+      .fn<() => number>()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(3_000)
+      .mockReturnValueOnce(2_900);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          clientSecret: "ek_test_ephemeral",
+          expiresAt: 1_900_000_000,
+          model: "gpt-realtime-2.1-mini",
+        }),
+      ),
+    );
+
+    render(
+      <LiveConversationLab
+        profiles={listLiveModelProfiles()}
+        createSession={sessionHarness.createSession}
+        now={now}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: /start live conversation/i }),
+    );
+
+    act(() => {
+      sessionHarness.emitConnection("connected");
+      sessionHarness.emitResponseStart();
+      sessionHarness.emitUserSpeechStopped();
+      sessionHarness.emitResponseStart();
+    });
+
+    expect(screen.getByText(/response start/i).parentElement).toHaveTextContent(
+      "Not measured",
+    );
+    expect(now).toHaveBeenCalledTimes(4);
   });
 
   it("enables manual interruption only while live", async () => {

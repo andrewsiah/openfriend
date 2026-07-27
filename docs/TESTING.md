@@ -43,6 +43,10 @@ Use for microphone/session controls, profile switching, live state,
 interruptions, transcripts, review and approval, reconnection, keyboard access,
 responsive layout, browser errors, and request failures.
 
+For Phase 1, interpret `Voice response start` as the client-observed interval
+from server-detected speech stop to the first output-audio buffer. It excludes
+the VAD silence window and is not derived from transcript-finalization timing.
+
 When macOS hardware capture is unavailable, the local-only synthetic Realtime
 harness can verify the remaining browser transport without adding a production
 route:

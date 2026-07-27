@@ -99,8 +99,7 @@ export function LiveConversationLab({
     number | null
   >(null);
   const connectionStartedAt = useRef<number | null>(null);
-  const latestCompletedUserId = useRef<string | null>(null);
-  const latestCompletedUserAt = useRef<number | null>(null);
+  const latestUserSpeechStoppedAt = useRef<number | null>(null);
   const activeSession = useRef<LiveSession | null>(null);
   const connectionAttemptId = useRef(0);
   const isMounted = useRef(true);
@@ -134,6 +133,7 @@ export function LiveConversationLab({
   function endConversation(): void {
     connectionAttemptId.current += 1;
     closeActiveSession();
+    latestUserSpeechStoppedAt.current = null;
     transition({ type: "end" });
     statusElement.current?.focus();
   }
@@ -145,8 +145,7 @@ export function LiveConversationLab({
     setConnectionLatency(null);
     setResponseStartLatency(null);
     connectionStartedAt.current = null;
-    latestCompletedUserId.current = null;
-    latestCompletedUserAt.current = null;
+    latestUserSpeechStoppedAt.current = null;
     transition({ type: "reset" });
     statusElement.current?.focus();
   }
@@ -169,6 +168,7 @@ export function LiveConversationLab({
     const attemptId = connectionAttemptId.current + 1;
     connectionAttemptId.current = attemptId;
     connectionStartedAt.current = now();
+    latestUserSpeechStoppedAt.current = null;
     let nextSession: LiveSession | null = null;
 
     try {
@@ -226,24 +226,18 @@ export function LiveConversationLab({
             }
 
             setTranscript(history);
-            let latestCompletedUser: LiveHistoryItem | undefined;
-
-            for (let index = history.length - 1; index >= 0; index -= 1) {
-              const item = history[index];
-
-              if (item?.role === "user" && item.status === "completed") {
-                latestCompletedUser = item;
-                break;
-              }
-            }
-
+          },
+          onUserSpeechStopped() {
             if (
-              latestCompletedUser &&
-              latestCompletedUser.id !== latestCompletedUserId.current
+              !isMounted.current ||
+              connectionAttemptId.current !== attemptId ||
+              nextSession === null ||
+              activeSession.current !== nextSession
             ) {
-              latestCompletedUserId.current = latestCompletedUser.id;
-              latestCompletedUserAt.current = now();
+              return;
             }
+
+            latestUserSpeechStoppedAt.current = now();
           },
           onResponseStart() {
             if (
@@ -255,10 +249,17 @@ export function LiveConversationLab({
               return;
             }
 
-            if (latestCompletedUserAt.current !== null) {
-              setResponseStartLatency(
-                Math.max(0, Math.round(now() - latestCompletedUserAt.current)),
-              );
+            const speechStoppedAt = latestUserSpeechStoppedAt.current;
+            latestUserSpeechStoppedAt.current = null;
+
+            if (speechStoppedAt === null) {
+              return;
+            }
+
+            const elapsed = now() - speechStoppedAt;
+
+            if (Number.isFinite(elapsed) && elapsed >= 0) {
+              setResponseStartLatency(Math.round(elapsed));
             }
           },
         },
@@ -353,7 +354,7 @@ export function LiveConversationLab({
           </dd>
         </div>
         <div>
-          <dt>Response start</dt>
+          <dt>Voice response start</dt>
           <dd>
             {responseStartLatency === null
               ? "Not measured"

@@ -19,6 +19,7 @@ type LiveAgentConfig = Readonly<{
 type HistoryListener = (history: RealtimeItem[]) => void;
 type ConnectionListener = (status: LiveConnectionStatus) => void;
 type ResponseStartListener = () => void;
+type UserSpeechStoppedListener = () => void;
 
 export interface OpenAISdkSession {
   connect(options: { apiKey: string }): Promise<void>;
@@ -28,9 +29,23 @@ export interface OpenAISdkSession {
   off(event: "history_updated", listener: HistoryListener): void;
   transport: {
     on(event: "connection_change", listener: ConnectionListener): void;
-    on(event: "turn_started", listener: ResponseStartListener): void;
+    on(
+      event: "input_audio_buffer.speech_stopped",
+      listener: UserSpeechStoppedListener,
+    ): void;
+    on(
+      event: "output_audio_buffer.started",
+      listener: ResponseStartListener,
+    ): void;
     off(event: "connection_change", listener: ConnectionListener): void;
-    off(event: "turn_started", listener: ResponseStartListener): void;
+    off(
+      event: "input_audio_buffer.speech_stopped",
+      listener: UserSpeechStoppedListener,
+    ): void;
+    off(
+      event: "output_audio_buffer.started",
+      listener: ResponseStartListener,
+    ): void;
   };
 }
 
@@ -90,6 +105,7 @@ export class OpenAILiveSession implements LiveSession {
   private readonly handleConnectionChange: ConnectionListener;
   private readonly handleHistoryChange: HistoryListener;
   private readonly handleResponseStart: ResponseStartListener;
+  private readonly handleUserSpeechStopped: UserSpeechStoppedListener;
   private readonly sdkSession: OpenAISdkSession;
 
   constructor({
@@ -109,12 +125,22 @@ export class OpenAILiveSession implements LiveSession {
     this.handleResponseStart = () => {
       this.callbacks.onResponseStart();
     };
+    this.handleUserSpeechStopped = () => {
+      this.callbacks.onUserSpeechStopped();
+    };
     this.sdkSession.transport.on(
       "connection_change",
       this.handleConnectionChange,
     );
     this.sdkSession.on("history_updated", this.handleHistoryChange);
-    this.sdkSession.transport.on("turn_started", this.handleResponseStart);
+    this.sdkSession.transport.on(
+      "input_audio_buffer.speech_stopped",
+      this.handleUserSpeechStopped,
+    );
+    this.sdkSession.transport.on(
+      "output_audio_buffer.started",
+      this.handleResponseStart,
+    );
   }
 
   async connect(clientSecret: string): Promise<void> {
@@ -136,7 +162,14 @@ export class OpenAILiveSession implements LiveSession {
       "connection_change",
       this.handleConnectionChange,
     );
-    this.sdkSession.transport.off("turn_started", this.handleResponseStart);
+    this.sdkSession.transport.off(
+      "input_audio_buffer.speech_stopped",
+      this.handleUserSpeechStopped,
+    );
+    this.sdkSession.transport.off(
+      "output_audio_buffer.started",
+      this.handleResponseStart,
+    );
     this.sdkSession.close();
   }
 }
