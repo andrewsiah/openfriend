@@ -218,23 +218,29 @@ On 2026-07-26:
 - focused reducer, route, adapter, and component tests pass;
 - the server successfully mints the expected short-lived Realtime client secret
   without returning the standard API key;
-- a real browser reached the provider's WebRTC call endpoint through the SDK;
-- the provider rejected that call with an account-quota `429`, so speaking,
-  hearing a reply, interruption, transcript, and live latency remain pending;
+- the refreshed Preview credential passes a minimal Responses API request with
+  `200` and creates a Realtime WebRTC call with `201`;
+- a full Realtime data-channel turn using the server-minted client secret
+  received the exact model reply `realtime works`, resolving the earlier
+  provider-quota blocker;
+- the real browser voice sequence remains pending because the tested Chromium
+  browsers enumerate zero audio inputs and `getUserMedia({ audio: true })`
+  returns `NotFoundError`, even though macOS reports available microphones and
+  microphone permission is enabled;
 - `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
   lint, formatting, documentation, and production-build gates;
 - GitHub CI passes on reviewed commit `ff82f30`;
 - Claude Fable/high approved the final lifecycle hardening with no actionable
   P0/P1 finding;
 - personal Vercel preview
-  [openfriend-cfhcg7g0h-andrewsiah-stripe.vercel.app](https://openfriend-cfhcg7g0h-andrewsiah-stripe.vercel.app)
+  [openfriend-78y3gta36-andrewsiah-stripe.vercel.app](https://openfriend-78y3gta36-andrewsiah-stripe.vercel.app)
   is `READY` with Standard Protection and Vercel Authentication enabled;
 - an unauthenticated browser is redirected to Vercel Login before any
   OpenFriend content is served.
 
-Phase 1 is not complete. Rerun the full real-conversation acceptance sequence
-after provider quota is available, then update status and merge only if that
-sequence passes.
+Phase 1 is not complete. Restore browser microphone enumeration, rerun the full
+spoken-conversation acceptance sequence, then update status and merge only if
+that sequence passes.
 
 ## Stop condition
 
