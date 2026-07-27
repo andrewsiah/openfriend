@@ -1,5 +1,7 @@
 # OpenFriend
 
+[![CI](https://github.com/andrewsiah/openfriend/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/andrewsiah/openfriend/actions/workflows/ci.yml)
+
 **A voice-first personal companion for responsive web and Apple Watch.**
 
 OpenFriend is an open-source attempt to make the experience of Samantha from
@@ -157,3 +159,12 @@ challenge, and improve it. Start with [CONTRIBUTING.md](CONTRIBUTING.md), the
 ## License
 
 [MIT](LICENSE) © 2026 Andrew Siah and OpenFriend contributors.
+
+## Contributors
+
+OpenFriend gets better with every idea, bug report, and pull request. See
+[CONTRIBUTING.md](CONTRIBUTING.md) to add yours.
+
+<a href="https://github.com/andrewsiah/openfriend/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=andrewsiah/openfriend" alt="Avatars of OpenFriend contributors" />
+</a>
