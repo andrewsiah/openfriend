@@ -26,6 +26,7 @@ sequenceDiagram
     participant Gateway as "Thin OpenFriend gateway"
     participant OpenAI as "OpenAI Realtime"
 
+    Watch->>Watch: "Confirm audio streaming and microphone permission"
     Watch->>Watch: "Sign in with Apple and create nonce"
     Watch->>Gateway: "Authenticated HTTPS client-secret request"
     Gateway->>Gateway: "Verify issuer, audience, expiry, nonce, and allowed subject"
@@ -209,9 +210,9 @@ upstream model and sanitize failures.
 
 Apple's documented ordering is part of the contract:
 
-1. Authenticate and fetch the Realtime client secret over ordinary HTTPS.
-2. Confirm `supportsAudioStreaming` on the physical Watch.
-3. Request microphone permission.
+1. Confirm `supportsAudioStreaming` on the physical Watch.
+2. Request microphone permission.
+3. Authenticate and fetch the Realtime client secret over ordinary HTTPS.
 4. Configure `AVAudioSession` for play-and-record voice use.
 5. Activate the audio session and wait for route selection to complete.
 6. Start the capture and playback engine.
