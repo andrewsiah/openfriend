@@ -234,6 +234,19 @@ On 2026-07-26:
 - restarting Chrome's audio helper, selecting a virtual input, and toggling the
   built-in microphone sample rate do not restore capture, so restarting the
   system `coreaudiod` service is the next required gate;
+- while Andrew was away from the computer, the local-only synthetic Realtime
+  harness bypassed hardware capture without adding a production route or fake
+  microphone control: a local proxy to the development client-secret route and
+  the real Agents SDK WebRTC transport connected in `734 ms`, transcribed
+  `Hello open friend, please tell me one cheerful sentence about today.`, began
+  the model response `1,068 ms` after fixture playback ended, received the
+  server's `output_audio_buffer.cleared` acknowledgement after manual
+  interruption, and closed cleanly;
+- that synthetic result validates the provider, credential, WebRTC,
+  transcription, response, explicit interruption, and cleanup path, but does
+  not validate real microphone capture, audio processing, device switching, or
+  natural VAD barge-in; the reported run required an explicit input-buffer
+  commit, so it is provisional evidence rather than Phase 1 completion;
 - `pnpm verify` passes with 52 web tests and 6 contract tests, plus typecheck,
   lint, formatting, documentation, and production-build gates;
 - GitHub CI passes on reviewed commit `ff82f30`;
