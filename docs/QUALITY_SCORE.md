@@ -17,6 +17,7 @@ field means the behavior is not yet proven.
 | Publication           | Public MIT repository and CI verified                           | Passing | [GitHub repository](https://github.com/andrewsiah/openfriend), CI on `1a3696a`                                                                                                    |
 | Merge safety          | Current CI and Greptile review required before merge            | Passing | [PR #2](https://github.com/andrewsiah/openfriend/pull/2), ruleset `19789735`                                                                                                      |
 | Supply-chain security | Dependency automation, PR review, alerts, and CodeQL are proven | Pending | Alerts, security updates, private reporting, and CodeQL run `30238344037` are successful; pending only because Dependency Review has not run on a PR or been added to the ruleset |
+| Maintenance reporting | Weekly read-only quality report is proven on GitHub             | Pending | Detector and workflow configuration tests pass locally; live `workflow_dispatch` evidence is pending                                                                              |
 
 ## Evidence format
 

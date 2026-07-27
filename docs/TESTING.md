@@ -72,6 +72,43 @@ end, reset, and idempotent close. A separate deterministic connection failure
 proves that the component reaches its honest failed state and closes the
 session.
 
+## Maintenance report
+
+Run the deterministic, report-only repository audit locally:
+
+```bash
+pnpm maintenance:report
+pnpm maintenance:report --date 2026-07-26
+```
+
+The optional `--date YYYY-MM-DD` adds that date to the report and enables the
+warning for dated quality-score evidence older than 90 days. Without `--date`,
+the report contains no generated timestamp and does not infer staleness from
+the machine clock.
+
+The report lists repository-relative locations, stable category counts, and
+remediation for:
+
+- TODO and FIXME markers;
+- skipped or focused test markers;
+- production source files longer than 500 lines and test files longer than
+  1,000 lines;
+- missing required system-of-record documents and security automation;
+- broken relative Markdown links; and
+- Pending quality-score rows, plus old dated evidence when a date is supplied.
+
+The size thresholds are prompts to inspect cohesion, not reasons to split code
+mechanically. All findings are informational and leave the command successful;
+invalid arguments and unreadable repository roots fail the command. The report
+excludes `.git`, `.next`, `.turbo`, `.worktrees`, `node_modules`, `dist`,
+`coverage`, and `test-results`.
+
+The weekly and manually dispatchable GitHub workflow runs with read-only
+contents permission, installs the locked pnpm dependency graph, writes the
+report to the Actions job summary, and retains the Markdown artifact for three
+days. It cannot create or modify issues, pull requests, or repository contents.
+`pnpm maintenance:report` is intentionally not part of `pnpm verify`.
+
 ## Voice and browser teardown
 
 Every test or manual check that opens a browser, microphone, audio stream, or

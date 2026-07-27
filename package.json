@@ -20,6 +20,7 @@
     "format:check": "prettier --check --ignore-unknown .",
     "docs:check": "node scripts/check-docs.mjs",
     "architecture:check": "node scripts/check-architecture.mjs",
+    "maintenance:report": "node scripts/maintenance-report.mjs",
     "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm architecture:check && pnpm build"
   },
   "devDependencies": {

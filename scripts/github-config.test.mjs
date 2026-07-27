@@ -287,3 +287,61 @@ test("CI runs the isolated browser story after verify and retains only failure e
   );
   assertPinnedAllowedActions(source, workflow);
 });
+
+test("weekly maintenance reporting is read-only, reproducible, and short-lived", async () => {
+  const source = await readRepositoryFile(
+    ".github/workflows/maintenance-report.yml",
+  );
+  const workflow = parseConfiguration(source);
+  const packageJson = JSON.parse(await readRepositoryFile("package.json"));
+  const packageManager = packageJson.packageManager?.match(
+    /^pnpm@(10\.\d+\.\d+)$/,
+  );
+  const schedules = workflow.on?.schedule;
+  const job = workflow.jobs?.report;
+  const steps = job?.steps ?? [];
+  const pnpmStep = steps.find(
+    (step) =>
+      typeof step.uses === "string" &&
+      actionName(step.uses) === "pnpm/action-setup",
+  );
+  const installStep = steps.find((step) => step.run?.includes("pnpm install"));
+  const reportStep = steps.find((step) =>
+    step.run?.includes("pnpm maintenance:report"),
+  );
+  const uploadStep = steps.find(
+    (step) =>
+      typeof step.uses === "string" &&
+      actionName(step.uses) === "actions/upload-artifact",
+  );
+
+  assert.deepEqual(Object.keys(workflow.on ?? {}).sort(), [
+    "schedule",
+    "workflow_dispatch",
+  ]);
+  assert.equal(schedules?.length, 1);
+  assert.match(
+    schedules[0]?.cron ?? "",
+    /^\d{1,2} \d{1,2} \* \* [1-7]$/,
+    "the maintenance workflow must run weekly",
+  );
+  assert.deepEqual(workflow.permissions, { contents: "read" });
+  assert.equal(
+    job?.permissions,
+    undefined,
+    "the report job must not override read-only workflow permissions",
+  );
+  assert.ok(packageManager, "packageManager must declare a stable pnpm 10");
+  assert.equal(String(pnpmStep?.with?.version), packageManager[1]);
+  assert.match(installStep?.run ?? "", /pnpm install --frozen-lockfile/);
+  assert.match(reportStep?.run ?? "", /pnpm maintenance:report --date/);
+  assert.match(reportStep?.run ?? "", /maintenance-report\.md/);
+  assert.match(reportStep?.run ?? "", /GITHUB_STEP_SUMMARY/);
+  assert.equal(uploadStep?.with?.path, "maintenance-report.md");
+  assert.ok(
+    Number.isInteger(uploadStep?.with?.["retention-days"]) &&
+      uploadStep.with["retention-days"] <= 3,
+    "maintenance artifacts must use retention of at most three days",
+  );
+  assertPinnedAllowedActions(source, workflow);
+});
