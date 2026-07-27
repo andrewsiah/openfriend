@@ -388,3 +388,37 @@ Re-query:
 Record exact evidence in `docs/QUALITY_SCORE.md`, mark this plan complete in
 `docs/PLANS.md`, and merge that evidence through the same gate if it requires a
 follow-up commit.
+
+## Completion evidence
+
+Completed on 2026-07-27.
+
+- Pull request [#4](https://github.com/andrewsiah/openfriend/pull/4) merged
+  through active ruleset `19789735` as commit
+  `a64ea88e0b5031f1761669be50c0c87fcb4a2f5f`.
+- Exact pull-request head
+  `0d144103e4ceb37e216739362936323af55dd1c7` passed `verify` run
+  `30246204601`, Dependency Review run `30246204615`, CodeQL run
+  `30246201827`, and Greptile at `5/5`.
+- The active ruleset requires current `verify`, `Greptile Review`, and
+  `Dependency Review` checks from their observed GitHub Apps, requires resolved
+  conversations and current `main`, and has no bypass actors.
+- GitHub vulnerability alerts, automated security fixes, private vulnerability
+  reporting, and CodeQL default setup are enabled in Andrew's personal
+  repository.
+- Five inherited advisories closed after safe dependency floors. One
+  `brace-expansion` advisory remains visible in the development ESLint chain
+  because forcing the incompatible major breaks current plugins; Dependabot
+  updater run `30247197846` independently confirmed that the fixed major is not
+  resolvable through the current dependency graph.
+- Post-merge CI run `30247191259` passed on `main`.
+- Post-merge CodeQL run `30247190869` passed on `main` for Actions,
+  JavaScript/TypeScript, and Swift.
+- The first read-only maintenance dispatch, run `30247210867`, succeeded in 26
+  seconds and produced the expected pure-Markdown summary and artifact.
+- Local completion checks passed: 50 repository tests, 6 contract tests, 60 web
+  tests, 4 deterministic browser stories, typecheck, lint, formatting,
+  documentation, architecture, and production build.
+- A dedicated secret-scanner executable was unavailable. The complete public
+  diff received a targeted credential-pattern inspection; the only token-like
+  value was explicitly synthetic browser-harness data.
