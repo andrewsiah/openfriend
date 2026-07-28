@@ -247,11 +247,8 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = OpenFriendWatch/OpenFriendWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenFriendWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = OpenFriend;
-				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKWatchOnly = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.openfriend.watch;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -270,11 +267,8 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = OpenFriendWatch/OpenFriendWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenFriendWatch/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = OpenFriend;
-				INFOPLIST_KEY_WKApplication = YES;
-				INFOPLIST_KEY_WKWatchOnly = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.openfriend.watch;
 				PRODUCT_NAME = "$(TARGET_NAME)";

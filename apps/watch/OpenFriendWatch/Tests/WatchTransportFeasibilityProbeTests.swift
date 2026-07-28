@@ -1,5 +1,6 @@
 import XCTest
 
+#if DEBUG
 final class WatchTransportFeasibilityProbeTests: XCTestCase {
   @MainActor
   func testAcceptedOrderingOpensWebSocketOnlyAfterAudioStreamingStarts() async throws {
@@ -32,3 +33,4 @@ final class WatchTransportFeasibilityProbeTests: XCTestCase {
     )
   }
 }
+#endif
