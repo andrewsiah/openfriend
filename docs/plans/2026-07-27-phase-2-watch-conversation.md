@@ -398,8 +398,9 @@ transport proof to the integrated physical test in Task 9.
 - [x] The target declares microphone purpose text, the `audio` background
       mode, and the Sign in with Apple entitlement without recording signing
       identifiers or provisioning artifacts.
-- [ ] A generic physical-device build is signed with the authorized personal
-      team and required capabilities.
+- [x] A generic physical-device build is signed with the authorized personal
+      team; codesign verification, the embedded provisioning profile, and the
+      Sign in with Apple entitlement passed on 2026-07-27.
 - [ ] The negative ordering is run on the signed physical Watch.
 - [ ] The accepted ordering streams simultaneous live capture/playback over
       the direct WebSocket on the signed physical Watch.

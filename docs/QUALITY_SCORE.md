@@ -129,17 +129,17 @@ physical Watch network matrix from [TESTING.md](TESTING.md).
 
 ## Phase 2 Watch field-test score
 
-| Dimension             | Target                                                                  | Status  | Evidence                                                                |
-| --------------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------- |
-| Design                | Compare direct WebSocket, relay, and native WebRTC from primary sources | Pending | [Phase 2 design](plans/2026-07-27-phase-2-watch-conversation-design.md) |
-| Implementation plan   | Bite-sized TDD tasks and physical stop gates are reviewed               | Pending | [Phase 2 plan](plans/2026-07-27-phase-2-watch-conversation.md)          |
-| Fable review          | One bounded Fable/high review completes                                 | Pending | Fable 5 usage limit prevented the 2026-07-27 read-only review           |
-| Simulator ordering    | Audio session and stream start before the development socket step       | Passing | Focused Series 11, watchOS 26.5 simulator test on 2026-07-27            |
-| Watch implementation  | Authenticated full-duplex PCM WebSocket session builds and tests        | Pending | Production Watch code has not begun                                     |
-| Signing               | Personal Apple team and required capabilities are verified              | Pending | No signing or provider mutation was performed                           |
-| Physical feasibility  | Active audio permits direct WebSocket and simultaneous capture/playback | Pending | No signed physical-device run has occurred                              |
-| Phone-free field test | Wi-Fi and Watch cellular pass without the paired iPhone data path       | Pending | Physical network matrix has not begun                                   |
-| Loss behavior         | Reconnect, route loss, interruption, lock, and teardown are truthful    | Pending | Physical failure matrix has not begun                                   |
+| Dimension             | Target                                                                  | Status  | Evidence                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Design                | Compare direct WebSocket, relay, and native WebRTC from primary sources | Pending | [Phase 2 design](plans/2026-07-27-phase-2-watch-conversation-design.md)                                                 |
+| Implementation plan   | Bite-sized TDD tasks and physical stop gates are reviewed               | Pending | [Phase 2 plan](plans/2026-07-27-phase-2-watch-conversation.md)                                                          |
+| Fable review          | One bounded Fable/high review completes                                 | Pending | Fable 5 usage limit prevented the 2026-07-27 read-only review                                                           |
+| Simulator ordering    | Audio session and stream start before the development socket step       | Passing | Focused Series 11, watchOS 26.5 simulator test on 2026-07-27                                                            |
+| Watch implementation  | Authenticated full-duplex PCM WebSocket session builds and tests        | Pending | Production Watch code has not begun                                                                                     |
+| Signing               | Personal Apple team and required capabilities are verified              | Passing | Signed generic watchOS build, codesign verification, embedded profile, and Sign in with Apple entitlement on 2026-07-27 |
+| Physical feasibility  | Active audio permits direct WebSocket and simultaneous capture/playback | Pending | No signed physical-device run has occurred                                                                              |
+| Phone-free field test | Wi-Fi and Watch cellular pass without the paired iPhone data path       | Pending | Physical network matrix has not begun                                                                                   |
+| Loss behavior         | Reconnect, route loss, interruption, lock, and teardown are truthful    | Pending | Physical failure matrix has not begun                                                                                   |
 
 Planning documents are not evidence that Watch voice works. A row moves to
 Passing only after its named review, signed build, provider check, or physical
