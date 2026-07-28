@@ -1,27 +1,36 @@
-# OpenFriend Watch foundation
+# OpenFriend Watch foundation and transport feasibility gate
 
-This is an independent, simulator-only SwiftUI skeleton for OpenFriend's
-Watch-first product work. It truthfully presents the current state:
+This is an independent SwiftUI skeleton for OpenFriend's Watch-first product
+work. It truthfully presents the current user-visible state:
 
 - `OpenFriend`
 - `Watch foundation ready`
 - `Voice not connected`
 
-There is no microphone control, audio capture, networking, authentication,
-Realtime session, or background execution in this target.
+There is no microphone control, audio capture, authentication, Realtime
+session, or production networking in this target.
+
+Task 2A now has a `DEBUG`-only sequencing probe. Its focused simulator test
+proves that the development socket-open step is invoked only after audio-session
+activation and audio-stream startup complete. The target also declares the
+minimum local microphone, audio background mode, and Sign in with Apple
+metadata needed for the later signed diagnostic.
+
+The probe does not open a real socket, activate real audio, or authenticate.
+Those operations remain part of the signed physical-Watch hard gate.
 
 ## Local toolchain
 
-Verified on July 26, 2026 with:
+The Task 2A simulator slice was verified on July 27, 2026 with:
 
-- Xcode 26.3 (`17C529`)
-- Apple Swift 6.2.4 (`swiftlang-6.2.4.1.4`)
-- watchOS Simulator SDK 26.2 (`23S303`)
-- Apple Watch SE 3 (40mm), watchOS 26.2 simulator
+- Xcode 26.6 (`17F113`)
+- Apple Swift 6.3.3 (`swiftlang-6.3.3.1.3`)
+- watchOS Simulator SDK 26.5 (`23T570`)
+- Apple Watch Series 11 (46mm), watchOS 26.5 simulator
 
-The test target is hostless and compiles the pure connection-state source
-directly. This keeps the single deterministic state test independent of Watch
-UI lifecycle behavior.
+The test target is hostless and compiles the pure state and ordering sources
+directly. This keeps the two deterministic tests independent of Watch UI
+lifecycle behavior.
 
 ## Test
 
@@ -31,14 +40,13 @@ From the repository root:
 xcodebuild test \
   -project apps/watch/OpenFriendWatch.xcodeproj \
   -scheme OpenFriendWatch \
-  -destination 'platform=watchOS Simulator,name=Apple Watch SE 3 (40mm),OS=26.2' \
+  -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.5' \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-The TDD RED run failed at
-`WatchConnectionState.idle.userVisibleDescription` because
-`WatchConnectionState` did not exist. The same unsigned simulator command
-passed after the idle state was implemented.
+The Task 2A TDD RED run failed because
+`WatchTransportFeasibilityProbe` did not exist. The focused test passed after
+the three ordered development steps were implemented.
 
 ## Build
 
@@ -46,19 +54,19 @@ passed after the idle state was implemented.
 xcodebuild build \
   -project apps/watch/OpenFriendWatch.xcodeproj \
   -scheme OpenFriendWatch \
-  -destination 'platform=watchOS Simulator,name=Apple Watch SE 3 (40mm),OS=26.2' \
+  -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.5' \
   CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Explicit product gate
 
-This skeleton is Phase 0 development readiness, not the Phase 2 Watch
-experience. The browser Realtime contract is now stable and the
+This skeleton plus the ordering probe are development readiness, not the Phase
+2 Watch experience. The browser Realtime contract is now stable and the
 [Phase 2 design](../../docs/plans/2026-07-27-phase-2-watch-conversation-design.md)
 plus
 [TDD implementation plan](../../docs/plans/2026-07-27-phase-2-watch-conversation.md)
-are written. Voice, networking, short-lived authentication, signing, physical
-device deployment, and field-test acceptance remain unimplemented.
+are written. Voice, live networking, short-lived Watch authentication, signed
+physical device deployment, and field-test acceptance remain unimplemented.
 
 The recommended design is conditional on a signed physical Watch proving that
 an active play-and-record audio session permits a direct
