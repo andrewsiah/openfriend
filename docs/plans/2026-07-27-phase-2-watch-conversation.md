@@ -391,6 +391,23 @@ This spike is a hard gate. Run it after the minimal authenticated gateway in
 Tasks 1–2 and before the production Watch client in Tasks 3–8. Do not defer the
 transport proof to the integrated physical test in Task 9.
 
+### Simulator-first progress record — 2026-07-27
+
+- [x] A `DEBUG`-only sequencing probe and focused test enforce audio-session
+      activation and audio-stream startup before the WebSocket-open step.
+- [x] The target declares microphone purpose text, the `audio` background
+      mode, and the Sign in with Apple entitlement without recording signing
+      identifiers or provisioning artifacts.
+- [ ] A generic physical-device build is signed with the authorized personal
+      team and required capabilities.
+- [ ] The negative ordering is run on the signed physical Watch.
+- [ ] The accepted ordering streams simultaneous live capture/playback over
+      the direct WebSocket on the signed physical Watch.
+
+The simulator evidence is scaffolding only. It does not enforce watchOS
+low-level-networking restrictions and does not pass the Task 2A physical
+feasibility gate.
+
 **Files:**
 
 - Create after personal-team confirmation:
