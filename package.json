@@ -24,8 +24,8 @@
     "verify": "pnpm test && pnpm typecheck && pnpm lint && pnpm format:check && pnpm docs:check && pnpm architecture:check && pnpm build"
   },
   "devDependencies": {
-    "prettier": "^3.6.2",
+    "prettier": "^3.9.8",
     "typescript": "^5.9.2",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.1"
   }
 }
